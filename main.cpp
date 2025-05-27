@@ -6,16 +6,22 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/26 21:57:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/05/26 23:08:25 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/05/27 18:00:02 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "my_irc.hpp"
 #include <iostream>
 #include <sys/socket.h>
+#include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <climits>
+#include <unistd.h>
+#include <cstring>
 
+# define PURPLE	"\001\033[1;38;2;209;174;231m\002"
+# define GREY	"\001\033[1;37m\002"
 # define RED	"\001\033[1;31m\002"
 # define R		"\001\033[1;00m\002"
 
@@ -44,6 +50,8 @@ int main(int ac, char **av)
 
 void	server()
 {
+	std::cout << GREY "Acting as server" R << std::endl;
+
 	//Initiate port
 	int port = 4242;
 
@@ -57,20 +65,45 @@ void	server()
 	address.sin_addr.s_addr = inet_addr("localhost");
 	address.sin_port = htons(port);
 
-	(void)address;
-	(void)server_fd;
+	struct sockaddr *simple_addr = (struct sockaddr *)&address;
+
 	//bind host to port
+	if (bind(server_fd, simple_addr, sizeof(address)) < 0)
+		throw (std::runtime_error("Server binding failed"));
+
 	//determine how many clients can the server listen to at the same time
+	if (listen(server_fd, 10) < 0)
+		throw (std::runtime_error("Server fails to listen"));
 
 	//accept new connection
+	int connected_socket = accept(server_fd, simple_addr, (socklen_t *)sizeof(address));
+	if (connected_socket < 0)
+		throw (std::runtime_error("Server failed to accept connection"));
+
 	//loop to receive data
-		//print whatever's received to stdout
-		//send data to client
+	void *buff;
+	while (true)
+	{
+		memset(buff, 0, sizeof(&buff));
+		int bytes_read = recv(connected_socket, buff, INT_MAX, 0);
+		if (bytes_read && !strcmp((char *)buff, "exit"))
+			break;
+		if (bytes_read)
+		{
+			std::cout << PURPLE "> Client: " R << buff << std::endl;
+			send(connected_socket, buff, bytes_read, 0);
+		}
+	}
+
 	//close connection
+	close(connected_socket);
+	close(server_fd);
 }
 
 void	client()
 {
+	std::cout << GREY "Connecting as client" R << std::endl;
+
 	//initiate port
 	int port = 4242;
 
@@ -85,13 +118,33 @@ void	client()
 	address.sin_addr.s_addr = inet_addr("127.0.0.1");
 	address.sin_port = htons(port);
 
-	(void)address;
-	(void)client_fd;
+	struct sockaddr *simple_addr = (struct sockaddr *)&address;
 
-	//take input
-	//loop till
-		//send message to socket
-		//receive response
-		//print to stdout
+	//Connect to server
+	if (connect(client_fd, simple_addr, sizeof(address)) < 0)
+		throw (std::runtime_error("Client failed to connect to server"));
+
+	//take input + send
+	char buff[1000];
+	while (true)
+	{
+		std::cout << "> ";
+		std::string input;
+		getline(std::cin, input);
+
+		if (!input.empty())
+		{
+			send(client_fd, input.c_str(), input.size(), 0);
+			int bytes = recv(client_fd, buff, 1000, 0);
+			if (bytes)
+				std::cout << buff << std::endl;
+			memset(buff, 0, bytes);
+		}
+
+		if (input == "exit")
+			break;
+	}
+
 	//close connection
+	close(client_fd);
 }
