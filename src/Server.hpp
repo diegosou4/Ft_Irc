@@ -3,23 +3,26 @@
 #include <exception>
 
 #include <string>
+#include <netinet/in.h>
 #include "../includes/irc.hpp"
 
 class Server{
     private:
-        struct sockaddr_in _address;
-        struct sockaddr *_simple_addr;
+        struct sockaddr_in _server_adress;
+        struct sockadd   *_simple_server;
         int _opt;
-        char* _port;
-        char* _host;
-        char* _password;
+        std::string _port;
+        std::string _host;
+        std::string _password;
         int _server_fd;
-        int _connected_socket;
+        void setServer_Adress();
     public:
         ~Server();
         Server();
-        Server(char* host, char*port,char* password);
+
+        Server(std::string host, std::string port,std::string password);
         void init();
+        void run();
         class ParseError : public std::exception
         {
             public:
@@ -31,8 +34,7 @@ class Server{
                 const char* what() const throw();
         };
         int getServerFd() const;
-        sockaddr_in getAdress() const;
-        int getConnectedSocket() const;
+
 };
 
 #endif
