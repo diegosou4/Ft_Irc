@@ -8,8 +8,7 @@ Server::~Server(){
     std::cout << "Default Destructor" << std::endl;
 }
 
-Server::Server()
-    : _opt(1), _server_fd(-1), _host("127.0.0.1"), _port("6667"), _password("")
+Server::Server(): _opt(1), _server_fd(-1), _host("127.0.0.1"), _port("6667"), _password("")
 {
     memset(&_server_adress, 0, sizeof(_server_adress));
 }
