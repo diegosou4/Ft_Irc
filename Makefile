@@ -9,7 +9,7 @@ NAME = FT_IRC
 CXX = c++ -g
 CXXFLAGS = -std=c++98  
 
-SRC = main.cpp ./src/Server.cpp
+SRC = main.cpp ./src/Server.cpp ./src/Client.cpp
 
 OBJ = $(SRC:.cpp=.o)
 
