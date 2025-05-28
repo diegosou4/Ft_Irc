@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/26 21:57:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/05/27 18:47:30 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/05/28 18:22:14 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include <climits>
 #include <unistd.h>
 #include <cstring>
+#include <poll.h>
 
 # define PURPLE	"\001\033[1;38;2;209;174;231m\002"
 # define GREY	"\001\033[1;37m\002"
@@ -86,28 +87,59 @@ void	server(int &server_fd)
 	if (listen(server_fd, 10) < 0)
 		throw (std::runtime_error("Server fails to listen"));
 
-	//accept new connection
-	int connected_socket = accept(server_fd, simple_addr, &addrlen);
-	if (connected_socket < 0)
-		throw (std::runtime_error("Server failed to accept connection"));
+	//prepare poll structure
+	struct pollfd connected_sockets[42];
+	int slots_taken = 1;
+	connected_sockets[0].fd = server_fd;
+	connected_sockets[0].events = POLLIN;
 
-	//loop to receive data
-	char buff[1000];
+	//accept new connection
 	while (true)
 	{
-		memset(buff, 0, 1000);
-		int bytes_read = recv(connected_socket, buff, 1000, 0);
-		if (bytes_read && !strcmp((char *)buff, "exit"))
-			break;
-		if (bytes_read)
+		slots_taken += poll(connected_sockets, 42, SO_REUSEADDR);
+		if (slots_taken < 1)
+			throw (std::runtime_error("Poll failed"));
+
+		if (connected_sockets[0].revents && POLLIN)
 		{
-			std::cout << PURPLE "> Client: " R << buff << std::endl;
-			send(connected_socket, buff, bytes_read, 0);
+			connected_sockets[slots_taken -1].fd = accept(server_fd, simple_addr, &addrlen);
+			if (connected_sockets[slots_taken -1].fd < 0)
+				throw (std::runtime_error("Server failed to accept connection"));
+			if (slots_taken >= 41)
+			{
+				close(connected_sockets[slots_taken -1].fd);
+				std::cout << RED "Max clients reached" R << std::endl;
+			}
+			else
+			{
+				connected_sockets[slots_taken -1].events = POLLIN;
+				std::cout << GREY "New client connected" R << std::endl;
+			}
+
+			for (int i = 1; i < slots_taken; i++)
+			{
+				if (connected_sockets[i].revents && POLLIN)
+				{
+					char buff[1000];
+					memset(buff, 0, 1000);
+					int bytes_read = recv(connected_sockets[i -1].fd, buff, 1000, 0);
+					if (bytes_read <=0 || !strcmp((char *)buff, "exit"))
+						break;
+					if (bytes_read)
+					{
+						std::cout << PURPLE "> Client " << i << ": " R << buff << std::endl;
+						send(connected_sockets[i].fd, buff, bytes_read, 0);
+					}
+				}
+				close(connected_sockets[i].fd);
+				for (int j = i; j < slots_taken -1; j++)
+					connected_sockets[j] = connected_sockets[j +1];
+				slots_taken--;
+				i--;
+			}
 		}
 	}
-
 	//close connection
-	close(connected_socket);
 	close(server_fd);
 }
 
