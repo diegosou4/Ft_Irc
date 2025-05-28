@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/26 21:57:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/05/28 18:22:14 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/05/28 21:11:07 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,16 +93,18 @@ void	server(int &server_fd)
 	connected_sockets[0].fd = server_fd;
 	connected_sockets[0].events = POLLIN;
 
+
 	//accept new connection
 	while (true)
 	{
-		slots_taken += poll(connected_sockets, 42, SO_REUSEADDR);
-		if (slots_taken < 1)
+		if (poll(connected_sockets, 42, -1) < 0)
 			throw (std::runtime_error("Poll failed"));
 
-		if (connected_sockets[0].revents && POLLIN)
+		if (connected_sockets[0].revents & POLLIN)
 		{
+			slots_taken++;
 			connected_sockets[slots_taken -1].fd = accept(server_fd, simple_addr, &addrlen);
+
 			if (connected_sockets[slots_taken -1].fd < 0)
 				throw (std::runtime_error("Server failed to accept connection"));
 			if (slots_taken >= 41)
@@ -115,27 +117,30 @@ void	server(int &server_fd)
 				connected_sockets[slots_taken -1].events = POLLIN;
 				std::cout << GREY "New client connected" R << std::endl;
 			}
+		}
 
-			for (int i = 1; i < slots_taken; i++)
+		for (int i = 1; i < slots_taken; i++)
+		{
+			if (connected_sockets[i].revents & POLLIN)
 			{
-				if (connected_sockets[i].revents && POLLIN)
+				std::cout << "SEEN" << std::endl;
+				char buff[1000];
+				memset(buff, 0, 1000);
+				int bytes_read = recv(connected_sockets[i].fd, buff, 1000, 0);
+				if (bytes_read <=0 || strcmp(buff, "exit") == 0)
 				{
-					char buff[1000];
-					memset(buff, 0, 1000);
-					int bytes_read = recv(connected_sockets[i -1].fd, buff, 1000, 0);
-					if (bytes_read <=0 || !strcmp((char *)buff, "exit"))
-						break;
-					if (bytes_read)
-					{
-						std::cout << PURPLE "> Client " << i << ": " R << buff << std::endl;
-						send(connected_sockets[i].fd, buff, bytes_read, 0);
-					}
+					close(connected_sockets[i].fd);
+					std::cout << PURPLE "> Client " << i << " has left" R << std::endl;
+					for (int j = i; j < slots_taken -1; j++)
+						connected_sockets[j] = connected_sockets[j +1];
+					slots_taken--;
+					i--;
 				}
-				close(connected_sockets[i].fd);
-				for (int j = i; j < slots_taken -1; j++)
-					connected_sockets[j] = connected_sockets[j +1];
-				slots_taken--;
-				i--;
+				else
+				{
+					std::cout << PURPLE "> Client " << i << ": " R << buff << std::endl;
+					send(connected_sockets[i].fd, buff, bytes_read, 0);
+				}
 			}
 		}
 	}
