@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/26 21:58:18 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/05/29 11:12:21 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/05/29 22:50:09 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,21 +16,15 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <poll.h>
 
 # define GREY	"\001\033[1;37m\002"
+#define RED	"\001\033[1;31m\002"
 # define R		"\001\033[1;00m\002"
-
-/* class Server
-{
-	public:
-
-	private:
-}; */
 
 class Client
 {
 	public:
-		Client();
 		Client(int fd);
 		~Client(); // make it close here
 
@@ -38,6 +32,7 @@ class Client
 		int fd;
 		struct sockaddr_in	addr;
 		struct sockaddr		*gen_addr;
+		socklen_t			addrlen;
 
 		//Personal data to add:
 		/* std::string name;
@@ -46,4 +41,17 @@ class Client
 		//attribute for which channels it's in?
 };
 
+class Server
+{
+	public:
+		Server(Client &client, int timeout);
+		~Server();
 
+		void	setServer(int clients_nb);
+		void	getInput(int clients_nb, int timeout);
+
+		Client &client;
+		int fd;
+		int	openfds;
+		struct pollfd *fds;
+};

@@ -6,20 +6,12 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/26 21:57:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/05/29 11:16:01 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/05/29 22:56:09 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "classes.hpp"
-#include <iostream>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <climits>
-#include <unistd.h>
 #include <cstring>
-#include <poll.h>
 
 #define PURPLE	"\001\033[1;38;2;209;174;231m\002"
 #define BLUE	"\001\033[1;38;2;147;222;255m\002"
@@ -29,6 +21,9 @@
 
 #define PORT		4242
 #define LOCALHOST	"127.0.0.1"
+#define BUFFSIZE	1000
+#define MAX_CLIENTS	10
+#define TIMEOUT		-1
 
 void	server(int &server_fd);
 void	client();
@@ -60,92 +55,41 @@ void	server(int &server_fd)
 {
 	std::cout << BLUE "Acting as server" R << std::endl;
 
-	//Initiate port
-	int port = 4242;
+	Client machine(socket(AF_INET, SOCK_STREAM, 0));
+	machine.setConnect(AF_INET, LOCALHOST, PORT);
 
-	// Create socket
-	server_fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (server_fd < 0)
-		throw (std::runtime_error("Server socket creation failed"));
+	Server server(machine, TIMEOUT);
+	server.setServer(MAX_CLIENTS);
 
-	struct sockaddr_in address;
-	address.sin_family = AF_INET;
-	address.sin_addr.s_addr = inet_addr("127.0.0.1");
-	address.sin_port = htons(port);
-
-	struct sockaddr *simple_addr = (struct sockaddr *)&address;
-	socklen_t addrlen = sizeof(address);
-
-	//Remove timeout in case of unexpected exit
-	int opt = 1;
-	setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-
-	//bind host to port
-	if (bind(server_fd, simple_addr, addrlen) < 0)
-		throw (std::runtime_error("Server binding failed"));
-
-	//determine how many clients can the server listen to at the same time
-	if (listen(server_fd, 10) < 0)
-		throw (std::runtime_error("Server fails to listen"));
-
-	//prepare poll structure
-	struct pollfd connected_sockets[42];
-	int slots_taken = 1;
-	connected_sockets[0].fd = server_fd;
-	connected_sockets[0].events = POLLIN;
-
-
-	//accept new connection
 	while (true)
 	{
-		if (poll(connected_sockets, 42, -1) < 0)
-			throw (std::runtime_error("Poll failed"));
+		server.getInput(MAX_CLIENTS, TIMEOUT);
 
-		if (connected_sockets[0].revents & POLLIN)
+		for (int i = 1; i < server.openfds; i++)
 		{
-			slots_taken++;
-			connected_sockets[slots_taken -1].fd = accept(server_fd, simple_addr, &addrlen);
-
-			if (connected_sockets[slots_taken -1].fd < 0)
-				throw (std::runtime_error("Server failed to accept connection"));
-			if (slots_taken >= 41)
+			if (server.fds[i].revents & POLLIN)
 			{
-				close(connected_sockets[slots_taken -1].fd);
-				std::cout << RED "Max clients reached" R << std::endl;
-			}
-			else
-			{
-				connected_sockets[slots_taken -1].events = POLLIN;
-				std::cout << GREY "New client connected" R << std::endl;
-			}
-		}
-
-		for (int i = 1; i < slots_taken; i++)
-		{
-			if (connected_sockets[i].revents & POLLIN)
-			{
-				std::cout << "SEEN" << std::endl;
-				char buff[1000];
-				memset(buff, 0, 1000);
-				int bytes_read = recv(connected_sockets[i].fd, buff, 1000, 0);
+				char buff[BUFFSIZE];
+				memset(buff, 0, BUFFSIZE);
+				int bytes_read = recv(server.fds[i].fd, buff, BUFFSIZE, 0);
 				if (bytes_read <=0 || strcmp(buff, "exit") == 0)
 				{
-					close(connected_sockets[i].fd);
+					close(server.fds[i].fd);
 					std::cout << PURPLE "> Client " << i << " has left" R << std::endl;
-					for (int j = i; j < slots_taken -1; j++)
-						connected_sockets[j] = connected_sockets[j +1];
-					slots_taken--;
+					for (int j = i; j < server.openfds -1; j++)
+						server.fds[j] = server.fds[j +1];
+					server.openfds--;
 					i--;
 				}
 				else
 				{
 					std::cout << PURPLE "> Client " << i << ": " R << buff << std::endl;
-					send(connected_sockets[i].fd, buff, bytes_read, 0);
+					send(server.fds[i].fd, buff, bytes_read, 0);
 				}
 			}
 		}
 	}
-	//close connection
+
 	close(server_fd);
 }
 
@@ -162,7 +106,7 @@ void	client()
 		throw (std::runtime_error("Client failed to connect to server"));
 
 	//take input + send
-	char buff[1000];
+	char buff[BUFFSIZE];
 	while (true)
 	{
 		std::cout << "> ";
