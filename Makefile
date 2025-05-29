@@ -6,14 +6,14 @@
 #    By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/05/26 21:49:04 by cbouvet           #+#    #+#              #
-#    Updated: 2025/05/26 23:06:58 by cbouvet          ###   ########.fr        #
+#    Updated: 2025/05/29 11:11:06 by cbouvet          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = my_irc
 CXX = @c++
 CXX_FLAGS = -Werror -Wall -Wextra -std=c++98
-SRC = main.cpp
+SRC = main.cpp classes.cpp
 OBJ = $(SRC:.cpp=.o)
 
 all: $(NAME)

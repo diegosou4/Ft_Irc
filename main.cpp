@@ -6,11 +6,11 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/26 21:57:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/05/28 21:11:07 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/05/29 11:16:01 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "my_irc.hpp"
+#include "classes.hpp"
 #include <iostream>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -21,24 +21,27 @@
 #include <cstring>
 #include <poll.h>
 
-# define PURPLE	"\001\033[1;38;2;209;174;231m\002"
-# define GREY	"\001\033[1;37m\002"
-# define RED	"\001\033[1;31m\002"
-# define R		"\001\033[1;00m\002"
+#define PURPLE	"\001\033[1;38;2;209;174;231m\002"
+#define BLUE	"\001\033[1;38;2;147;222;255m\002"
+#define GREY	"\001\033[1;37m\002"
+#define RED	"\001\033[1;31m\002"
+#define R		"\001\033[1;00m\002"
+
+#define PORT		4242
+#define LOCALHOST	"127.0.0.1"
 
 void	server(int &server_fd);
-void	client(int &client_fd);
+void	client();
 
 int main(int ac, char **av)
 {
 	int server_fd = -1;
-	int client_fd = -1;
 	try
 	{
 		if (ac != 2)
 			throw (std::runtime_error("Arg number wrong"));
 		if (std::string(av[1]) == "client")
-			client(client_fd);
+			client();
 		else if (std::string(av[1]) == "server")
 			server(server_fd);
 		else
@@ -48,8 +51,6 @@ int main(int ac, char **av)
 	{
 		if (server_fd > 0)
 			close(server_fd);
-		if (client_fd > 0)
-			close(client_fd);
 		std::cerr << RED << e.what() << R << std::endl;
 	}
 
@@ -57,7 +58,7 @@ int main(int ac, char **av)
 
 void	server(int &server_fd)
 {
-	std::cout << GREY "Acting as server" R << std::endl;
+	std::cout << BLUE "Acting as server" R << std::endl;
 
 	//Initiate port
 	int port = 4242;
@@ -148,28 +149,16 @@ void	server(int &server_fd)
 	close(server_fd);
 }
 
-void	client(int &client_fd)
+void	client()
 {
-	std::cout << GREY "Connecting as client" R << std::endl;
+	std::cout << BLUE "Selected: client connection" R << std::endl;
 
-	//initiate port
-	int port = 4242;
-
-	//instantiate socket
-	client_fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (client_fd < 0)
-		throw (std::runtime_error("Client socket creation failed"));
-
-	//connect to server
-	struct sockaddr_in address;
-	address.sin_family = AF_INET;
-	address.sin_addr.s_addr = inet_addr("127.0.0.1");
-	address.sin_port = htons(port);
-
-	struct sockaddr *simple_addr = (struct sockaddr *)&address;
+	//instantiate sclient
+	Client	client(socket(AF_INET, SOCK_STREAM, 0));
+	client.setConnect(AF_INET, LOCALHOST, PORT);
 
 	//Connect to server
-	if (connect(client_fd, simple_addr, sizeof(address)) < 0)
+	if (connect(client.fd, client.gen_addr, sizeof(client.addr)) < 0)
 		throw (std::runtime_error("Client failed to connect to server"));
 
 	//take input + send
@@ -182,8 +171,8 @@ void	client(int &client_fd)
 
 		if (!input.empty())
 		{
-			send(client_fd, input.c_str(), input.size(), 0);
-			int bytes = recv(client_fd, buff, 1000, 0);
+			send(client.fd, input.c_str(), input.size(), 0);
+			int bytes = recv(client.fd, buff, 1000, 0);
 			if (bytes)
 				std::cout << GREY "sent" R << std::endl;
 			memset(buff, 0, bytes);
@@ -192,7 +181,4 @@ void	client(int &client_fd)
 		if (input == "exit")
 			break;
 	}
-
-	//close connection
-	close(client_fd);
 }
