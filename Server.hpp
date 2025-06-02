@@ -1,0 +1,74 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Server.hpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
+/*   Updated: 2025/06/02 21:43:33 by cbouvet          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#pragma once
+
+#include <iostream>
+#include <vector>
+#include <map>
+#include <poll.h>
+#include <netinet/in.h>
+#include "classes.hpp"
+
+#define PURPLE	"\001\033[1;38;2;209;174;231m\002"
+#define BLUE	"\001\033[1;38;2;147;222;255m\002"
+#define GREY	"\001\033[1;37m\002"
+#define RED		"\001\033[1;31m\002"
+#define R		"\001\033[1;00m\002"
+
+class Server
+{
+	private:
+		int	_fd;
+		int	_port;
+		std::string	_ip;
+
+		bool _active;
+		struct sockaddr_in	_addr;
+
+		std::vector<struct pollfd>	fds;
+		std::map<int, Client>	clients;
+
+		//bool signal?
+		//std::string password?
+		//std::map<std::string, Channel> _channels?
+
+	public:
+		Server(int port, std::string ip); // create fd socket here
+		~Server();
+
+		int getFd()const;
+		int	getPort()const;
+		std::string	getIp()const;
+		Client &getClient(int fd);
+
+		void	initServer(int max_fds);
+		void	readClient(int max_fds, int timeout);
+		void	treatMsg(int buffsize);
+
+		void	removeClient(int fd);
+
+		bool	isActive();
+		bool	hasClient();
+
+	private:
+		Server(Server const &src); //-> ensure compilation error
+		Server	&operator=(Server const &src); //-> ensure compilation error
+
+		void	setSocket();
+		void	pollErr(); //unsure yet
+		void	pollUp(); //unsure yet
+
+		void	sendMsg(std::string &msg); //unsure
+		void	acceptClient(int fd); //unsure
+		void	removeClient(int fd); //unsure
+};
