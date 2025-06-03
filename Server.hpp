@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/02 21:43:33 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/03 22:09:15 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,8 +35,8 @@ class Server
 		bool _active;
 		struct sockaddr_in	_addr;
 
-		std::vector<struct pollfd>	fds;
-		std::map<int, Client>	clients;
+		std::vector<struct pollfd>	_fds;
+		std::map<int, Client>	_clients;
 
 		//bool signal?
 		//std::string password?
