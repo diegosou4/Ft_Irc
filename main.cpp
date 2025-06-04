@@ -6,11 +6,12 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/26 21:57:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/05/29 22:56:09 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/04 17:40:50 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "classes.hpp"
+#include "Server.hpp"
 #include <cstring>
 
 #define PURPLE	"\001\033[1;38;2;209;174;231m\002"
@@ -53,44 +54,14 @@ int main(int ac, char **av)
 
 void	server(int &server_fd)
 {
-	std::cout << BLUE "Acting as server" R << std::endl;
-
-	Client machine(socket(AF_INET, SOCK_STREAM, 0));
-	machine.setConnect(AF_INET, LOCALHOST, PORT);
-
-	Server server(machine, TIMEOUT);
-	server.setServer(MAX_CLIENTS);
+	Server server(PORT, LOCALHOST);
+	server.initServer(MAX_CLIENTS);
 
 	while (true)
 	{
-		server.getInput(MAX_CLIENTS, TIMEOUT);
-
-		for (int i = 1; i < server.openfds; i++)
-		{
-			if (server.fds[i].revents & POLLIN)
-			{
-				char buff[BUFFSIZE];
-				memset(buff, 0, BUFFSIZE);
-				int bytes_read = recv(server.fds[i].fd, buff, BUFFSIZE, 0);
-				if (bytes_read <=0 || strcmp(buff, "exit") == 0)
-				{
-					close(server.fds[i].fd);
-					std::cout << PURPLE "> Client " << i << " has left" R << std::endl;
-					for (int j = i; j < server.openfds -1; j++)
-						server.fds[j] = server.fds[j +1];
-					server.openfds--;
-					i--;
-				}
-				else
-				{
-					std::cout << PURPLE "> Client " << i << ": " R << buff << std::endl;
-					send(server.fds[i].fd, buff, bytes_read, 0);
-				}
-			}
-		}
+		server.readClient(MAX_CLIENTS, TIMEOUT);
+		server.treatMsg(BUFFSIZE);
 	}
-
-	close(server_fd);
 }
 
 void	client()

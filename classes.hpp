@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/26 21:58:18 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/05/29 22:50:09 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/04 17:41:18 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,19 +39,4 @@ class Client
 		std::string nickname;
 		std::string password; */
 		//attribute for which channels it's in?
-};
-
-class Server
-{
-	public:
-		Server(Client &client, int timeout);
-		~Server();
-
-		void	setServer(int clients_nb);
-		void	getInput(int clients_nb, int timeout);
-
-		Client &client;
-		int fd;
-		int	openfds;
-		struct pollfd *fds;
 };

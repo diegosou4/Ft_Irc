@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/04 16:30:36 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/04 17:36:46 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,14 +65,22 @@ class Server
 		bool	hasClient();
 
 	private:
-		Server(Server const &src); //-> ensure compilation error
-		Server	&operator=(Server const &src); //-> ensure compilation error
+		Server(Server const &src);
+		Server	&operator=(Server const &src);
 
-		void	setSocket();
-		void	pollErr(); //unsure yet
-		void	pollUp(); //unsure yet
+		void	setSocket(in_port_t port, in_addr_t ip);
+		void	pollErr();
+		void	pollUp();
 
-		void	sendMsg(std::string &msg); //unsure
+		void	broadcast(std::string &msg);
 		void	acceptClient(int fd); //unsure
-		void	removeClient(int fd); //unsure
 };
+
+//To add:
+// broadcast mechanism for server/wide messages
+// buffer overflow protection? Is it really needed tho?
+// logging system
+// client authentication system
+//Add signal handling (e.g., SIGINT) to gracefully shut down.
+//Track client metadata: nickname, state, etc.
+//Handle POLLERR, POLLHUP, POLLNVAL in treatMsg() or a central poll() result handler.
