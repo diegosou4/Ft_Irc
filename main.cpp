@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/26 21:57:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/04 17:40:50 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/04 17:43:43 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,12 +26,11 @@
 #define MAX_CLIENTS	10
 #define TIMEOUT		-1
 
-void	server(int &server_fd);
+void	server();
 void	client();
 
 int main(int ac, char **av)
 {
-	int server_fd = -1;
 	try
 	{
 		if (ac != 2)
@@ -39,20 +38,18 @@ int main(int ac, char **av)
 		if (std::string(av[1]) == "client")
 			client();
 		else if (std::string(av[1]) == "server")
-			server(server_fd);
+			server();
 		else
 			throw (std::runtime_error("Wrong arg"));
 	}
 	catch (std::exception &e)
 	{
-		if (server_fd > 0)
-			close(server_fd);
 		std::cerr << RED << e.what() << R << std::endl;
 	}
 
 }
 
-void	server(int &server_fd)
+void	server()
 {
 	Server server(PORT, LOCALHOST);
 	server.initServer(MAX_CLIENTS);

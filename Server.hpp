@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/04 17:36:46 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/04 17:45:19 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ class Server
 		Client &getClient(int fd);
 
 		void	initServer(int max_fds);
-		void	readClient(int max_fds, int timeout);
+		void	readClient(size_t max_fds, int timeout);
 		void	treatMsg(int buffsize);
 
 		void	removeClient(pollfd_iter it);

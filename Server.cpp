@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/04 17:34:57 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/04 17:48:47 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,7 +80,7 @@ void	Server::initServer(int max_fds)
 	this->_active = true;
 }
 
-void	Server::readClient(int max_fds, int timeout)
+void	Server::readClient(size_t max_fds, int timeout)
 {
 	if (poll(&this->_fds[0], max_fds, timeout) < 0)
 		throw (std::runtime_error("Poll failed"));
@@ -108,7 +108,7 @@ void	Server::treatMsg(int buffsize)
 	char buff[buffsize];
 	pollfd_iter it = this->_fds.begin();
 
-	for (it; it != this->_fds.end(); ++it)
+	for (; it != this->_fds.end(); ++it)
 	{
 		if (it->revents & POLLIN)
 		{
@@ -147,11 +147,15 @@ bool	Server::hasClient()
 Server::Server(Server const &src)
 {
 	throw (std::runtime_error("Copy constructor not allowed!"));
+	(void)src;
 }
 
 Server	&Server::operator=(Server const &src)
 {
 	throw (std::runtime_error("Assignment operator not allowed!"));
+
+	(void)src;
+	return (*this);
 }
 
 void	Server::setSocket(in_port_t port, in_addr_t ip)
@@ -183,10 +187,12 @@ void	Server::pollUp()
 
 void	Server::broadcast(std::string &msg)
 {
+	(void)msg;
 	//Use to broadcast to all clients
 } //unsure
 
 void	Server::acceptClient(int fd)
 {
+	(void)fd;
 	//This was recommended but since it's only 1 function for send, I'm unsure yet how useful this is
 }
