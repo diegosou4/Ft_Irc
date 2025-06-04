@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/03 22:09:15 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/04 16:30:36 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,9 +34,13 @@ class Server
 
 		bool _active;
 		struct sockaddr_in	_addr;
+		struct sockaddr *_gen_addr;
+		socklen_t		_addrlen;
 
 		std::vector<struct pollfd>	_fds;
 		std::map<int, Client>	_clients;
+
+		typedef std::vector<struct pollfd>::iterator pollfd_iter;
 
 		//bool signal?
 		//std::string password?
@@ -55,7 +59,7 @@ class Server
 		void	readClient(int max_fds, int timeout);
 		void	treatMsg(int buffsize);
 
-		void	removeClient(int fd);
+		void	removeClient(pollfd_iter it);
 
 		bool	isActive();
 		bool	hasClient();
