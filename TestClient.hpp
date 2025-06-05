@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/05 13:15:44 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/05 13:54:41 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/05 19:28:10 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ class TestClient
 		std::string getIp()const;
 
 		void connectClient();
-		uint32_t sendMsg(int buffsize);
+		void sendMsg(int buffsize);
 
 	private:
 		TestClient(TestClient const &src);

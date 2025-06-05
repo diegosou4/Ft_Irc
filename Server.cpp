@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/05 14:07:49 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/05 20:57:42 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,17 +73,18 @@ void	Server::initServer(int max_fds)
 	if (listen(this->_fd, max_fds) < 0)
 		throw(std::runtime_error("Server fails to listen"));
 
-	struct pollfd servpollfd;
-	servpollfd.fd = this->_fd;
-	servpollfd.events = POLLIN;
-	this->_fds.push_back(servpollfd);
+	struct pollfd servpoll = {};
+	servpoll.fd = this->_fd;
+	servpoll.events = POLLIN;
+	servpoll.revents = 0;
+	this->_fds.push_back(servpoll);
 
 	this->_active = true;
 }
 
 void	Server::readClient(size_t max_fds, int timeout)
 {
-	if (poll(&this->_fds[0], this->_fds.size(), timeout) < 0)
+	if (poll(this->_fds.data(), this->_fds.size(), timeout) < 0)
 		throw (std::runtime_error("Poll failed"));
 
 	if (this->_fds[0].revents & POLLIN)
@@ -93,6 +94,7 @@ void	Server::readClient(size_t max_fds, int timeout)
 
 		struct pollfd newpoll = {};
 		newpoll.events = POLLIN;
+		newpoll.revents = 0;
 		newpoll.fd = accept(this->_fd, this->_gen_addr, &this->_addrlen);
 		if (newpoll.fd < 0)
 			throw (std::runtime_error("Server failed to accept client connection"));
@@ -104,37 +106,56 @@ void	Server::readClient(size_t max_fds, int timeout)
 	}
 }
 
-void	Server::treatMsg(int buffsize)
+void	Server::treatMsg(int buffsize, int timeout)
 {
 	char buff[buffsize];
+
+	if (this->_fds.size() <= 1)
+		return ;
+
 	pollfd_iter it = this->_fds.begin() +1;
+
+	/* if (poll(this->_fds.data(), this->_fds.size(), timeout) < 0)
+		throw (std::runtime_error("Poll failed")); */
+		(void)timeout;
 
 	for (; it != this->_fds.end(); ++it)
 	{
 		if (it->revents & POLLIN)
 		{
-			std::cout << "iui" << std::endl;
 			memset(buff, 0, buffsize);
-			std::cout << PURPLE "> Client " << it->fd << ": " R << buff << std::endl;
+			std::cout << PURPLE "> Client " << it->fd << ": " R << std::endl;
 
 			int bytes_read = recv(it->fd, buff, buffsize, 0);
+			std::cout << "Debug - bytes_read: " << bytes_read << std::endl;
 			if (bytes_read <= 0)
-				this->removeClient(--it);
+			{
+				 perror("recv error");
+				 it = this->removeClient(it);
+			}
 			else
+			{
+				std::cout << buff << std::endl;
 				send(it->fd, buff, bytes_read, 0);
+			}
 		}
+		if (it->revents & POLLERR)
+			it = this->removeClient(it);
+		it->revents = 0;
 	}
 }
 
-void	Server::removeClient(pollfd_iter it)
+typename Server::pollfd_iter	&Server::removeClient(pollfd_iter &it)
 {
-	std::cout << "removal triggered" << std::endl;
+	pollfd_iter tmp = it;
 	it++;
-	this->_clients.erase(it->fd);
-	close(it->fd);
-	this->_fds.erase(it);
+	this->_clients.erase(tmp->fd);
+	close(tmp->fd);
+	this->_fds.erase(tmp);
 
-	std::cout << PURPLE " has left" R << std::endl;
+	std::cout << "has left" << std::endl;
+
+	return (it);
 }
 
 bool	Server::isActive()
