@@ -73,3 +73,8 @@ void Client::userInfo() const{
     std::cout << "User name:" << _User_name << std::endl;
     std::cout << "Ip:" << _Ip_address << std::endl;
 }
+
+
+bool Client::isRegisted() const {
+    return _isRegisted;
+}

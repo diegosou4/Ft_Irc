@@ -6,7 +6,7 @@ NC = \033[0m
 
 
 NAME = FT_IRC
-CXX = c++ -g
+CXX = g++ -g
 CXXFLAGS = -std=c++98  
 
 SRC = main.cpp ./src/Server.cpp ./src/Client.cpp

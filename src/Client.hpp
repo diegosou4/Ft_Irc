@@ -40,7 +40,7 @@ class Client {
         std::string getIpAddress() const;
         std::string getLastLogin() const;
         std::string getPassword() const;
-
+        bool isRegisted() const;
     
         // Utils Fuctions
         void WelcomeToIrc() const;
