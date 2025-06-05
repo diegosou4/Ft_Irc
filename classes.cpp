@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/29 10:44:44 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/04 17:41:06 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/05 11:25:55 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,9 @@ Client::~Client()
 	if (this->fd >= 0)
 		close(this->fd);
 }
+
+Client::Client()
+{}
 
 void	Client::setConnect(sa_family_t family, std::string ip, int port)
 {

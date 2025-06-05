@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/26 21:57:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/04 17:43:43 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/05 11:59:49 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@
 
 #define PORT		4242
 #define LOCALHOST	"127.0.0.1"
+#define SERVER_ADDR	"0.0.0.0"
 #define BUFFSIZE	1000
 #define MAX_CLIENTS	10
 #define TIMEOUT		-1
@@ -51,10 +52,12 @@ int main(int ac, char **av)
 
 void	server()
 {
-	Server server(PORT, LOCALHOST);
+	std::cout << BLUE "Acting as server" R << std::endl;
+
+	Server server(PORT, SERVER_ADDR);
 	server.initServer(MAX_CLIENTS);
 
-	while (true)
+	while (server.isActive())
 	{
 		server.readClient(MAX_CLIENTS, TIMEOUT);
 		server.treatMsg(BUFFSIZE);
@@ -70,8 +73,21 @@ void	client()
 	client.setConnect(AF_INET, LOCALHOST, PORT);
 
 	//Connect to server
-	if (connect(client.fd, client.gen_addr, sizeof(client.addr)) < 0)
-		throw (std::runtime_error("Client failed to connect to server"));
+	for (int attempt = 0; attempt < 5; attempt++)
+	{
+		std::cout << GREY "Connection attempt " << attempt + 1 << "/5" R << std::endl;
+
+		if (connect(client.fd, client.gen_addr, sizeof(client.addr)) < 0)
+		{
+			if (attempt == 4)
+				throw (std::runtime_error("Client failed to connect to server"));
+			perror("Connect error");
+			sleep(1);
+		}
+		else
+			break;
+	}
+	std::cout << GREY "Successfully connected to server" R << std::endl;
 
 	//take input + send
 	char buff[BUFFSIZE];
@@ -89,8 +105,5 @@ void	client()
 				std::cout << GREY "sent" R << std::endl;
 			memset(buff, 0, bytes);
 		}
-
-		if (input == "exit")
-			break;
 	}
 }

@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/04 17:48:47 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/05 12:05:09 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,13 +18,12 @@ Server::Server(int port, std::string ip): _port(port), _ip(ip)
 	this->_active = false;
 	this->_fd = socket(AF_INET, SOCK_STREAM, 0);
 
-	if (this->_fd < 1)
+	if (this->_fd < 0)
 		throw (std::runtime_error("Server socket creation failed"));
 
 	setSocket(htons(port), inet_addr(ip.c_str()));
 
-	std::cout << BLUE "Server has been properly set up\n" \
-	GREY "Is active: " << this->_active << R << std::endl;
+	std::cout << GREY "Server has been properly set up" R << std::endl;
 }
 
 Server::~Server()
@@ -74,8 +73,10 @@ void	Server::initServer(int max_fds)
 	if (listen(this->_fd, max_fds) < 0)
 		throw(std::runtime_error("Server fails to listen"));
 
-	this->_fds[0].fd = this->_fd;
-	this->_fds[0].events = POLLIN;
+	struct pollfd servpollfd;
+	servpollfd.fd = this->_fd;
+	servpollfd.events = POLLIN;
+	this->_fds.push_back(servpollfd);
 
 	this->_active = true;
 }
@@ -87,6 +88,7 @@ void	Server::readClient(size_t max_fds, int timeout)
 
 	if (this->_fds[0].revents & POLLIN)
 	{
+		std::cout << PURPLE "ALL GOOD TILL NOW" R << std::endl;
 		if (this->_fds.size() == max_fds -1)
 			throw (std::runtime_error("All client slots are taken!"));
 
@@ -167,7 +169,7 @@ void	Server::setSocket(in_port_t port, in_addr_t ip)
 	//Define socket address
 	this->_addr.sin_family = AF_INET;
 	this->_addr.sin_addr.s_addr = ip;
-	this->_addr.sin_port = htons(port);
+	this->_addr.sin_port = port;
 
 	this->_gen_addr = (struct sockaddr *)&this->_addr;
 	this->_addrlen = sizeof(this->_addr);
