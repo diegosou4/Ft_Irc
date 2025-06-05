@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/05 11:46:04 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/05 13:52:41 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,11 +18,11 @@
 #include <poll.h>
 #include <stdio.h>
 #include <string.h>
+#include <arpa/inet.h>
 #include <netinet/in.h>
-#include "classes.hpp"
+#include "Client.hpp"
 
 #define PURPLE	"\001\033[1;38;2;209;174;231m\002"
-#define BLUE	"\001\033[1;38;2;147;222;255m\002"
 #define GREY	"\001\033[1;37m\002"
 #define RED		"\001\033[1;31m\002"
 #define R		"\001\033[1;00m\002"

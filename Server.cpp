@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/05 12:05:09 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/05 14:07:49 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ Server::Server(int port, std::string ip): _port(port), _ip(ip)
 	if (this->_fd < 0)
 		throw (std::runtime_error("Server socket creation failed"));
 
-	setSocket(htons(port), inet_addr(ip.c_str()));
+	this->setSocket(htons(port), inet_addr(ip.c_str()));
 
 	std::cout << GREY "Server has been properly set up" R << std::endl;
 }
@@ -83,16 +83,15 @@ void	Server::initServer(int max_fds)
 
 void	Server::readClient(size_t max_fds, int timeout)
 {
-	if (poll(&this->_fds[0], max_fds, timeout) < 0)
+	if (poll(&this->_fds[0], this->_fds.size(), timeout) < 0)
 		throw (std::runtime_error("Poll failed"));
 
 	if (this->_fds[0].revents & POLLIN)
 	{
-		std::cout << PURPLE "ALL GOOD TILL NOW" R << std::endl;
-		if (this->_fds.size() == max_fds -1)
+		if (this->_fds.size() >= max_fds -1)
 			throw (std::runtime_error("All client slots are taken!"));
 
-		struct pollfd newpoll;
+		struct pollfd newpoll = {};
 		newpoll.events = POLLIN;
 		newpoll.fd = accept(this->_fd, this->_gen_addr, &this->_addrlen);
 		if (newpoll.fd < 0)
@@ -108,12 +107,13 @@ void	Server::readClient(size_t max_fds, int timeout)
 void	Server::treatMsg(int buffsize)
 {
 	char buff[buffsize];
-	pollfd_iter it = this->_fds.begin();
+	pollfd_iter it = this->_fds.begin() +1;
 
 	for (; it != this->_fds.end(); ++it)
 	{
 		if (it->revents & POLLIN)
 		{
+			std::cout << "iui" << std::endl;
 			memset(buff, 0, buffsize);
 			std::cout << PURPLE "> Client " << it->fd << ": " R << buff << std::endl;
 
@@ -128,6 +128,7 @@ void	Server::treatMsg(int buffsize)
 
 void	Server::removeClient(pollfd_iter it)
 {
+	std::cout << "removal triggered" << std::endl;
 	it++;
 	this->_clients.erase(it->fd);
 	close(it->fd);
