@@ -34,11 +34,14 @@ class Client {
         // Setters
         void setClientFd(int fd);
         void setIpAddress(std::string ipaddress);
-        void setNickName(std::string nick_name);
+        bool setNickName(std::string nick_name);
+        bool setUserName(std::string user_name);
+        bool setSecondChoice(std::string second_choice);
+        bool setThirdChoice(std::string third_choice);
         void setRegisted();
         void SetLastLogin();
-        void SetPassword(std::string pass);
-        void setUserName(std::string user_name);
+        bool SetPassword(std::string pass);
+
         void setRegisterState(RegisterState state);
         // Getters
 

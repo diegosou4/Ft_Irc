@@ -49,7 +49,12 @@ class Server{
                 const char* what() const throw();
         };
         int getServerFd() const;
+        void RegisterClient(Client& client, int current_fd, const std::string& message);
         void  ReceiveData(int current_fd, int current_client);
+
+        int getCurrentListUser();
+
+        void commandsRotine(Client& client, int current_fd, const std::string& message);
 };
 
 #endif

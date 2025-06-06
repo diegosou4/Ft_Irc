@@ -21,6 +21,8 @@
 #include <vector> 
 #include <unistd.h> 
 #include <sys/resource.h>
+#include <algorithm>
+
 
 // Pelos limits podevemos ver quantos fd podemos usar e se
 // ultrappassar o limite podemos da handle do erro
@@ -30,7 +32,7 @@
 // };
 
 
-
+void showIrcServerInfo(int fd, std::string sizeClient);
 
 
 # define PURPLE	"\001\033[1;38;2;209;174;231m\002"

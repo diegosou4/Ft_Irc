@@ -5,6 +5,8 @@
 #include <cstdlib>
 #include "Client.hpp"
 
+
+
 Server::~Server(){
     std::cout << "Default Destructor" << std::endl;
 }
@@ -92,6 +94,79 @@ void Server::Accept()
     write(client_fd, "Insira seu Nick Name: ", 23);
 }
 
+void Server::RegisterClient(Client& client, int current_fd, const std::string& message)
+{
+    switch (client.getRegisterState())
+    {
+        case WAITING_NICK:
+            if (!client.setNickName(message)) {
+                write(current_fd, "Nickname inválido. Tente novamente: ", 36);
+                return;
+            }
+            client.setRegisterState(WAITING_SECOND);
+            write(current_fd, "Insira sua Segunda escolha: ", 29);
+            break;
+
+        case WAITING_SECOND:
+            if (!client.setSecondChoice(message)) {
+                write(current_fd, "Segunda escolha inválida. Tente novamente: ", 44);
+                return;
+            }
+            client.setRegisterState(WAITING_THIRD);
+            write(current_fd, "Insira sua Terceira escolha: ", 30);
+            break;
+
+        case WAITING_THIRD:
+            if (!client.setThirdChoice(message)) {
+                write(current_fd, "Terceira escolha inválida. Tente novamente: ", 45);
+                return;
+            }
+            client.setRegisterState(WAITING_USER);
+            write(current_fd, "Insira seu User Name: ", 23);
+            break;
+
+        case WAITING_USER:
+            if (!client.setUserName(message)) {
+                write(current_fd, "User Name inválido. Tente novamente: ", 37);
+                return;
+            }
+            client.setRegisterState(WAITING_PASS);
+            write(current_fd, "Insira sua Senha: ", 19);
+            break;
+
+        case WAITING_PASS:
+            client.SetPassword(message);
+            client.setRegisterState(REGISTERED);
+            client.setRegisted();
+            write(current_fd, "Bem-vindo ao IRC!\n", 19);
+            client.WelcomeToIrc(current_fd);
+            break;
+
+        default:
+            break;
+    }
+}
+#include <list>
+#include <iostream>
+
+void Server::commandsRotine(Client& client, int current_fd, const std::string& message)
+{
+    std::string commands[] = {"SHOW", "LIST", "JOIN", "PART", "NICK", "USER", "PASS", "QUIT"};
+    std::string current = "20";
+    std::cout << "Commands Routine" << std::endl;
+    
+    std::string clean_message = message;
+    clean_message.erase(std::remove(clean_message.begin(), clean_message.end(), '\n'), clean_message.end());
+    clean_message.erase(std::remove(clean_message.begin(), clean_message.end(), '\r'), clean_message.end());
+
+    if (clean_message == commands[0])
+    {
+        std::cout << "Command SHOW received" << std::endl;
+        showIrcServerInfo(current_fd, current);
+    }
+
+}
+
 
 void Server::ReceiveData(int current_fd, int current_client)
 {
@@ -140,41 +215,13 @@ void Server::ReceiveData(int current_fd, int current_client)
     buffer[bytes_read] = '\0';
     std::string message(buffer);
 
-
-    std::cout << "Client <" << client->getNickName() << "> Data: " << message << std::endl;
-
     if (!client->isRegisted())
     {
-        switch (client->getRegisterState())
-        {
-            case WAITING_NICK:
-                client->setNickName(message);
-                client->setRegisterState(WAITING_USER);
-                write(current_fd, "Insira seu User Name: ", 23);
-                break;
-
-            case WAITING_USER:
-                client->setUserName(message);
-                client->setRegisterState(WAITING_PASS);
-                write(current_fd, "Insira sua Senha: ", 19);
-                break;
-
-            case WAITING_PASS:
-                client->SetPassword(message);
-                client->setRegisterState(REGISTERED);
-                client->setRegisted();
-                write(current_fd, "Bem-vindo ao IRC!\n", 19);
-                client->WelcomeToIrc(current_fd);
-                break;
-
-            default:
-                break;
-        }
-        return; 
+        RegisterClient(*client, current_fd, message);
+    }else{
+        commandsRotine(*client, current_fd, message);
     }
-
-    // Cliente já está registrado → processa comandos
-    // processCommand(client, message);
+    
 }
 
 
@@ -220,4 +267,9 @@ void Server::run()
     }
 }
 
+}
+
+int Server::getCurrentListUser()
+{
+    return _poll_clients.size();
 }

@@ -22,12 +22,40 @@ void Client::setIpAddress(std::string ipaddress){
     _Ip_address = ipaddress;
 }
 
-void Client::setNickName(std::string nick_name){
+bool Client::setNickName(std::string nick_name){
+    if(nick_name.empty() || nick_name.length() > 20) {
+        std::cerr << "Invalid Nickname" << std::endl;
+        return false;
+    }
     _Nick_name = nick_name;
+    return true;
 }
 
-void Client::setUserName(std::string user_name){
+bool Client::setUserName(std::string user_name){
+    if(user_name.empty() || user_name.length() > 20) {
+        std::cerr << "Invalid User Name" << std::endl;
+        return false;
+    }
     _User_name = user_name;
+    return true;
+}
+
+bool Client::setSecondChoice(std::string second_choice){
+    if(second_choice.empty() || second_choice.length() > 20) {
+        std::cerr << "Invalid Second Choice" << std::endl;
+        return false;
+    }
+    _Second_choice = second_choice;
+    return true;
+}
+
+bool Client::setThirdChoice(std::string third_choice){
+    if(third_choice.empty() || third_choice.length() > 20) {
+        std::cerr << "Invalid Third Choice" << std::endl;
+        return false;
+    }
+    _Third_choice = third_choice;
+    return true;
 }
 
 void Client::setRegisterState(RegisterState state){
@@ -43,8 +71,13 @@ void Client::SetLastLogin()
     _Last_login = buffer;
 }
 
-void Client::SetPassword(std::string pass){
+bool Client::SetPassword(std::string pass){
+    if(pass.empty() || pass.length() > 20) {
+        std::cerr << "Invalid Password" << std::endl;
+        return false;
+    }
     _Password = pass;
+    return true;
 }
 
 int Client::getClientFd() const{
