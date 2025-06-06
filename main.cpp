@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/26 21:57:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/05 20:47:23 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/06 10:56:44 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@
 
 void	server();
 void	testclient();
+
 
 int main(int ac, char **av)
 {
@@ -55,13 +56,10 @@ void	server()
 	std::cout << BLUE "Acting as server" R << std::endl;
 
 	Server server(PORT, SERVER_ADDR);
-	server.initServer(MAX_CLIENTS);
+	//server.initServer(MAX_CLIENTS);
 
-	while (server.isActive())
-	{
-		server.readClient(MAX_CLIENTS, TIMEOUT);
-		server.treatMsg(BUFFSIZE, TIMEOUT);
-	}
+	//if (server.isActive())
+	server.runOld(MAX_CLIENTS, BUFFSIZE, TIMEOUT);
 }
 
 void	testclient()
@@ -72,4 +70,54 @@ void	testclient()
 	TestClient test_client(PORT, LOCALHOST);
 	test_client.connectClient();
 	test_client.sendMsg(BUFFSIZE);
+}
+
+void	client()
+{
+	int client_fd;
+	std::cout << GREY "Connecting as client" R << std::endl;
+
+	//initiate port
+	int port = 4242;
+
+	//instantiate socket
+	client_fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (client_fd < 0)
+		throw (std::runtime_error("Client socket creation failed"));
+
+	//connect to server
+	struct sockaddr_in address;
+	address.sin_family = AF_INET;
+	address.sin_addr.s_addr = inet_addr("127.0.0.1");
+	address.sin_port = htons(port);
+
+	struct sockaddr *simple_addr = (struct sockaddr *)&address;
+
+	//Connect to server
+	if (connect(client_fd, simple_addr, sizeof(address)) < 0)
+		throw (std::runtime_error("Client failed to connect to server"));
+
+	//take input + send
+	char buff[1000];
+	while (true)
+	{
+		std::cout << "> ";
+		std::string input;
+		getline(std::cin, input);
+
+		if (!input.empty())
+		{
+			send(client_fd, input.c_str(), input.size(), 0);
+			int bytes = recv(client_fd, buff, 1000, 0);
+			if (bytes)
+				std::cout << GREY "sent" R << std::endl;
+			memset(buff, 0, bytes);
+		}
+
+		if (input == "exit")
+			break;
+	}
+
+	//close connection
+	close(client_fd);
 }

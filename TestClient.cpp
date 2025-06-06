@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/05 13:15:48 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/05 20:52:34 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/06 11:53:35 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,7 +72,7 @@ void TestClient::sendMsg(int buffsize)
 
 	while (true)
 	{
-		memset(buff, 0, buffsize);
+		//memset(buff, 0, buffsize);
 		std::string input;
 
 		std::cout << "> ";
@@ -80,16 +80,17 @@ void TestClient::sendMsg(int buffsize)
 
 		/* if (input.empty())
 			break; */
+		if (!input.empty())
+		{
+			int sent = send(this->_fd, input.c_str(), input.size(), 0);
+			std::cout << GREY << sent << " bytes sent" R << std::endl;
 
-		int sent = send(this->_fd, input.c_str(), input.size(), 0);
-		std::cout << GREY << sent << " bytes sent" R << std::endl;
-
-		int bytes = recv(this->_fd, buff, buffsize, 0);
-		if (bytes <= 0)
-			std::cout << "crotte de chien" << std::endl;
+			int bytes = recv(this->_fd, buff, buffsize, 0);
 			//throw (std::runtime_error("Server disconnected"));
 
-		std::cout << GREY << bytes << " bytes received" R << std::endl;
+			std::cout << GREY << bytes << " bytes received" R << std::endl;
+			memset(buff, 0, buffsize);
+		}
 	}
 }
 

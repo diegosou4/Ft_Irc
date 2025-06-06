@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/05 20:57:42 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/06 12:00:26 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,11 +82,123 @@ void	Server::initServer(int max_fds)
 	this->_active = true;
 }
 
-void	Server::readClient(size_t max_fds, int timeout)
+void	Server::run(size_t max_fds, int buffsize, int timeout)
 {
-	if (poll(this->_fds.data(), this->_fds.size(), timeout) < 0)
-		throw (std::runtime_error("Poll failed"));
 
+		if (poll(this->_fds.data(), this->_fds.size(), timeout) < 0)
+			throw (std::runtime_error("Poll failed"));
+
+		if (this->_fds[0].revents & POLLIN)
+		{
+			if (this->_fds.size() >= max_fds -1)
+				throw (std::runtime_error("All client slots are taken!"));
+
+			struct pollfd newpoll = {};
+			newpoll.events = POLLIN;
+			newpoll.fd = accept(this->_fd, this->_gen_addr, &this->_addrlen);
+			if (newpoll.fd < 0)
+				throw (std::runtime_error("Server failed to accept client connection"));
+
+			this->_fds.push_back(newpoll);
+			this->_clients[newpoll.fd] = Client(newpoll.fd);
+
+			std::cout << GREY "New client connected on socket " << newpoll.fd << R << std::endl;
+		}
+		this->_fds[0].revents = 0;
+
+		if (this->_fds.size() > 1)
+		{
+			pollfd_iter it = this->_fds.begin() +1;
+
+			for (; it != this->_fds.end();)
+			{
+				if (it->revents & POLLIN)
+				{
+					char buff[buffsize];
+					memset(buff, 0, buffsize);
+					std::cout << PURPLE "> Client " << it->fd << ": " R << std::endl;
+
+					int bytes_read = recv(it->fd, buff, buffsize, 0);
+					std::cout << "Debug - bytes_read: " << bytes_read << std::endl;
+					if (bytes_read <= 0)
+					{
+						 perror("recv error");
+						 it = this->removeClient(it);
+					}
+					else
+					{
+						std::cout << buff << std::endl;
+						send(it->fd, buff, bytes_read, 0);
+					}
+				}
+				else if (it->revents & POLLERR)
+					it = this->removeClient(it);
+				it->revents = 0;
+				++it;
+			}
+		}
+}
+
+void	Server::runOld(size_t max_fds, int buffsize, int timeout)
+{
+	(void)timeout;
+
+	this->initServer(max_fds);
+
+	//prepare poll structure
+	struct pollfd connected_sockets[42];
+
+	connected_sockets[0] = this->_fds[0];
+
+
+	//accept new connection
+	while (true)
+	{
+		if (poll(this->_fds.data(), this->_fds.size(), -1) < 0)
+			throw (std::runtime_error("Poll failed"));
+
+		if (this->_fds[0].revents & POLLIN)
+		{
+			if (this->_fds.size() >= max_fds)
+				throw (std::runtime_error("Max clients reached"));
+
+			struct pollfd newpoll = {};
+
+			newpoll.fd = accept(this->_fd, this->_gen_addr, &this->_addrlen);
+			if (newpoll.fd < 0)
+				throw (std::runtime_error("Server failed to accept connection"));
+
+			newpoll.events = POLLIN;
+			this->_fds.push_back(newpoll);
+				std::cout << GREY "New client connected" R << std::endl;
+		}
+
+		for (pollfd_iter it = this->_fds.begin() + 1; it != this->_fds.end(); ++it)
+		{
+			if (it->revents & POLLIN)
+			{
+				char buff[buffsize];
+				memset(buff, 0, buffsize);
+				int bytes_read = recv(it->fd, buff, buffsize, 0);
+				std::cout << "read: " << bytes_read << std::endl;
+
+				std::cout << PURPLE "> Client " << it->fd << ": " R << std::endl;
+				if (bytes_read <= 0)
+					it = this->removeClient(it);
+				else
+				{
+					std::cout << buff << std::endl;
+					send(it->fd, buff, bytes_read, 0);
+				}
+			}
+		}
+	}
+	//close connection
+	close(this->_fd);
+}
+
+void	Server::readClient(size_t max_fds)
+{
 	if (this->_fds[0].revents & POLLIN)
 	{
 		if (this->_fds.size() >= max_fds -1)
@@ -106,7 +218,7 @@ void	Server::readClient(size_t max_fds, int timeout)
 	}
 }
 
-void	Server::treatMsg(int buffsize, int timeout)
+void	Server::treatMsg(int buffsize)
 {
 	char buff[buffsize];
 
@@ -114,10 +226,6 @@ void	Server::treatMsg(int buffsize, int timeout)
 		return ;
 
 	pollfd_iter it = this->_fds.begin() +1;
-
-	/* if (poll(this->_fds.data(), this->_fds.size(), timeout) < 0)
-		throw (std::runtime_error("Poll failed")); */
-		(void)timeout;
 
 	for (; it != this->_fds.end(); ++it)
 	{
@@ -139,7 +247,7 @@ void	Server::treatMsg(int buffsize, int timeout)
 				send(it->fd, buff, bytes_read, 0);
 			}
 		}
-		if (it->revents & POLLERR)
+		else if (it->revents & POLLERR)
 			it = this->removeClient(it);
 		it->revents = 0;
 	}
@@ -148,7 +256,7 @@ void	Server::treatMsg(int buffsize, int timeout)
 typename Server::pollfd_iter	&Server::removeClient(pollfd_iter &it)
 {
 	pollfd_iter tmp = it;
-	it++;
+	it--;
 	this->_clients.erase(tmp->fd);
 	close(tmp->fd);
 	this->_fds.erase(tmp);
