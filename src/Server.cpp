@@ -61,32 +61,37 @@ void Server::Accept()
     struct pollfd poll_client;
     socklen_t client_len = sizeof(client_addr);
 
-    newClient.setClientFd(accept(_server_fd,(struct sockaddr *)&client_addr, &client_len));
-
-
-    if(newClient.getClientFd() < 0)
+    int client_fd = accept(_server_fd, (struct sockaddr *)&client_addr, &client_len);
+    if (client_fd < 0)
     {
-        // Implement throw
         std::cerr << "Failed to accept connection" << std::endl;
-    }
-    if (fcntl(newClient.getClientFd(), F_SETFL, O_NONBLOCK) == -1) 
-	{
-        // Implement throw
-        std::cout << "Failed to set no block option" << std::endl;
         return;
     }
-    newClient.setIpAddress(inet_ntoa((client_addr.sin_addr)));
-    poll_client.fd = newClient.getClientFd();
+
+    if (fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1)
+    {
+        std::cerr << "Failed to set non-blocking mode" << std::endl;
+        close(client_fd);
+        return;
+    }
+
+    newClient.setClientFd(client_fd);
+    newClient.setIpAddress(inet_ntoa(client_addr.sin_addr));
+
+    poll_client.fd = client_fd;
     poll_client.events = POLLIN;
     poll_client.revents = 0;
 
+    // Adiciona o cliente e o poll
     _poll_clients.push_back(newClient);
     _poll_server.push_back(poll_client);
-    
+
     std::cout << "New client connected!" << std::endl;
-    write(newClient.getClientFd(), "Welcome to the IRC server!\nPress Enter to continue: ", 54);
-    
+
+    // Envia a primeira mensagem para iniciar o processo de login
+    write(client_fd, "Insira seu Nick Name: ", 23);
 }
+
 
 void Server::ReceiveData(int current_fd, int current_client)
 {
@@ -101,10 +106,10 @@ void Server::ReceiveData(int current_fd, int current_client)
         if (_poll_clients[i].getClientFd() == current_fd)
         {
             client = &_poll_clients[i];
-            std::cout << "Found client: " << client->getNickName() << std::endl;
             break;
         }
     }
+
     if (!client)
     {
         std::cerr << "Client not found for fd: " << current_fd << std::endl;
@@ -112,18 +117,6 @@ void Server::ReceiveData(int current_fd, int current_client)
     }
 
     _poll_server[current_client].revents = 0;
-
-    if(client->isRegisted() == false && client->getNickName().empty())
-    {
-        std::cout << "Client <" << client->getNickName() << "> is not registered yet." << std::endl;
-        ssize_t bytes_written = write(current_fd, "Insira seu Nick Name", 23);
-        if (bytes_written < 0)
-        {
-            std::cerr << "Error writing to client: " << strerror(errno) << std::endl;
-            return;
-        }
-        return;
-    }
 
     ssize_t bytes_read = read(current_fd, buffer, sizeof(buffer) - 1);
 
@@ -145,7 +138,43 @@ void Server::ReceiveData(int current_fd, int current_client)
     }
 
     buffer[bytes_read] = '\0';
-    std::cout << "Client <" << client->getNickName() << "> Data: " << buffer << std::endl;
+    std::string message(buffer);
+
+
+    std::cout << "Client <" << client->getNickName() << "> Data: " << message << std::endl;
+
+    if (!client->isRegisted())
+    {
+        switch (client->getRegisterState())
+        {
+            case WAITING_NICK:
+                client->setNickName(message);
+                client->setRegisterState(WAITING_USER);
+                write(current_fd, "Insira seu User Name: ", 23);
+                break;
+
+            case WAITING_USER:
+                client->setUserName(message);
+                client->setRegisterState(WAITING_PASS);
+                write(current_fd, "Insira sua Senha: ", 19);
+                break;
+
+            case WAITING_PASS:
+                client->SetPassword(message);
+                client->setRegisterState(REGISTERED);
+                client->setRegisted();
+                write(current_fd, "Bem-vindo ao IRC!\n", 19);
+                client->WelcomeToIrc(current_fd);
+                break;
+
+            default:
+                break;
+        }
+        return; 
+    }
+
+    // Cliente já está registrado → processa comandos
+    // processCommand(client, message);
 }
 
 
