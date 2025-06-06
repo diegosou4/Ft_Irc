@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/06 12:00:26 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/06 19:47:54 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,18 +73,16 @@ void	Server::initServer(int max_fds)
 	if (listen(this->_fd, max_fds) < 0)
 		throw(std::runtime_error("Server fails to listen"));
 
-	struct pollfd servpoll = {};
-	servpoll.fd = this->_fd;
-	servpoll.events = POLLIN;
-	servpoll.revents = 0;
-	this->_fds.push_back(servpoll);
-
+	this->addPoll(false);
 	this->_active = true;
 }
 
-void	Server::run(size_t max_fds, int buffsize, int timeout)
+void	Server::handleClient(size_t max_fds, int buffsize, int timeout)
 {
+	this->initServer(max_fds);
 
+	while (true)
+	{
 		if (poll(this->_fds.data(), this->_fds.size(), timeout) < 0)
 			throw (std::runtime_error("Poll failed"));
 
@@ -93,138 +91,19 @@ void	Server::run(size_t max_fds, int buffsize, int timeout)
 			if (this->_fds.size() >= max_fds -1)
 				throw (std::runtime_error("All client slots are taken!"));
 
-			struct pollfd newpoll = {};
-			newpoll.events = POLLIN;
-			newpoll.fd = accept(this->_fd, this->_gen_addr, &this->_addrlen);
-			if (newpoll.fd < 0)
-				throw (std::runtime_error("Server failed to accept client connection"));
-
-			this->_fds.push_back(newpoll);
-			this->_clients[newpoll.fd] = Client(newpoll.fd);
-
-			std::cout << GREY "New client connected on socket " << newpoll.fd << R << std::endl;
-		}
-		this->_fds[0].revents = 0;
-
-		if (this->_fds.size() > 1)
-		{
-			pollfd_iter it = this->_fds.begin() +1;
-
-			for (; it != this->_fds.end();)
-			{
-				if (it->revents & POLLIN)
-				{
-					char buff[buffsize];
-					memset(buff, 0, buffsize);
-					std::cout << PURPLE "> Client " << it->fd << ": " R << std::endl;
-
-					int bytes_read = recv(it->fd, buff, buffsize, 0);
-					std::cout << "Debug - bytes_read: " << bytes_read << std::endl;
-					if (bytes_read <= 0)
-					{
-						 perror("recv error");
-						 it = this->removeClient(it);
-					}
-					else
-					{
-						std::cout << buff << std::endl;
-						send(it->fd, buff, bytes_read, 0);
-					}
-				}
-				else if (it->revents & POLLERR)
-					it = this->removeClient(it);
-				it->revents = 0;
-				++it;
-			}
-		}
-}
-
-void	Server::runOld(size_t max_fds, int buffsize, int timeout)
-{
-	(void)timeout;
-
-	this->initServer(max_fds);
-
-	//prepare poll structure
-	struct pollfd connected_sockets[42];
-
-	connected_sockets[0] = this->_fds[0];
-
-
-	//accept new connection
-	while (true)
-	{
-		if (poll(this->_fds.data(), this->_fds.size(), -1) < 0)
-			throw (std::runtime_error("Poll failed"));
-
-		if (this->_fds[0].revents & POLLIN)
-		{
-			if (this->_fds.size() >= max_fds)
-				throw (std::runtime_error("Max clients reached"));
-
-			struct pollfd newpoll = {};
-
-			newpoll.fd = accept(this->_fd, this->_gen_addr, &this->_addrlen);
-			if (newpoll.fd < 0)
-				throw (std::runtime_error("Server failed to accept connection"));
-
-			newpoll.events = POLLIN;
-			this->_fds.push_back(newpoll);
-				std::cout << GREY "New client connected" R << std::endl;
+			this->addPoll(true);
 		}
 
-		for (pollfd_iter it = this->_fds.begin() + 1; it != this->_fds.end(); ++it)
-		{
-			if (it->revents & POLLIN)
-			{
-				char buff[buffsize];
-				memset(buff, 0, buffsize);
-				int bytes_read = recv(it->fd, buff, buffsize, 0);
-				std::cout << "read: " << bytes_read << std::endl;
-
-				std::cout << PURPLE "> Client " << it->fd << ": " R << std::endl;
-				if (bytes_read <= 0)
-					it = this->removeClient(it);
-				else
-				{
-					std::cout << buff << std::endl;
-					send(it->fd, buff, bytes_read, 0);
-				}
-			}
-		}
-	}
-	//close connection
-	close(this->_fd);
-}
-
-void	Server::readClient(size_t max_fds)
-{
-	if (this->_fds[0].revents & POLLIN)
-	{
-		if (this->_fds.size() >= max_fds -1)
-			throw (std::runtime_error("All client slots are taken!"));
-
-		struct pollfd newpoll = {};
-		newpoll.events = POLLIN;
-		newpoll.revents = 0;
-		newpoll.fd = accept(this->_fd, this->_gen_addr, &this->_addrlen);
-		if (newpoll.fd < 0)
-			throw (std::runtime_error("Server failed to accept client connection"));
-
-		this->_fds.push_back(newpoll);
-		this->_clients[newpoll.fd] = Client(newpoll.fd);
-
-		std::cout << GREY "New client connected on socket " << newpoll.fd << R << std::endl;
+		this->treatMsg(buffsize);
 	}
 }
 
 void	Server::treatMsg(int buffsize)
 {
-	char buff[buffsize];
-
 	if (this->_fds.size() <= 1)
 		return ;
 
+	char buff[buffsize];
 	pollfd_iter it = this->_fds.begin() +1;
 
 	for (; it != this->_fds.end(); ++it)
@@ -232,15 +111,11 @@ void	Server::treatMsg(int buffsize)
 		if (it->revents & POLLIN)
 		{
 			memset(buff, 0, buffsize);
-			std::cout << PURPLE "> Client " << it->fd << ": " R << std::endl;
+			std::cout << PURPLE "> Client " << it->fd << ": " R;
 
 			int bytes_read = recv(it->fd, buff, buffsize, 0);
-			std::cout << "Debug - bytes_read: " << bytes_read << std::endl;
 			if (bytes_read <= 0)
-			{
-				 perror("recv error");
 				 it = this->removeClient(it);
-			}
 			else
 			{
 				std::cout << buff << std::endl;
@@ -248,8 +123,9 @@ void	Server::treatMsg(int buffsize)
 			}
 		}
 		else if (it->revents & POLLERR)
-			it = this->removeClient(it);
-		it->revents = 0;
+		{
+			perror("POLLERR: ");
+		}
 	}
 }
 
@@ -303,6 +179,26 @@ void	Server::setSocket(in_port_t port, in_addr_t ip)
 
 	this->_gen_addr = (struct sockaddr *)&this->_addr;
 	this->_addrlen = sizeof(this->_addr);
+}
+
+void	Server::addPoll(bool isclient)
+{
+	struct pollfd newpoll = {};
+	newpoll.events = POLLIN;
+
+	if (!isclient)
+		newpoll.fd = this->_fd;
+	else
+	{
+		newpoll.fd = accept(this->_fd, this->_gen_addr, &this->_addrlen);
+		if (newpoll.fd < 0)
+			throw (std::runtime_error("Server failed to accept client connection"));
+
+		this->_clients[newpoll.fd] = Client(newpoll.fd);
+		std::cout << GREY "New client connected on socket " << newpoll.fd << R << std::endl;
+	}
+
+	this->_fds.push_back(newpoll);
 }
 
 void	Server::pollErr()

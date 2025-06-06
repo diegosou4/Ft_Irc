@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/06 10:53:31 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/06 19:48:49 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,9 +57,7 @@ class Server
 		std::string	getIp()const;
 		Client &getClient(int fd);
 
-		void	initServer(int max_fds);
-		void	run(size_t max_fds, int buffsize, int timeout);
-		void	runOld(size_t max_fds, int buffsize, int timeout);
+		void	handleClient(size_t max_fds, int buffsize, int timeout);
 
 		pollfd_iter	&removeClient(pollfd_iter &it);
 
@@ -71,11 +69,13 @@ class Server
 		Server	&operator=(Server const &src);
 
 		void	setSocket(in_port_t port, in_addr_t ip);
+		void	addPoll(bool isclient);
+		void	initServer(int max_fds);
+
+		void	treatMsg(int buffsize);
+		void	pollIn();
 		void	pollErr();
 		void	pollUp();
-
-		void	readClient(size_t max_fds);
-		void	treatMsg(int buffsize);
 
 		void	broadcast(std::string &msg);
 		void	acceptClient(int fd); //unsure

@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/26 21:57:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/06 10:56:44 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/06 19:47:33 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ void	server()
 	//server.initServer(MAX_CLIENTS);
 
 	//if (server.isActive())
-	server.runOld(MAX_CLIENTS, BUFFSIZE, TIMEOUT);
+	server.handleClient(MAX_CLIENTS, BUFFSIZE, TIMEOUT);
 }
 
 void	testclient()
