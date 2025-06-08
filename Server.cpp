@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/08 12:00:24 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/08 13:13:30 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ Server::~Server()
 	if (this->_fd > 0)
 		close(this->_fd);
 
-	std::map<int, Client *>::iterator it = this->_clients.begin();
+	client_iter it = this->_clients.begin();
 	for (; it != this->_clients.end(); ++it)
 	{
 		if (it->first > 0)
@@ -111,24 +111,6 @@ void	Server::treatMsg(int buffsize)
 
 	for (; it != this->_fds.end(); ++it)
 	{
-	/* 	if (it->revents & POLLIN)
-		{
-			memset(buff, 0, buffsize);
-			std::cout << PURPLE "> Client " << it->fd << ": " R;
-
-			int bytes_read = recv(it->fd, buff, buffsize, 0);
-			if (bytes_read <= 0)
-				 it = this->removeClient(it);
-			else
-			{
-				std::cout << buff << std::endl;
-				send(it->fd, buff, bytes_read, 0);
-			}
-		}
-		else if (it->revents & POLLERR)
-		{
-			perror("POLLERR: ");
-		} */
 		switch (it->revents)
 		{
 			case POLLHUP:
@@ -136,7 +118,7 @@ void	Server::treatMsg(int buffsize)
 			case POLLIN:
 				this->pollIn(it, buffsize); break;
 			case POLLERR:
-				this->pollErr(); break;
+				this->pollErr(it); break;
 			case POLLNVAL:
 				this->pollNVal(); break;
 			default:
@@ -147,13 +129,14 @@ void	Server::treatMsg(int buffsize)
 
 typename Server::pollfd_iter	&Server::removeClient(pollfd_iter &it)
 {
+	this->broadcast(this->_clients[it->fd]->nickname, " has left");
+
 	pollfd_iter tmp = it;
 	it--;
+
 	this->_clients.erase(tmp->fd);
 	close(tmp->fd);
 	this->_fds.erase(tmp);
-
-	std::cout << "has left" << std::endl;
 
 	return (it);
 }
@@ -212,7 +195,8 @@ void	Server::addSocket(bool isclient)
 
 		Client *newclient = new Client(newpoll.fd);
 		this->_clients[newpoll.fd] = newclient;
-		std::cout << GREY "New client connected on socket " << newpoll.fd << R << std::endl;
+
+		this->broadcast(newclient->nickname, " has just connected");
 	}
 
 	this->_fds.push_back(newpoll);
@@ -226,40 +210,32 @@ void	Server::pollIn(pollfd_iter &it, int buffsize)
 	int bytes_read = recv(it->fd, buff, buffsize, 0);
 
 	if (bytes_read < 0)
-		std::cerr << "recv() error: " << strerror(errno) << std::endl;
-
-	std::cout << PURPLE "> Client " << it->fd << ": " R;
-
+		broadcast(this->_clients[it->fd]->nickname, strerror(errno));
 	if (bytes_read <= 0)
 		it = this->removeClient(it);
 	else
 	{
-		std::cout << buff << std::endl;
 		send(it->fd, buff, bytes_read, 0);
+		this->broadcast(this->_clients[it->fd]->nickname, buff);
 	}
 }
 
-void	Server::pollErr()
+void	Server::pollErr(pollfd_iter &it)
 {
-	std::cerr << RED "POLLERR: " << strerror(errno) << R << std::endl;
-	throw (std::runtime_error("Error occurred in client socket"));
+	std::string error = strerror(errno);
+	send(it->fd, error.c_str(), error.length(), 0);
+
+	throw (std::runtime_error("Error occurred in client socket :" + error));
 
 	/* to add:
-		-> notify client
 		-> try to recover connection - unsure how
 		-> if not recoverable, cleanup resources*/
 }
 
 void	Server::pollHup(pollfd_iter &it)
 {
-	std::cout << "POLLHUP triggered from client " \
-	<< it->fd << " revents" << std::endl;
-
-	std::cout << PURPLE "> Client " << it->fd << ": " R;
 	this->removeClient(it);
-
 	/* to add:
-		-> notify other channel members
 		-> remove client form active conversations*/
 }
 
@@ -269,8 +245,13 @@ void	Server::pollNVal()
 	throw (std::runtime_error("Invalid socket descriptor"));
 }
 
-void	Server::broadcast(std::string &msg)
+void	Server::broadcast(std::string const &user, std::string const &msg)
 {
-	(void)msg;
-	//Use to broadcast to all clients
-} //unsure
+	std::string output = PURPLE + user + R + ": " + msg;
+	std::cout << output << std::endl;
+
+	client_iter it = this->_clients.begin();
+	for (; it != this->_clients.end(); ++it)
+		if (user != it->second->nickname)
+			send(it->first, output.c_str(), output.length(), 0);
+}

@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/08 11:41:06 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/08 13:11:10 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <map>
 #include <poll.h>
 #include <stdio.h>
+#include <errno.h>
 #include <string.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -44,6 +45,7 @@ class Server
 		std::map<int, Client *>	_clients;
 
 		typedef std::vector<struct pollfd>::iterator pollfd_iter;
+		typedef std::map<int, Client *>::iterator client_iter;
 
 		//bool signal?
 		//std::string password?
@@ -75,11 +77,11 @@ class Server
 
 		void	treatMsg(int buffsize);
 		void	pollIn(pollfd_iter &it, int buffsize);
-		void	pollErr();
+		void	pollErr(pollfd_iter &it);
 		void	pollHup(pollfd_iter &it);
 		void	pollNVal();
 
-		void	broadcast(std::string &msg);
+		void	broadcast(std::string const &user, std::string const &msg);
 };
 
 //To add:

@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/05 13:15:48 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/06 11:53:35 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/08 13:40:42 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,6 +69,7 @@ void TestClient::connectClient()
 void TestClient::sendMsg(int buffsize)
 {
 	char buff[buffsize];
+	char recbuff[buffsize];
 
 	while (true)
 	{
@@ -78,19 +79,20 @@ void TestClient::sendMsg(int buffsize)
 		std::cout << "> ";
 		getline(std::cin, input);
 
-		/* if (input.empty())
-			break; */
 		if (!input.empty())
 		{
 			int sent = send(this->_fd, input.c_str(), input.size(), 0);
-			std::cout << GREY << sent << " bytes sent" R << std::endl;
-
 			int bytes = recv(this->_fd, buff, buffsize, 0);
-			//throw (std::runtime_error("Server disconnected"));
 
-			std::cout << GREY << bytes << " bytes received" R << std::endl;
+			if (bytes <= 0 || sent <= 0)
+				throw (std::runtime_error("Connection issues"));
+
 			memset(buff, 0, buffsize);
 		}
+
+		if (recv(this->_fd, recbuff, buffsize, 0) > 0)
+			std::cout << recbuff << std::endl;
+		memset(recbuff, 0, buffsize);
 	}
 }
 
