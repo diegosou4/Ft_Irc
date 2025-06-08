@@ -6,13 +6,14 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/06 19:48:49 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/08 11:41:06 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include <iostream>
+#include <algorithm>
 #include <vector>
 #include <map>
 #include <poll.h>
@@ -40,7 +41,7 @@ class Server
 		socklen_t		_addrlen;
 
 		std::vector<struct pollfd>	_fds;
-		std::map<int, Client>	_clients;
+		std::map<int, Client *>	_clients;
 
 		typedef std::vector<struct pollfd>::iterator pollfd_iter;
 
@@ -69,16 +70,16 @@ class Server
 		Server	&operator=(Server const &src);
 
 		void	setSocket(in_port_t port, in_addr_t ip);
-		void	addPoll(bool isclient);
+		void	addSocket(bool isclient);
 		void	initServer(int max_fds);
 
 		void	treatMsg(int buffsize);
-		void	pollIn();
+		void	pollIn(pollfd_iter &it, int buffsize);
 		void	pollErr();
-		void	pollUp();
+		void	pollHup(pollfd_iter &it);
+		void	pollNVal();
 
 		void	broadcast(std::string &msg);
-		void	acceptClient(int fd); //unsure
 };
 
 //To add:

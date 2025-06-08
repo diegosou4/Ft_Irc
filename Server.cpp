@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/06 19:47:54 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/08 12:00:24 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,10 +32,14 @@ Server::~Server()
 	if (this->_fd > 0)
 		close(this->_fd);
 
-	std::map<int, Client>::iterator it = this->_clients.begin();
+	std::map<int, Client *>::iterator it = this->_clients.begin();
 	for (; it != this->_clients.end(); ++it)
+	{
 		if (it->first > 0)
 			close(it->first);
+		if (it->second)
+			delete it->second;
+	}
 
 	//clear containers
 	this->_clients.clear();
@@ -62,7 +66,7 @@ Client &Server::getClient(int fd)
 	if (this->_clients.find(fd) == this->_clients.end())
 		throw (std::runtime_error("Client with corresponding fd not found"));
 
-	return (this->_clients[fd]);
+	return (*this->_clients[fd]);
 }
 
 void	Server::initServer(int max_fds)
@@ -73,7 +77,7 @@ void	Server::initServer(int max_fds)
 	if (listen(this->_fd, max_fds) < 0)
 		throw(std::runtime_error("Server fails to listen"));
 
-	this->addPoll(false);
+	this->addSocket(false);
 	this->_active = true;
 }
 
@@ -91,7 +95,7 @@ void	Server::handleClient(size_t max_fds, int buffsize, int timeout)
 			if (this->_fds.size() >= max_fds -1)
 				throw (std::runtime_error("All client slots are taken!"));
 
-			this->addPoll(true);
+			this->addSocket(true);
 		}
 
 		this->treatMsg(buffsize);
@@ -103,12 +107,11 @@ void	Server::treatMsg(int buffsize)
 	if (this->_fds.size() <= 1)
 		return ;
 
-	char buff[buffsize];
 	pollfd_iter it = this->_fds.begin() +1;
 
 	for (; it != this->_fds.end(); ++it)
 	{
-		if (it->revents & POLLIN)
+	/* 	if (it->revents & POLLIN)
 		{
 			memset(buff, 0, buffsize);
 			std::cout << PURPLE "> Client " << it->fd << ": " R;
@@ -125,6 +128,19 @@ void	Server::treatMsg(int buffsize)
 		else if (it->revents & POLLERR)
 		{
 			perror("POLLERR: ");
+		} */
+		switch (it->revents)
+		{
+			case POLLHUP:
+				this->pollHup(it); break;
+			case POLLIN:
+				this->pollIn(it, buffsize); break;
+			case POLLERR:
+				this->pollErr(); break;
+			case POLLNVAL:
+				this->pollNVal(); break;
+			default:
+				break;
 		}
 	}
 }
@@ -181,7 +197,7 @@ void	Server::setSocket(in_port_t port, in_addr_t ip)
 	this->_addrlen = sizeof(this->_addr);
 }
 
-void	Server::addPoll(bool isclient)
+void	Server::addSocket(bool isclient)
 {
 	struct pollfd newpoll = {};
 	newpoll.events = POLLIN;
@@ -194,23 +210,63 @@ void	Server::addPoll(bool isclient)
 		if (newpoll.fd < 0)
 			throw (std::runtime_error("Server failed to accept client connection"));
 
-		this->_clients[newpoll.fd] = Client(newpoll.fd);
+		Client *newclient = new Client(newpoll.fd);
+		this->_clients[newpoll.fd] = newclient;
 		std::cout << GREY "New client connected on socket " << newpoll.fd << R << std::endl;
 	}
 
 	this->_fds.push_back(newpoll);
 }
 
-void	Server::pollErr()
+void	Server::pollIn(pollfd_iter &it, int buffsize)
 {
-	//Handle POLLERR
-	//unsure yet how to handle it
+	char buff[buffsize];
+	memset(buff, 0, buffsize);
+
+	int bytes_read = recv(it->fd, buff, buffsize, 0);
+
+	if (bytes_read < 0)
+		std::cerr << "recv() error: " << strerror(errno) << std::endl;
+
+	std::cout << PURPLE "> Client " << it->fd << ": " R;
+
+	if (bytes_read <= 0)
+		it = this->removeClient(it);
+	else
+	{
+		std::cout << buff << std::endl;
+		send(it->fd, buff, bytes_read, 0);
+	}
 }
 
-void	Server::pollUp()
+void	Server::pollErr()
 {
-	//Handle POLLUP
-	//unsure yet how to handle it
+	std::cerr << RED "POLLERR: " << strerror(errno) << R << std::endl;
+	throw (std::runtime_error("Error occurred in client socket"));
+
+	/* to add:
+		-> notify client
+		-> try to recover connection - unsure how
+		-> if not recoverable, cleanup resources*/
+}
+
+void	Server::pollHup(pollfd_iter &it)
+{
+	std::cout << "POLLHUP triggered from client " \
+	<< it->fd << " revents" << std::endl;
+
+	std::cout << PURPLE "> Client " << it->fd << ": " R;
+	this->removeClient(it);
+
+	/* to add:
+		-> notify other channel members
+		-> remove client form active conversations*/
+}
+
+void	Server::pollNVal()
+{
+	std::cout << "POLLNVAL triggered" << std::endl;
+	throw (std::runtime_error("Invalid socket descriptor"));
 }
 
 void	Server::broadcast(std::string &msg)
@@ -218,9 +274,3 @@ void	Server::broadcast(std::string &msg)
 	(void)msg;
 	//Use to broadcast to all clients
 } //unsure
-
-void	Server::acceptClient(int fd)
-{
-	(void)fd;
-	//This was recommended but since it's only 1 function for send, I'm unsure yet how useful this is
-}
