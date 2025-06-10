@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/05 13:15:48 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/10 14:49:24 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/10 15:35:25 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,21 +66,13 @@ void TestClient::connectClient()
 	std::cout << PURPLE "Successfully connected to server" R << std::endl;
 }
 
-void TestClient::sendMsg(int buffsize)
+void TestClient::getOnline(int buffsize)
 {
-	char buff[buffsize];
-	struct pollfd fds[2];
-
-	fds[0].fd = this->_fd;
-	fds[1].fd = STDIN_FILENO;
-
-	for (int i = 0; i < 2; i++)
+	struct pollfd fds[2] =
 	{
-		if (fds[i].fd < 0)
-			throw (std::runtime_error("Error on socket " + fds[i].fd));
-		fds[i].events = POLLIN;
-		fds[i].revents = 0;
-	}
+		this->setPollfd(this->_fd),
+		this->setPollfd(STDIN_FILENO)
+	};
 
 	fcntl(this->_fd, F_SETFL, O_NONBLOCK);
 	fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
@@ -91,29 +83,10 @@ void TestClient::sendMsg(int buffsize)
 			throw (std::runtime_error("Poll failed"));
 
 		if (fds[0].revents & POLLIN)
-		{
-			memset(buff, 0, buffsize);
-			int bytes = recv(fds[0].fd, buff, buffsize, 0);
-			if (!bytes)
-				throw (std::runtime_error("Server disconnected"));
-			if (bytes <= 0)
-				throw (std::runtime_error(strerror(errno)));
-			else
-			{
-				buff[bytes] = '\0';
-				std::cout << "\r" << buff << "\n" << std::flush;
-			}
-		}
+			this->receiveMsg(buffsize);
 
 		if (fds[1].revents & POLLIN)
-		{
-			std::string input;
-			getline(std::cin, input);
-
-			if (!input.empty())
-				if (send(this->_fd, input.c_str(), input.size(), 0) <= 0)
-					throw (std::runtime_error("Failed to send message"));
-		}
+			this->sendMsg();
 	}
 }
 
@@ -141,3 +114,43 @@ void TestClient::setSocket(in_port_t port, in_addr_t ip)
 	this->_addrlen = sizeof(this->_addr);
 }
 
+struct pollfd TestClient::setPollfd(int fd)
+{
+	struct pollfd newpollfd;
+
+	newpollfd.events = POLLIN;
+	newpollfd.revents = 0;
+	newpollfd.fd = fd;
+
+	if (newpollfd.fd < 0)
+		throw (std::runtime_error("Error on socket " + fd));
+
+	return (newpollfd);
+}
+
+void	TestClient::receiveMsg(int buffsize)
+{
+	char buff[buffsize];
+	memset(buff, 0, buffsize);
+
+	int bytes = recv(this->_fd, buff, buffsize, 0);
+	if (!bytes)
+		throw (std::runtime_error("Server disconnected"));
+	if (bytes <= 0)
+		throw (std::runtime_error(strerror(errno)));
+	else
+	{
+		buff[bytes] = '\0';
+		std::cout << "\r" << buff << "\n" << std::flush;
+	}
+}
+
+void	TestClient::sendMsg()
+{
+	std::string input;
+	getline(std::cin, input);
+
+	if (!input.empty())
+		if (send(this->_fd, input.c_str(), input.size(), 0) <= 0)
+			throw (std::runtime_error("Failed to send message"));
+}

@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/05 13:15:44 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/10 14:14:33 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/10 15:34:15 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,12 +48,14 @@ class TestClient
 		std::string getIp()const;
 
 		void connectClient();
-		void sendMsg(int buffsize);
+		void getOnline(int buffsize);
 
 	private:
 		TestClient(TestClient const &src);
 		TestClient	&operator=(TestClient const &src);
 
 		void setSocket(in_port_t port, in_addr_t ip);
-
+		struct pollfd setPollfd(int fd);
+		void	receiveMsg(int buffsize);
+		void	sendMsg();
 };

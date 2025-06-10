@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/26 21:57:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/06 19:47:33 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/10 15:23:06 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,7 @@ void	testclient()
 	//instantiate sclient
 	TestClient test_client(PORT, LOCALHOST);
 	test_client.connectClient();
-	test_client.sendMsg(BUFFSIZE);
+	test_client.getOnline(BUFFSIZE);
 }
 
 void	client()

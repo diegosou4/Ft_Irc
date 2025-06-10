@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/10 14:44:36 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/10 15:35:26 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,7 +129,7 @@ void	Server::treatMsg(int buffsize)
 
 typename Server::pollfd_iter	&Server::removeClient(pollfd_iter &it)
 {
-	this->broadcast(this->_clients[it->fd]->nickname, " has left");
+	this->broadcast(this->_clients[it->fd]->nickname, "has left");
 
 	pollfd_iter tmp = it;
 	it--;
