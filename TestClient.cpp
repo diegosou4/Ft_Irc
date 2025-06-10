@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/05 13:15:48 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/08 13:40:42 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/10 14:49:24 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,30 +69,51 @@ void TestClient::connectClient()
 void TestClient::sendMsg(int buffsize)
 {
 	char buff[buffsize];
-	char recbuff[buffsize];
+	struct pollfd fds[2];
+
+	fds[0].fd = this->_fd;
+	fds[1].fd = STDIN_FILENO;
+
+	for (int i = 0; i < 2; i++)
+	{
+		if (fds[i].fd < 0)
+			throw (std::runtime_error("Error on socket " + fds[i].fd));
+		fds[i].events = POLLIN;
+		fds[i].revents = 0;
+	}
+
+	fcntl(this->_fd, F_SETFL, O_NONBLOCK);
+	fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
 
 	while (true)
 	{
-		//memset(buff, 0, buffsize);
-		std::string input;
+		if (poll(fds, 2, -1) < 0)
+			throw (std::runtime_error("Poll failed"));
 
-		std::cout << "> ";
-		getline(std::cin, input);
-
-		if (!input.empty())
+		if (fds[0].revents & POLLIN)
 		{
-			int sent = send(this->_fd, input.c_str(), input.size(), 0);
-			int bytes = recv(this->_fd, buff, buffsize, 0);
-
-			if (bytes <= 0 || sent <= 0)
-				throw (std::runtime_error("Connection issues"));
-
 			memset(buff, 0, buffsize);
+			int bytes = recv(fds[0].fd, buff, buffsize, 0);
+			if (!bytes)
+				throw (std::runtime_error("Server disconnected"));
+			if (bytes <= 0)
+				throw (std::runtime_error(strerror(errno)));
+			else
+			{
+				buff[bytes] = '\0';
+				std::cout << "\r" << buff << "\n" << std::flush;
+			}
 		}
 
-		if (recv(this->_fd, recbuff, buffsize, 0) > 0)
-			std::cout << recbuff << std::endl;
-		memset(recbuff, 0, buffsize);
+		if (fds[1].revents & POLLIN)
+		{
+			std::string input;
+			getline(std::cin, input);
+
+			if (!input.empty())
+				if (send(this->_fd, input.c_str(), input.size(), 0) <= 0)
+					throw (std::runtime_error("Failed to send message"));
+		}
 	}
 }
 

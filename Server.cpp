@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/08 13:13:30 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/10 14:44:36 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -196,7 +196,7 @@ void	Server::addSocket(bool isclient)
 		Client *newclient = new Client(newpoll.fd);
 		this->_clients[newpoll.fd] = newclient;
 
-		this->broadcast(newclient->nickname, " has just connected");
+		this->broadcast(newclient->nickname, "has just connected");
 	}
 
 	this->_fds.push_back(newpoll);
@@ -214,10 +214,7 @@ void	Server::pollIn(pollfd_iter &it, int buffsize)
 	if (bytes_read <= 0)
 		it = this->removeClient(it);
 	else
-	{
-		send(it->fd, buff, bytes_read, 0);
 		this->broadcast(this->_clients[it->fd]->nickname, buff);
-	}
 }
 
 void	Server::pollErr(pollfd_iter &it)
@@ -253,5 +250,6 @@ void	Server::broadcast(std::string const &user, std::string const &msg)
 	client_iter it = this->_clients.begin();
 	for (; it != this->_clients.end(); ++it)
 		if (user != it->second->nickname)
-			send(it->first, output.c_str(), output.length(), 0);
+			if (send(it->first, output.c_str(), output.length(), 0) < 0)
+				throw (std::runtime_error("Failed to send to " + it->second->nickname));
 }
