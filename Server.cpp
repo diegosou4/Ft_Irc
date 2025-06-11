@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/10 15:35:26 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/11 22:07:42 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,6 @@
 
 Server::Server(int port, std::string ip): _port(port), _ip(ip)
 {
-	//Create + open socket fd
 	this->_active = false;
 	this->_fd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -28,12 +27,12 @@ Server::Server(int port, std::string ip): _port(port), _ip(ip)
 
 Server::~Server()
 {
-	//Close fds
+	this->clearContainers();
+
 	if (this->_fd > 0)
 		close(this->_fd);
 
-	client_iter it = this->_clients.begin();
-	for (; it != this->_clients.end(); ++it)
+	for (online_iter it = this->_online.begin(); it != this->_online.end(); ++it)
 	{
 		if (it->first > 0)
 			close(it->first);
@@ -41,7 +40,11 @@ Server::~Server()
 			delete it->second;
 	}
 
-	//clear containers
+	for (clients_iter it = this->_clients.begin(); it != this->_clients.end(); ++it)
+		if (it->second)
+			delete it->second;
+
+	this->_online.clear();
 	this->_clients.clear();
 	this->_fds.clear();
 }
@@ -63,10 +66,10 @@ std::string	Server::getIp()const
 
 Client &Server::getClient(int fd)
 {
-	if (this->_clients.find(fd) == this->_clients.end())
+	if (this->_online.find(fd) == this->_online.end())
 		throw (std::runtime_error("Client with corresponding fd not found"));
 
-	return (*this->_clients[fd]);
+	return (*this->_online[fd]);
 }
 
 void	Server::initServer(int max_fds)
@@ -129,12 +132,14 @@ void	Server::treatMsg(int buffsize)
 
 typename Server::pollfd_iter	&Server::removeClient(pollfd_iter &it)
 {
-	this->broadcast(this->_clients[it->fd]->nickname, "has left");
+	this->broadcast(this->_online[it->fd]->nickname, "has left");
 
 	pollfd_iter tmp = it;
 	it--;
 
-	this->_clients.erase(tmp->fd);
+	delete this->_online[tmp->fd];
+	this->_online.erase(tmp->fd);
+
 	close(tmp->fd);
 	this->_fds.erase(tmp);
 
@@ -148,7 +153,7 @@ bool	Server::isActive()
 
 bool	Server::hasClient()
 {
-	return (!this->_clients.empty());
+	return (!this->_online.empty());
 }
 
 Server::Server(Server const &src)
@@ -194,7 +199,7 @@ void	Server::addSocket(bool isclient)
 			throw (std::runtime_error("Server failed to accept client connection"));
 
 		Client *newclient = new Client(newpoll.fd);
-		this->_clients[newpoll.fd] = newclient;
+		this->_online[newpoll.fd] = newclient;
 
 		this->broadcast(newclient->nickname, "has just connected");
 	}
@@ -210,11 +215,11 @@ void	Server::pollIn(pollfd_iter &it, int buffsize)
 	int bytes_read = recv(it->fd, buff, buffsize, 0);
 
 	if (bytes_read < 0)
-		broadcast(this->_clients[it->fd]->nickname, strerror(errno));
+		broadcast(this->_online[it->fd]->nickname, strerror(errno));
 	if (bytes_read <= 0)
 		it = this->removeClient(it);
 	else
-		this->broadcast(this->_clients[it->fd]->nickname, buff);
+		this->broadcast(this->_online[it->fd]->nickname, buff);
 }
 
 void	Server::pollErr(pollfd_iter &it)
@@ -247,8 +252,8 @@ void	Server::broadcast(std::string const &user, std::string const &msg)
 	std::string output = PURPLE + user + R + ": " + msg;
 	std::cout << output << std::endl;
 
-	client_iter it = this->_clients.begin();
-	for (; it != this->_clients.end(); ++it)
+	online_iter it = this->_online.begin();
+	for (; it != this->_online.end(); ++it)
 		if (user != it->second->nickname)
 			if (send(it->first, output.c_str(), output.length(), 0) < 0)
 				throw (std::runtime_error("Failed to send to " + it->second->nickname));

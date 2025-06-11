@@ -6,13 +6,14 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/26 21:57:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/10 15:23:06 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/11 21:54:31 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 #include "TestClient.hpp"
 #include <cstring>
+#include <csignal>
 
 #define PURPLE	"\001\033[1;38;2;209;174;231m\002"
 #define BLUE	"\001\033[1;38;2;147;222;255m\002"
@@ -29,10 +30,13 @@
 
 void	server();
 void	testclient();
+void	sigint_handler(int signal);
 
 
 int main(int ac, char **av)
 {
+	std::signal(SIGINT, sigint_handler);
+
 	try
 	{
 		if (ac != 2)
@@ -48,7 +52,12 @@ int main(int ac, char **av)
 	{
 		std::cerr << RED << e.what() << R << std::endl;
 	}
+}
 
+void	sigint_handler(int signal)
+{
+	(void)signal;
+	throw (std::runtime_error("\nCtrl-C intercepted - exiting programme"));
 }
 
 void	server()

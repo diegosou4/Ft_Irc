@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/08 13:11:10 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/11 21:39:34 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,10 +42,12 @@ class Server
 		socklen_t		_addrlen;
 
 		std::vector<struct pollfd>	_fds;
-		std::map<int, Client *>	_clients;
+		std::map<std::string, Client *> _clients;
+		std::map<int, Client *>	_online;
 
 		typedef std::vector<struct pollfd>::iterator pollfd_iter;
-		typedef std::map<int, Client *>::iterator client_iter;
+		typedef std::map<int, Client *>::iterator online_iter;
+		typedef std::map<std::string, Client *>::iterator clients_iter;
 
 		//bool signal?
 		//std::string password?
