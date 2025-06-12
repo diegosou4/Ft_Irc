@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/12 11:23:27 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/12 12:28:50 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,7 +81,7 @@ void	Server::initServer(int max_fds)
 	this->_active = true;
 }
 
-void	Server::handleClient(size_t max_fds, int buffsize, int timeout)
+void	Server::handleClient(size_t max_fds, int timeout)
 {
 	this->initServer(max_fds);
 
@@ -98,11 +98,11 @@ void	Server::handleClient(size_t max_fds, int buffsize, int timeout)
 			this->addSocket(true);
 		}
 
-		this->treatMsg(buffsize);
+		this->treatMsg();
 	}
 }
 
-void	Server::treatMsg(int buffsize)
+void	Server::treatMsg()
 {
 	if (this->_fds.size() <= 1)
 		return ;
@@ -116,7 +116,7 @@ void	Server::treatMsg(int buffsize)
 			case POLLHUP:
 				this->pollHup(it); break;
 			case POLLIN:
-				this->pollIn(it, buffsize); break;
+				this->pollIn(it); break;
 			case POLLERR:
 				this->pollErr(it); break;
 			case POLLNVAL:
@@ -198,18 +198,53 @@ void	Server::addSocket(bool isclient)
 		Client *newclient = new Client(newpoll.fd);
 		this->_online[newpoll.fd] = newclient;
 
+		this->welcomeScreen(*newclient, newpoll);
+
 		this->broadcast(newclient->username, "has just connected");
 	}
 
 	this->_fds.push_back(newpoll);
 }
 
-void	Server::pollIn(pollfd_iter &it, int buffsize)
+void	Server::welcomeScreen(Client const &client, struct pollfd &newpoll)
 {
-	char buff[buffsize];
-	memset(buff, 0, buffsize);
+	std::stringstream ss;
 
-	int bytes_read = recv(it->fd, buff, buffsize, 0);
+	ss << PURPLE WELCOME R << std::endl;
+	ss << GREY << "1 - Log in	|	2 - Register\n" R << std::endl;
+
+	std::string msg;
+	while (getline(ss, msg))
+	{
+		if (send(client.fd, msg.c_str(), msg.length(), 0) < 0)
+			throw std::runtime_error("Failed to send welcome message");
+	}
+
+	if (newpoll.revents & POLLIN)
+	{
+		recv()
+	}
+}
+
+bool	Server::clientRegister()
+{
+	return (true);
+}
+
+bool	Server::clientLogIn()
+{
+	return (true);
+}
+
+void	Server::homeScreen()
+{}
+
+void	Server::pollIn(pollfd_iter &it)
+{
+	char buff[BUFFSIZE];
+	memset(buff, 0, BUFFSIZE);
+
+	int bytes_read = recv(it->fd, buff, BUFFSIZE, 0);
 
 	if (bytes_read < 0)
 		broadcast(this->_online[it->fd]->username, strerror(errno));

@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/05 13:15:48 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/10 15:35:25 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/12 12:22:47 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,10 +63,10 @@ void TestClient::connectClient()
 	}
 
 	this->_connected = true;
-	std::cout << PURPLE "Successfully connected to server" R << std::endl;
+	std::cout << GREY "Successfully connected to server" R << std::endl;
 }
 
-void TestClient::getOnline(int buffsize)
+void TestClient::getOnline()
 {
 	struct pollfd fds[2] =
 	{
@@ -83,7 +83,7 @@ void TestClient::getOnline(int buffsize)
 			throw (std::runtime_error("Poll failed"));
 
 		if (fds[0].revents & POLLIN)
-			this->receiveMsg(buffsize);
+			this->receiveMsg();
 
 		if (fds[1].revents & POLLIN)
 			this->sendMsg();
@@ -128,12 +128,12 @@ struct pollfd TestClient::setPollfd(int fd)
 	return (newpollfd);
 }
 
-void	TestClient::receiveMsg(int buffsize)
+void	TestClient::receiveMsg()
 {
-	char buff[buffsize];
-	memset(buff, 0, buffsize);
+	char buff[BUFFSIZE];
+	memset(buff, 0, BUFFSIZE);
 
-	int bytes = recv(this->_fd, buff, buffsize, 0);
+	int bytes = recv(this->_fd, buff, BUFFSIZE, 0);
 	if (!bytes)
 		throw (std::runtime_error("Server disconnected"));
 	if (bytes <= 0)

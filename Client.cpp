@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/05 13:15:41 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/12 11:22:30 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/12 12:21:15 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,6 @@ Client::Client(int fd): fd(fd)
 
 Client::~Client()
 {
-	std::cout << "I'm closing now" << std::endl;
 }
 
 

@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/05 13:15:44 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/10 15:34:15 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/12 12:13:11 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,8 @@
 #define GREY	"\001\033[1;37m\002"
 #define RED		"\001\033[1;31m\002"
 #define R		"\001\033[1;00m\002"
+
+#define BUFFSIZE	1000
 
 class TestClient
 {
@@ -48,7 +50,7 @@ class TestClient
 		std::string getIp()const;
 
 		void connectClient();
-		void getOnline(int buffsize);
+		void getOnline();
 
 	private:
 		TestClient(TestClient const &src);
@@ -56,6 +58,6 @@ class TestClient
 
 		void setSocket(in_port_t port, in_addr_t ip);
 		struct pollfd setPollfd(int fd);
-		void	receiveMsg(int buffsize);
+		void	receiveMsg();
 		void	sendMsg();
 };

@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/12 11:02:47 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/12 12:27:32 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,20 @@
 #define GREY	"\001\033[1;37m\002"
 #define RED		"\001\033[1;31m\002"
 #define R		"\001\033[1;00m\002"
+
+#define WELCOME \
+"\n          ▗▄▄▄▖▗▄▄▖  ▗▄▄▖           \n\
+            █  ▐▌ ▐▌▐▌              \n\
+            █  ▐▛▀▚▖▐▌              \n\
+          ▗▄█▄▖▐▌ ▐▌▝▚▄▄▖           \n\
+                                    \n\
+▗▖ ▗▖▗▄▄▄▖▗▖    ▗▄▄▖ ▗▄▖ ▗▖  ▗▖▗▄▄▄▖\n\
+▐▌ ▐▌▐▌   ▐▌   ▐▌   ▐▌ ▐▌▐▛▚▞▜▌▐▌   \n\
+▐▌ ▐▌▐▛▀▀▘▐▌   ▐▌   ▐▌ ▐▌▐▌  ▐▌▐▛▀▀▘\n\
+▐▙█▟▌▐▙▄▄▖▐▙▄▄▖▝▚▄▄▖▝▚▄▞▘▐▌  ▐▌▐▙▄▄▖\n\
+                                    \n"
+
+#define BUFFSIZE	1000
 
 class Server
 {
@@ -63,7 +77,7 @@ class Server
 		std::string	getIp()const;
 		Client &getClient(int fd);
 
-		void	handleClient(size_t max_fds, int buffsize, int timeout);
+		void	handleClient(size_t max_fds, int timeout);
 
 		pollfd_iter	&removeClient(pollfd_iter &it);
 
@@ -78,13 +92,13 @@ class Server
 		void	addSocket(bool isclient);
 		void	initServer(int max_fds);
 
-		void	welcomeScreen();
+		void	welcomeScreen(Client const &client, struct pollfd &newpollfd);
 		bool	clientRegister();
 		bool	clientLogIn();
 		void	homeScreen();
 
-		void	treatMsg(int buffsize);
-		void	pollIn(pollfd_iter &it, int buffsize);
+		void	treatMsg();
+		void	pollIn(pollfd_iter &it);
 		void	pollErr(pollfd_iter &it);
 		void	pollHup(pollfd_iter &it);
 		void	pollNVal();
