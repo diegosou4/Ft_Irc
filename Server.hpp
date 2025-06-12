@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/12 13:34:41 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/12 22:54:19 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,13 @@
 #include <netinet/in.h>
 #include "Client.hpp"
 
+#define BUFFSIZE	1000
+#define REMOVAL		-2
+
+#ifndef NULL
+# define NULL		0
+#endif
+
 #define PURPLE	"\001\033[1;38;2;209;174;231m\002"
 #define GREY	"\001\033[1;37m\002"
 #define RED		"\001\033[1;31m\002"
@@ -42,7 +49,6 @@
 ▐▙█▟▌▐▙▄▄▖▐▙▄▄▖▝▚▄▄▖▝▚▄▞▘▐▌  ▐▌▐▙▄▄▖\n\
                                     \n"
 
-#define BUFFSIZE	1000
 
 class Server
 {
@@ -79,7 +85,7 @@ class Server
 
 		void	handleClient(size_t max_fds, int timeout);
 
-		pollfd_iter	&removeClient(pollfd_iter &it);
+		void	removeClient(Client *client);
 
 		bool	isActive();
 		bool	hasClient();
@@ -92,24 +98,27 @@ class Server
 		void	addSocket(bool isclient);
 		void	initServer(int max_fds);
 
-		void	welcomeScreen(Client *client, struct pollfd &newpollfd);
-		bool	clientRegister();
-		bool	clientLogIn();
-		void	homeScreen();
+		void	welcomeScreen(struct pollfd &newpollfd);
+		void	treatRevent();
 
-		void	treatMsg();
 		void	pollIn(pollfd_iter &it);
 		void	pollErr(pollfd_iter &it);
 		void	pollHup(pollfd_iter &it);
 		void	pollNVal();
 
+		void	chooseAuth(Client &client);
+		void	regUsername(pollfd_iter &it);
+		void	regPass(pollfd_iter &it);
+		void	regPassConfirm(pollfd_iter &it);
+		void	logUsername(pollfd_iter &it);
+		void	logPass(pollfd_iter &it);
+		void	chatMsg(pollfd_iter &it);
+
+		std::string getMsg(Client &client);
 		void	broadcast(std::string const &user, std::string const &msg);
 
 		void	clientDataConfig();
 		void	clientDataRetrieve();
-
-		void	generalBroadcast();
-		void	generalPollIn();
 
 };
 

@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/05 13:15:34 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/12 11:22:29 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/12 22:47:25 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,18 @@
 #include <sstream>
 #include <iostream>
 
+enum clientState
+{
+	ONLINE,
+	REG_USERNAME,
+	REG_PASS,
+	REG_PASSCONFIRM,
+	LOG_USERNAME,
+	LOG_PASS,
+	ACTIVE,
+	OFFLINE
+};
+
 class Client
 {
 	public:
@@ -28,4 +40,5 @@ class Client
 		int	fd;
 		std::string username;
 		std::string password;
+		clientState	state;
 };

@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/12 13:40:53 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/12 22:55:52 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,11 +98,11 @@ void	Server::handleClient(size_t max_fds, int timeout)
 			this->addSocket(true);
 		}
 
-		this->treatMsg();
+		this->treatRevent();
 	}
 }
 
-void	Server::treatMsg()
+void	Server::treatRevent()
 {
 	if (this->_fds.size() <= 1)
 		return ;
@@ -124,23 +124,27 @@ void	Server::treatMsg()
 			default:
 				break;
 		}
+		if (it->fd == REMOVAL)
+			this->_fds.erase(it--);
 	}
 }
 
-typename Server::pollfd_iter	&Server::removeClient(pollfd_iter &it)
+void	Server::removeClient(Client *client)
 {
-	this->broadcast(this->_online[it->fd]->username, "has left");
+	if (!client)
+		return;
 
-	pollfd_iter tmp = it;
-	it--;
+	this->_clients[client->username]->state = OFFLINE;
+	this->broadcast(client->username, "has left");
 
-	delete this->_online[tmp->fd];
-	this->_online.erase(tmp->fd);
+	online_iter online_client = this->_online.find(client->fd);
+	close(online_client->first);
+	delete online_client->second;
+	this->_online.erase(online_client);
 
-	close(tmp->fd);
-	this->_fds.erase(tmp);
-
-	return (it);
+	for (pollfd_iter it = this->_fds.begin(); it != this->_fds.end(); ++it)
+		if (client->fd == it->fd)
+			it->fd = REMOVAL;
 }
 
 bool	Server::isActive()
@@ -196,9 +200,10 @@ void	Server::addSocket(bool isclient)
 			throw (std::runtime_error("Server failed to accept client connection"));
 
 		Client *newclient = new Client(newpoll.fd);
+		newclient->state = ONLINE;
 		this->_online[newpoll.fd] = newclient;
 
-		this->welcomeScreen(newclient, newpoll);
+		this->welcomeScreen(newpoll);
 
 		this->broadcast(newclient->username, "has just connected");
 	}
@@ -206,7 +211,7 @@ void	Server::addSocket(bool isclient)
 	this->_fds.push_back(newpoll);
 }
 
-void	Server::welcomeScreen(Client *client, struct pollfd &newpoll)
+void	Server::welcomeScreen(struct pollfd &newpoll)
 {
 	std::stringstream ss;
 
@@ -219,64 +224,19 @@ void	Server::welcomeScreen(Client *client, struct pollfd &newpoll)
 		if (send(newpoll.fd, msg.c_str(), msg.length(), 0) < 0)
 			throw std::runtime_error("Failed to send welcome message");
 	}
-
-	char buff[BUFFSIZE];
-	memset(buff, 0, BUFFSIZE);
-
-	if (newpoll.revents & POLLIN)
-	{
-		int bytes_read = recv(newpoll.fd, buff, BUFFSIZE, 0);
-
-		if (bytes_read < 0)
-		{
-			msg = strerror(errno);
-			send(newpoll.fd, msg.c_str(), msg.length(), 0);
-		}
-		if (bytes_read <= 0)
-		{
-			delete client;
-			throw (std::runtime_error("Client disconnected before entering"));
-		}
-		else
-		{
-			if (!strcmp(buff, "1"))
-				this->clientLogIn();
-			if (!strcmp(buff, "2"))
-				this->clientRegister();
-		}
-	}
-
-	throw (std::runtime_error("Ending here for now"));
 }
-
-bool	Server::clientRegister()
-{
-	std::cout << GREY "Welcome to registering function" R << std::endl;
-	return (true);
-}
-
-bool	Server::clientLogIn()
-{
-	std::cout << GREY "Welcome to Log in function" R << std::endl;
-	return (true);
-}
-
-void	Server::homeScreen()
-{}
 
 void	Server::pollIn(pollfd_iter &it)
 {
-	char buff[BUFFSIZE];
-	memset(buff, 0, BUFFSIZE);
+	Client *client = this->_online[it->fd];
 
-	int bytes_read = recv(it->fd, buff, BUFFSIZE, 0);
-
-	if (bytes_read < 0)
-		broadcast(this->_online[it->fd]->username, strerror(errno));
-	if (bytes_read <= 0)
-		it = this->removeClient(it);
-	else
-		this->broadcast(this->_online[it->fd]->username, buff);
+	switch (client->state)
+	{
+		case ONLINE:
+			this->chooseAuth(*client); break;
+		default:
+			break;
+	}
 }
 
 void	Server::pollErr(pollfd_iter &it)
@@ -293,7 +253,7 @@ void	Server::pollErr(pollfd_iter &it)
 
 void	Server::pollHup(pollfd_iter &it)
 {
-	this->removeClient(it);
+	this->removeClient(this->_online[it->fd]);
 	/* to add:
 		-> remove client form active conversations*/
 }
@@ -302,6 +262,81 @@ void	Server::pollNVal()
 {
 	std::cout << "POLLNVAL triggered" << std::endl;
 	throw (std::runtime_error("Invalid socket descriptor"));
+}
+
+void	Server::chooseAuth(Client &client)
+{
+	std::string msg = getMsg(client);
+	if (msg.empty())
+		return ;
+
+	std::string output;
+	if (msg == "1")
+	{
+		client.state = LOG_USERNAME;
+		output = PURPLE + std::string("LOG IN\n") + GREY + "Username: " + R;
+	}
+	else if (msg == "2")
+	{
+		client.state = REG_USERNAME;
+		output = PURPLE + std::string("REGISTER\n") + GREY + "Username: " + R;
+	}
+
+	if (send(client.fd, output.c_str(), output.length(), 0) < 0)
+		throw (std::runtime_error("Failed to send to soscket " + client.fd));
+}
+
+void	Server::regUsername(pollfd_iter &it)
+{
+	(void)it;
+}
+
+void	Server::regPass(pollfd_iter &it)
+{
+	(void)it;
+}
+
+void	Server::regPassConfirm(pollfd_iter &it)
+{
+	(void)it;
+}
+
+void	Server::logUsername(pollfd_iter &it)
+{
+	(void)it;
+}
+
+void	Server::logPass(pollfd_iter &it)
+{
+	(void)it;
+}
+
+void	Server::chatMsg(pollfd_iter &it)
+{
+	std::string msg = this->getMsg(*this->_online[it->fd]);
+
+	if (msg.empty())
+		std::cout << "detected msg is empty";
+
+	this->broadcast(this->_online[it->fd]->username, msg);
+}
+
+std::string Server::getMsg(Client &client)
+{
+	char buff[BUFFSIZE];
+	memset(buff, 0, BUFFSIZE);
+
+	int bytes_read = recv(client.fd, buff, BUFFSIZE, 0);
+
+	if (bytes_read <= 0)
+	{
+		if (bytes_read < 0)
+			broadcast(client.username, strerror(errno));
+		this->removeClient(&client);
+		buff[0] = 0;
+	}
+
+	return (std::string(buff));
 }
 
 void	Server::broadcast(std::string const &user, std::string const &msg)
