@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/11 22:07:42 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/12 11:23:27 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,10 +27,9 @@ Server::Server(int port, std::string ip): _port(port), _ip(ip)
 
 Server::~Server()
 {
-	this->clearContainers();
-
 	if (this->_fd > 0)
 		close(this->_fd);
+	this->_fds.clear();
 
 	for (online_iter it = this->_online.begin(); it != this->_online.end(); ++it)
 	{
@@ -39,14 +38,12 @@ Server::~Server()
 		if (it->second)
 			delete it->second;
 	}
+	this->_online.clear();
 
+	this->clientDataConfig();
 	for (clients_iter it = this->_clients.begin(); it != this->_clients.end(); ++it)
 		if (it->second)
 			delete it->second;
-
-	this->_online.clear();
-	this->_clients.clear();
-	this->_fds.clear();
 }
 
 int Server::getFd()const
@@ -132,7 +129,7 @@ void	Server::treatMsg(int buffsize)
 
 typename Server::pollfd_iter	&Server::removeClient(pollfd_iter &it)
 {
-	this->broadcast(this->_online[it->fd]->nickname, "has left");
+	this->broadcast(this->_online[it->fd]->username, "has left");
 
 	pollfd_iter tmp = it;
 	it--;
@@ -201,7 +198,7 @@ void	Server::addSocket(bool isclient)
 		Client *newclient = new Client(newpoll.fd);
 		this->_online[newpoll.fd] = newclient;
 
-		this->broadcast(newclient->nickname, "has just connected");
+		this->broadcast(newclient->username, "has just connected");
 	}
 
 	this->_fds.push_back(newpoll);
@@ -215,11 +212,11 @@ void	Server::pollIn(pollfd_iter &it, int buffsize)
 	int bytes_read = recv(it->fd, buff, buffsize, 0);
 
 	if (bytes_read < 0)
-		broadcast(this->_online[it->fd]->nickname, strerror(errno));
+		broadcast(this->_online[it->fd]->username, strerror(errno));
 	if (bytes_read <= 0)
 		it = this->removeClient(it);
 	else
-		this->broadcast(this->_online[it->fd]->nickname, buff);
+		this->broadcast(this->_online[it->fd]->username, buff);
 }
 
 void	Server::pollErr(pollfd_iter &it)
@@ -254,7 +251,58 @@ void	Server::broadcast(std::string const &user, std::string const &msg)
 
 	online_iter it = this->_online.begin();
 	for (; it != this->_online.end(); ++it)
-		if (user != it->second->nickname)
+		if (user != it->second->username)
 			if (send(it->first, output.c_str(), output.length(), 0) < 0)
-				throw (std::runtime_error("Failed to send to " + it->second->nickname));
+				throw (std::runtime_error("Failed to send to " + it->second->username));
+}
+
+void	Server::clientDataConfig()
+{
+	if (this->_clients.empty())
+		return ;
+
+	std::string config_dir = std::string(getenv("HOME")) + "/.config/my_irc/";
+	system(("mkdir -p " + config_dir).c_str());
+
+	std::string config_file = config_dir + "/clients.csv";
+	std::ofstream file(config_file.c_str());
+
+	if (!file.is_open())
+		throw (std::runtime_error("Failed to open config file " + config_file));
+
+	file << "username,password\n"; // can add nickname, ip, channels, etc.
+
+	for (clients_iter it = this->_clients.begin(); it != this->_clients.end(); ++it)
+		if (it->second)
+			file	<< it->second->username << ","
+					<< it->second->password << "\n";
+
+	file.close();
+}
+
+void	Server::clientDataRetrieve()
+{
+	std::string config_file = std::string(getenv("HOME")) + "/.config/my_irc/clients.csv";
+	std::ifstream file(config_file.c_str());
+
+	if (!file.is_open())
+		return ;
+
+	std::string uname;
+	std::string pass;
+
+	getline(file, uname);
+	while (!uname.empty())
+	{
+		getline(file, uname, ',');
+		getline(file, pass, '\n');
+
+		Client *client  = new Client();
+		client->username = uname;
+		client->password = pass;
+
+		this->_clients[uname] = client;
+	}
+
+	file.close();
 }

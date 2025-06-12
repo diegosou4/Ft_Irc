@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/11 21:39:34 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/12 11:02:47 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include <poll.h>
 #include <stdio.h>
 #include <errno.h>
+#include <fstream>
 #include <string.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -77,6 +78,11 @@ class Server
 		void	addSocket(bool isclient);
 		void	initServer(int max_fds);
 
+		void	welcomeScreen();
+		bool	clientRegister();
+		bool	clientLogIn();
+		void	homeScreen();
+
 		void	treatMsg(int buffsize);
 		void	pollIn(pollfd_iter &it, int buffsize);
 		void	pollErr(pollfd_iter &it);
@@ -84,6 +90,10 @@ class Server
 		void	pollNVal();
 
 		void	broadcast(std::string const &user, std::string const &msg);
+
+		void	clientDataConfig();
+		void	clientDataRetrieve();
+
 };
 
 //To add:
