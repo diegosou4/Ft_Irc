@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/12 12:27:32 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/12 13:34:41 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,7 +92,7 @@ class Server
 		void	addSocket(bool isclient);
 		void	initServer(int max_fds);
 
-		void	welcomeScreen(Client const &client, struct pollfd &newpollfd);
+		void	welcomeScreen(Client *client, struct pollfd &newpollfd);
 		bool	clientRegister();
 		bool	clientLogIn();
 		void	homeScreen();
@@ -107,6 +107,9 @@ class Server
 
 		void	clientDataConfig();
 		void	clientDataRetrieve();
+
+		void	generalBroadcast();
+		void	generalPollIn();
 
 };
 

@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/12 12:28:50 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/12 13:40:53 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -198,7 +198,7 @@ void	Server::addSocket(bool isclient)
 		Client *newclient = new Client(newpoll.fd);
 		this->_online[newpoll.fd] = newclient;
 
-		this->welcomeScreen(*newclient, newpoll);
+		this->welcomeScreen(newclient, newpoll);
 
 		this->broadcast(newclient->username, "has just connected");
 	}
@@ -206,7 +206,7 @@ void	Server::addSocket(bool isclient)
 	this->_fds.push_back(newpoll);
 }
 
-void	Server::welcomeScreen(Client const &client, struct pollfd &newpoll)
+void	Server::welcomeScreen(Client *client, struct pollfd &newpoll)
 {
 	std::stringstream ss;
 
@@ -216,23 +216,48 @@ void	Server::welcomeScreen(Client const &client, struct pollfd &newpoll)
 	std::string msg;
 	while (getline(ss, msg))
 	{
-		if (send(client.fd, msg.c_str(), msg.length(), 0) < 0)
+		if (send(newpoll.fd, msg.c_str(), msg.length(), 0) < 0)
 			throw std::runtime_error("Failed to send welcome message");
 	}
 
+	char buff[BUFFSIZE];
+	memset(buff, 0, BUFFSIZE);
+
 	if (newpoll.revents & POLLIN)
 	{
-		recv()
+		int bytes_read = recv(newpoll.fd, buff, BUFFSIZE, 0);
+
+		if (bytes_read < 0)
+		{
+			msg = strerror(errno);
+			send(newpoll.fd, msg.c_str(), msg.length(), 0);
+		}
+		if (bytes_read <= 0)
+		{
+			delete client;
+			throw (std::runtime_error("Client disconnected before entering"));
+		}
+		else
+		{
+			if (!strcmp(buff, "1"))
+				this->clientLogIn();
+			if (!strcmp(buff, "2"))
+				this->clientRegister();
+		}
 	}
+
+	throw (std::runtime_error("Ending here for now"));
 }
 
 bool	Server::clientRegister()
 {
+	std::cout << GREY "Welcome to registering function" R << std::endl;
 	return (true);
 }
 
 bool	Server::clientLogIn()
 {
+	std::cout << GREY "Welcome to Log in function" R << std::endl;
 	return (true);
 }
 
