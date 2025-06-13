@@ -22,6 +22,8 @@
 #include <unistd.h> 
 #include <sys/resource.h>
 #include <algorithm>
+#include <list>
+#include <iostream>
 
 
 // Pelos limits podevemos ver quantos fd podemos usar e se

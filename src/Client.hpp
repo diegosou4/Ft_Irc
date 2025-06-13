@@ -4,9 +4,8 @@
 #include "../includes/irc.hpp"
 
 enum RegisterState {
+    WAITING_PASS_SERVER,
     WAITING_NICK,
-    WAITING_SECOND,
-    WAITING_THIRD,
     WAITING_USER,
     WAITING_PASS,
     REGISTERED
@@ -20,8 +19,6 @@ class Client {
         std::string _Ip_address;
         bool _isRegisted;
         std::string _Nick_name;
-        std::string _Second_choice;
-        std::string _Third_choice;
         std::string _User_name;
         std::string _Password;
         std::string  _Last_login;
@@ -36,8 +33,6 @@ class Client {
         void setIpAddress(std::string ipaddress);
         bool setNickName(std::string nick_name);
         bool setUserName(std::string user_name);
-        bool setSecondChoice(std::string second_choice);
-        bool setThirdChoice(std::string third_choice);
         void setRegisted();
         void SetLastLogin();
         bool SetPassword(std::string pass);

@@ -89,45 +89,38 @@ void Server::Accept()
     _poll_server.push_back(poll_client);
 
     std::cout << "New client connected!" << std::endl;
-
-    // Envia a primeira mensagem para iniciar o processo de login
-    write(client_fd, "Insira seu Nick Name: ", 23);
+    write(client_fd, "Insira a Senha do Servidor: ", 29);
 }
 
 void Server::RegisterClient(Client& client, int current_fd, const std::string& message)
 {
     switch (client.getRegisterState())
     {
+        case WAITING_PASS_SERVER:
+            std::cout << message << std::endl;
+            std::cout << "Password: " << _password << std::endl;
+            if (message != _password) {
+                write(current_fd, "Senha incorreta. Tente novamente: ", 35);
+                return;
+            }
+            client.setRegisterState(WAITING_NICK);
+            write(current_fd, "Insira seu Nick Name: ", 23);
+            break;
         case WAITING_NICK:
             if (!client.setNickName(message)) {
                 write(current_fd, "Nickname inválido. Tente novamente: ", 36);
                 return;
             }
-            client.setRegisterState(WAITING_SECOND);
-            write(current_fd, "Insira sua Segunda escolha: ", 29);
-            break;
-
-        case WAITING_SECOND:
-            if (!client.setSecondChoice(message)) {
-                write(current_fd, "Segunda escolha inválida. Tente novamente: ", 44);
-                return;
-            }
-            client.setRegisterState(WAITING_THIRD);
-            write(current_fd, "Insira sua Terceira escolha: ", 30);
-            break;
-
-        case WAITING_THIRD:
-            if (!client.setThirdChoice(message)) {
-                write(current_fd, "Terceira escolha inválida. Tente novamente: ", 45);
-                return;
-            }
             client.setRegisterState(WAITING_USER);
             write(current_fd, "Insira seu User Name: ", 23);
             break;
-
         case WAITING_USER:
             if (!client.setUserName(message)) {
                 write(current_fd, "User Name inválido. Tente novamente: ", 37);
+                return;
+            }
+            if(message == client.getNickName()) {
+                write(current_fd, "User Name não pode ser igual ao Nick Name. Tente novamente: ", 60);
                 return;
             }
             client.setRegisterState(WAITING_PASS);
@@ -146,8 +139,6 @@ void Server::RegisterClient(Client& client, int current_fd, const std::string& m
             break;
     }
 }
-#include <list>
-#include <iostream>
 
 void Server::commandsRotine(Client& client, int current_fd, const std::string& message)
 {
@@ -211,9 +202,11 @@ void Server::ReceiveData(int current_fd, int current_client)
         }
         return;
     }
-
     buffer[bytes_read] = '\0';
     std::string message(buffer);
+
+    message.erase(std::remove(message.begin(), message.end(), '\n'), message.end());
+    message.erase(std::remove(message.begin(), message.end(), '\r'), message.end());
 
     if (!client->isRegisted())
     {
