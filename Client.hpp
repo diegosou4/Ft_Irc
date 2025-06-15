@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/05 13:15:34 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/12 22:47:25 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/15 15:01:40 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ class Client
 	public:
 		Client();
 		Client(int fd);
+		Client(Client const &src);
 		~Client();
 
 		int	fd;

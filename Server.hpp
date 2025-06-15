@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/12 22:54:19 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/15 16:16:22 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,8 @@
 #define RED		"\001\033[1;31m\002"
 #define R		"\001\033[1;00m\002"
 
+#define DIGIT_CHAR	"0123456789"
+#define ALPHA_CHAR	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 #define WELCOME \
 "\n          ▗▄▄▄▖▗▄▄▖  ▗▄▄▖           \n\
             █  ▐▌ ▐▌▐▌              \n\
@@ -107,11 +109,11 @@ class Server
 		void	pollNVal();
 
 		void	chooseAuth(Client &client);
-		void	regUsername(pollfd_iter &it);
-		void	regPass(pollfd_iter &it);
-		void	regPassConfirm(pollfd_iter &it);
-		void	logUsername(pollfd_iter &it);
-		void	logPass(pollfd_iter &it);
+		void	regUsername(Client &client);
+		void	regPass(Client &client);
+		void	regPassConfirm(Client &client);
+		void	logUsername(Client &client);
+		void	logPass(Client &client);
 		void	chatMsg(pollfd_iter &it);
 
 		std::string getMsg(Client &client);

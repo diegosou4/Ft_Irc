@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/12 22:55:52 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/15 16:17:13 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,17 +134,19 @@ void	Server::removeClient(Client *client)
 	if (!client)
 		return;
 
-	this->_clients[client->username]->state = OFFLINE;
-	this->broadcast(client->username, "has left");
-
-	online_iter online_client = this->_online.find(client->fd);
-	close(online_client->first);
-	delete online_client->second;
-	this->_online.erase(online_client);
+	if (this->_clients.find(client->username) != this->_clients.end())
+		this->_clients[client->username]->state = OFFLINE;
 
 	for (pollfd_iter it = this->_fds.begin(); it != this->_fds.end(); ++it)
 		if (client->fd == it->fd)
 			it->fd = REMOVAL;
+
+	online_iter online_client = this->_online.find(client->fd);
+	close(online_client->first);
+	this->_online.erase(online_client);
+
+	this->broadcast(client->username, "has left");
+	delete client;
 }
 
 bool	Server::isActive()
@@ -213,17 +215,11 @@ void	Server::addSocket(bool isclient)
 
 void	Server::welcomeScreen(struct pollfd &newpoll)
 {
-	std::stringstream ss;
+	std::string msg = 	PURPLE WELCOME R "\n"
+						GREY "1 - Log in    |    2 - Register" R;
 
-	ss << PURPLE WELCOME R << std::endl;
-	ss << GREY << "1 - Log in	|	2 - Register\n" R << std::endl;
-
-	std::string msg;
-	while (getline(ss, msg))
-	{
-		if (send(newpoll.fd, msg.c_str(), msg.length(), 0) < 0)
-			throw std::runtime_error("Failed to send welcome message");
-	}
+	if (send(newpoll.fd, msg.c_str(), msg.length(), 0) < 0)
+		throw std::runtime_error("Failed to send welcome message");
 }
 
 void	Server::pollIn(pollfd_iter &it)
@@ -234,6 +230,10 @@ void	Server::pollIn(pollfd_iter &it)
 	{
 		case ONLINE:
 			this->chooseAuth(*client); break;
+		case REG_USERNAME:
+			this->regUsername(*client); break;
+		case REG_PASS:
+			this->regPass(*client); break;
 		default:
 			break;
 	}
@@ -274,41 +274,78 @@ void	Server::chooseAuth(Client &client)
 	if (msg == "1")
 	{
 		client.state = LOG_USERNAME;
-		output = PURPLE + std::string("LOG IN\n") + GREY + "Username: " + R;
+		output = PURPLE + std::string("\nLOG IN\n") + GREY "Username: " R;
 	}
 	else if (msg == "2")
 	{
 		client.state = REG_USERNAME;
-		output = PURPLE + std::string("REGISTER\n") + GREY + "Username: " + R;
+		output = PURPLE + std::string("\nREGISTER\n") + GREY "Username: " R;
+	}
+
+	if (send(client.fd, output.c_str(), output.length(), 0) < 0)
+		throw (std::runtime_error("Failed to send to socket " + client.fd));
+}
+
+void	Server::regUsername(Client &client)
+{
+	std::string msg = getMsg(client);
+	if (msg.empty())
+		return ;
+
+	std::string output;
+
+	if (!this->_clients.empty() && this->_clients.find(msg) != this->_clients.end())
+		output = RED + std::string("Username already taken - Please choose a different username")
+		+ GREY + "\nUsername: " + R;
+	else
+	{
+		client.username = msg;
+		client.state = REG_PASS;
+		output = GREY + std::string("Password: ") + R;
 	}
 
 	if (send(client.fd, output.c_str(), output.length(), 0) < 0)
 		throw (std::runtime_error("Failed to send to soscket " + client.fd));
 }
 
-void	Server::regUsername(pollfd_iter &it)
+void	Server::regPass(Client &client)
 {
-	(void)it;
+	std::string msg = getMsg(client);
+	if (msg.empty())
+		return ;
+
+	std::string output = RED + std::string("Password must contain at least ");
+
+	if (msg.size() < 4)
+		output = output + "4 characters" + GREY + "\nPassword: " + R;
+	else if (msg.find_first_of(DIGIT_CHAR) == msg.npos)
+		output = output + "one digit" + GREY + "\nPassword: " + R;
+	else if (msg.find_first_of(ALPHA_CHAR) == msg.npos)
+		output = output + "one uppercase or lowercase letter" + GREY + "\nPassword: " + R;
+	else
+	{
+		client.password = msg;
+		client.state = REG_PASSCONFIRM;
+		output = GREY + std::string("Confirm passowrd: ") + R;
+	}
+
+	if (send(client.fd, output.c_str(), output.length(), 0) < 0)
+		throw (std::runtime_error("Failed to send to soscket " + client.fd));
 }
 
-void	Server::regPass(pollfd_iter &it)
+void	Server::regPassConfirm(Client &client)
 {
-	(void)it;
+	(void)client;
 }
 
-void	Server::regPassConfirm(pollfd_iter &it)
+void	Server::logUsername(Client &client)
 {
-	(void)it;
+	(void)client;
 }
 
-void	Server::logUsername(pollfd_iter &it)
+void	Server::logPass(Client &client)
 {
-	(void)it;
-}
-
-void	Server::logPass(pollfd_iter &it)
-{
-	(void)it;
+	(void)client;
 }
 
 void	Server::chatMsg(pollfd_iter &it)
