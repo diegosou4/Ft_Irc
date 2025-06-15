@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/05 13:15:41 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/15 15:01:17 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/15 22:15:47 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,19 @@ Client::Client(Client const &src)
 
 Client::~Client()
 {
+}
+
+Client	&Client::operator=(Client const &src)
+{
+	if (this != &src)
+	{
+		this->fd = src.fd;
+		this->state = src.state;
+		this->username = src.username;
+		this->password = src.password;
+	}
+
+	return (*this);
 }
 
 

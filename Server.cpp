@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/15 17:40:18 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/15 22:20:27 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -386,6 +386,7 @@ void	Server::logUsername(Client &client)
 	else
 	{
 		client.state = LOG_PASS;
+		client.username = msg;
 		output = GREY + std::string("Password:") + R;
 	}
 
@@ -409,8 +410,8 @@ void	Server::logPass(Client &client)
 	}
 	else
 	{
-		client.state = ACTIVE;
 		this->_clients[client.username]->state = ACTIVE;
+		client = *this->_clients[client.username];
 		output = PURPLE + std::string("\n * Successfully logged in* \n") + R;
 	}
 

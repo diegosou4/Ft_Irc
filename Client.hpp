@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/05 13:15:34 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/15 15:01:40 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/15 22:14:04 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,8 @@ class Client
 		Client(int fd);
 		Client(Client const &src);
 		~Client();
+
+		Client	&operator=(Client const &src);
 
 		int	fd;
 		std::string username;

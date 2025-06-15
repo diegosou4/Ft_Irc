@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/15 17:21:17 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/15 22:21:36 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 #include <errno.h>
 #include <fstream>
 #include <string.h>
+#include <csignal>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include "Client.hpp"
@@ -86,7 +87,6 @@ class Server
 		Client &getClient(int fd);
 
 		void	handleClient(size_t max_fds, int timeout);
-
 		void	removeClient(Client *client);
 
 		bool	isActive();
@@ -101,6 +101,7 @@ class Server
 		void	initServer(int max_fds);
 
 		void	welcomeScreen(struct pollfd &newpollfd);
+		void	homeScreen(Client &client);
 		void	treatRevent();
 
 		void	pollIn(pollfd_iter &it);
@@ -114,8 +115,6 @@ class Server
 		void	regPassConfirm(Client &client);
 		void	logUsername(Client &client);
 		void	logPass(Client &client);
-
-		void	homeScreen(Client &client);
 		void	chatMsg(pollfd_iter &it);
 
 		std::string getMsg(Client &client);
@@ -123,7 +122,6 @@ class Server
 
 		void	clientDataConfig();
 		void	clientDataRetrieve();
-
 };
 
 //To add:
