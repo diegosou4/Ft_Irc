@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/15 16:16:22 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/15 17:21:17 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,6 +114,8 @@ class Server
 		void	regPassConfirm(Client &client);
 		void	logUsername(Client &client);
 		void	logPass(Client &client);
+
+		void	homeScreen(Client &client);
 		void	chatMsg(pollfd_iter &it);
 
 		std::string getMsg(Client &client);
