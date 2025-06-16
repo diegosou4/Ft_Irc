@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/16 17:55:15 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/16 18:09:41 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -364,7 +364,9 @@ std::string	Server::logPass(Client &client, std::string msg)
 	}
 
 	this->_clients[client.username]->state = ACTIVE;
+	this->_clients[client.username]->fd = client.fd;
 	client = *this->_clients[client.username];
+	this->broadcast(client.username, "has connected");
 	return (PURPLE + std::string("\n * Successfully logged in* \n") + R);
 }
 
@@ -426,10 +428,11 @@ void	Server::clientDataConfig()
 	file << "username,password\n"; // can add nickname, ip, channels, etc.
 
 	for (clients_iter it = this->_clients.begin(); it != this->_clients.end(); ++it)
-		if (it->second)
+		if (it->second && !it->second->username.empty())
 			file	<< it->second->username << ","
 					<< it->second->password << "\n";
 
+	file.flush();
 	file.close();
 }
 
