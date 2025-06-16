@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/16 22:11:55 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/16 22:25:51 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/16 22:36:57 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,8 @@ void	sigint_handler(int signal)
 
 int		port_check(std::string port)
 {
-	if (port.find_first_not_of(DIGIT_CHARS) != port.npos || port.length() != 4)
+	if (port.empty() || port.length() != 4
+	|| port.find_first_not_of(DIGIT_CHARS) != port.npos)
 		throw (std::runtime_error("Invalid param format\n" R + std::string(ARG_EXPECT)));
 
 	int int_port = atoi(port.c_str());

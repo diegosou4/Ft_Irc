@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/16 17:55:10 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/16 22:49:36 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@
 #include <netinet/in.h>
 #include "Client.hpp"
 
+#define LOCALHOST	"127.0.0.1"
 #define BUFFSIZE	1000
 #define REMOVAL		-2
 
@@ -60,9 +61,8 @@ class Server
 	private:
 		int	_fd;
 		int	_port;
-		std::string	_ip;
+		std::string	_password;
 
-		bool _active;
 		struct sockaddr_in	_addr;
 		struct sockaddr *_gen_addr;
 		socklen_t		_addrlen;
@@ -80,18 +80,16 @@ class Server
 		//std::map<std::string, Channel> _channels?
 
 	public:
-		Server(int port, std::string ip); // create fd socket here
+		Server(int port, std::string password); // create fd socket here
 		~Server();
 
 		int getFd()const;
 		int	getPort()const;
-		std::string	getIp()const;
 		Client &getClient(int fd);
 
 		void	handleClient(size_t max_fds, int timeout);
 		void	removeClient(Client *client);
 
-		bool	isActive();
 		bool	hasClient();
 
 	private:

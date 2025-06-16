@@ -6,23 +6,22 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/16 18:09:41 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/16 22:49:34 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 
-Server::Server(int port, std::string ip): _port(port), _ip(ip)
+Server::Server(int port, std::string password): _port(port), _password(password)
 {
 	this->clientDataRetrieve();
 
-	this->_active = false;
 	this->_fd = socket(AF_INET, SOCK_STREAM, 0);
 
 	if (this->_fd < 0)
 		throw (std::runtime_error("Server socket creation failed"));
 
-	this->setSocket(htons(port), inet_addr(ip.c_str()));
+	this->setSocket(htons(port), inet_addr(LOCALHOST));
 
 	std::cout << GREY "Server has been properly set up" R << std::endl;
 }
@@ -58,11 +57,6 @@ int	Server::getPort()const
 	return (this->_port);
 }
 
-std::string	Server::getIp()const
-{
-	return (this->_ip);
-}
-
 Client &Server::getClient(int fd)
 {
 	if (this->_online.find(fd) == this->_online.end())
@@ -80,7 +74,6 @@ void	Server::initServer(int max_fds)
 		throw(std::runtime_error("Server fails to listen"));
 
 	this->addSocket(false);
-	this->_active = true;
 }
 
 void	Server::handleClient(size_t max_fds, int timeout)
@@ -150,11 +143,6 @@ void	Server::removeClient(Client *client)
 
 	this->broadcast(client->username, "has left");
 	delete client;
-}
-
-bool	Server::isActive()
-{
-	return (this->_active);
 }
 
 bool	Server::hasClient()

@@ -6,25 +6,21 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/05 13:15:44 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/12 12:13:11 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/16 22:29:48 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include <iostream>
-#include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
-#include <stdio.h>
-#include <errno.h>
 #include <poll.h>
+#include <iostream>
 
 #define PURPLE	"\001\033[1;38;2;209;174;231m\002"
 #define GREY	"\001\033[1;37m\002"
-#define RED		"\001\033[1;31m\002"
 #define R		"\001\033[1;00m\002"
 
 #define BUFFSIZE	1000
