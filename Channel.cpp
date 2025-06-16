@@ -1,7 +1,10 @@
 #include "Channel.hpp"
 
 Channel::Channel(const std::string &name) : _name(name) {
+	_limit = 50;
+}
 
+Channel::Channel(const std::string &name, const int limit) : _name(name), _limit(limit) {
 }
 
 Channel::~Channel() { }
@@ -22,12 +25,19 @@ void		Channel::setPassword(const std::string &password) {
 	this->_password = password;
 }
 
+void		Channel::setLimit(const int &limit) {
+	this->_limit = limit;
+}
+
 void		Channel::addClient(Client *client, const std::string &password) {
 	int	fd = client->getFd();
 
 	if (_banned.find(fd) != _banned.end()) {
 		// send message to client saying that they're banned from this channel
 		return ;
+	}
+	if (_clients.size() > _limit) {
+		// send message to client saying that the channel is full
 	}
 	if (_clients.find(fd) != _clients.end()) {
 		// send message to client saying that they're already in the channel
@@ -90,25 +100,29 @@ void	Channel::setBanned(Client *op, Client *target) {
 	// Check to see if op is an operator
 	if (!isOperator(op->getFd()))
 		return ;
-	if (_banned.find(target->Fd()) == _banned.end())
-		_banned.insert(target->Fd());
+	if (_banned.find(target->getFd()) == _banned.end())
+		_banned.insert(target->getFd());
 }
 
 void	Channel::unban(Client *op, Client *target) {
 	// Check to see if op is an operator
 	if (!isOperator(op->getFd()))
 		return ;
-	if (_banned.find(target->Fd()) != _banned.end())
-		_banned.erase(target->Fd());
+	if (_banned.find(target->getFd()) != _banned.end())
+		_banned.erase(target->getFd());
 }
 
 void	Channel::setOperator(Client *op, Client *client) {
-	// Check to see if is op
+	// Check to see if is op is an operator
 	if (!isOperator(op->getFd()))
 		return ;
 	_operators.insert(_operators.end(), op->getFd());
 }
 
-bool	Channel::isOperator(int fd) const { return (_operators.find(fd) != _operators.end()); }
+bool	Channel::isOperator(int fd) const {
+	return (_operators.find(fd) != _operators.end());
+}
 
-bool	Channel::isEmpty(void) const { return (_clients.empty()); }
+bool	Channel::isEmpty(void) const {
+	return (_clients.empty());
+}
