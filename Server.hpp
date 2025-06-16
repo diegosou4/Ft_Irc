@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/15 22:21:36 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/16 17:55:10 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include <vector>
 #include <map>
 #include <poll.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <errno.h>
 #include <fstream>
@@ -51,6 +52,7 @@
 ▐▌ ▐▌▐▛▀▀▘▐▌   ▐▌   ▐▌ ▐▌▐▌  ▐▌▐▛▀▀▘\n\
 ▐▙█▟▌▐▙▄▄▖▐▙▄▄▖▝▚▄▄▖▝▚▄▞▘▐▌  ▐▌▐▙▄▄▖\n\
                                     \n"
+#define ONLINE_OPTS	"\n\n1 - Log in    |    2 - Register"
 
 
 class Server
@@ -104,18 +106,18 @@ class Server
 		void	homeScreen(Client &client);
 		void	treatRevent();
 
-		void	pollIn(pollfd_iter &it);
+		void	pollIn(Client &client);
 		void	pollErr(pollfd_iter &it);
 		void	pollHup(pollfd_iter &it);
 		void	pollNVal();
 
-		void	chooseAuth(Client &client);
-		void	regUsername(Client &client);
-		void	regPass(Client &client);
-		void	regPassConfirm(Client &client);
-		void	logUsername(Client &client);
-		void	logPass(Client &client);
-		void	chatMsg(pollfd_iter &it);
+		std::string	chooseAuth(Client &client, std::string msg);
+		std::string	regUsername(Client &client, std::string msg);
+		std::string	regPass(Client &client, std::string msg);
+		std::string	regPassConfirm(Client &client, std::string msg);
+		std::string	logUsername(Client &client, std::string msg);
+		std::string	logPass(Client &client, std::string msg);
+		std::string	chatMsg(Client &client, std::string msg);
 
 		std::string getMsg(Client &client);
 		void	broadcast(std::string const &user, std::string const &msg);
