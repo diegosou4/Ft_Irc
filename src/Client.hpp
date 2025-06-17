@@ -40,7 +40,7 @@ class Client {
         void setRegisterState(RegisterState state);
         // Getters
 
-        std::string getNickName() const;
+        std::string getNick() const;
         int getClientFd() const;
         RegisterState getRegisterState() const;
         std::string getIpAddress() const;
