@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/16 22:49:34 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/17 22:02:48 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -141,7 +141,8 @@ void	Server::removeClient(Client *client)
 	close(online_client->first);
 	this->_online.erase(online_client);
 
-	this->broadcast(client->username, "has left");
+	Channel *channel = this->_channels.find(client->in_channel)->second;
+	this->broadcast(*client, *channel, "has left");
 	delete client;
 }
 
@@ -218,29 +219,14 @@ void	Server::pollIn(Client &client)
 	if (msg.empty())
 		return ;
 
-	std::string output;
-	switch (client.state)
-	{
-		case ONLINE:
-			output = this->chooseAuth(client, msg); break;
-		case REG_USERNAME:
-			output = this->regUsername(client, msg); break;
-		case REG_PASS:
-			output = this->regPass(client, msg); break;
-		case REG_PASSCONFIRM:
-			output = this->regPassConfirm(client, msg); break;
-		case LOG_USERNAME:
-			output = this->logUsername(client, msg); break;
-		case LOG_PASS:
-			output = this->logPass(client, msg); break;
-		case ACTIVE:
-			output = this->chatMsg(client, msg); break;
-		default:
-			break;
-	}
+	std::vector<std::string> split_msg = this->splitMsg(msg);
+	CmdsEnum cmd = cmdMap.find(split_msg[0])->second;
 
-	if (send(client.fd, output.c_str(), output.length(), 0) < 0)
-		throw (std::runtime_error("Failed to send to socket " + client.fd));
+	std::string output;
+	if (cmd < 4)
+		this->authCmds(split_msg, cmd, client);
+	else if (cmd < 10)
+		this->channelCmds(split_msg, cmd, client);
 }
 
 void	Server::pollErr(pollfd_iter &it)
@@ -268,105 +254,22 @@ void	Server::pollNVal()
 	throw (std::runtime_error("Invalid socket descriptor"));
 }
 
-std::string	Server::chooseAuth(Client &client, std::string msg)
+std::string Server::getMsg(Client &client)
 {
-	if (msg == "1")
+	char buff[BUFFSIZE];
+	memset(buff, 0, BUFFSIZE);
+
+	int bytes_read = recv(client.fd, buff, BUFFSIZE, 0);
+
+	if (bytes_read <= 0)
 	{
-		client.state = LOG_USERNAME;
-		return (PURPLE + std::string("\nLOG IN\n") + GREY "Username: " R);
-	}
-	else if (msg == "2")
-	{
-		client.state = REG_USERNAME;
-		return (PURPLE + std::string("\nLOG IN\n") + GREY "Username: " R);
-	}
-
-	return ("");
-}
-
-std::string	Server::regUsername(Client &client, std::string msg)
-{
-	std::string output;
-
-	if (!this->_clients.empty() && this->_clients.find(msg) != this->_clients.end())
-		return (RED + std::string("Username already taken - Please choose a different username")
-		+ GREY + "\nUsername: " + R);
-
-	client.username = msg;
-	client.state = REG_PASS;
-	return (GREY + std::string("Password: ") + R);
-}
-
-std::string	Server::regPass(Client &client, std::string msg)
-{
-	std::string output = RED + std::string("Password must contain at least ");
-
-	if (msg.size() < 4)
-		return (output + "4 characters" + GREY + "\nPassword: " + R);
-	else if (msg.find_first_of(DIGIT_CHAR) == msg.npos)
-		return (output + "one digit" + GREY + "\nPassword: " + R);
-	else if (msg.find_first_of(ALPHA_CHAR) == msg.npos)
-		return (output + "one uppercase or lowercase letter" + GREY + "\nPassword: " + R);
-
-	client.password = msg;
-	client.state = REG_PASSCONFIRM;
-
-	return (GREY + std::string("Confirm passowrd: ") + R);
-}
-
-std::string	Server::regPassConfirm(Client &client, std::string msg)
-{
-	if (msg != client.password)
-	{
-		client.state = REG_PASS;
-		return (RED + std::string("Password don't match, please try again.")
-		+ GREY "\nPassword:" R);
+		if (bytes_read < 0)
+			broadcast(client, NULL, strerror(errno));
+		this->removeClient(&client);
+		buff[0] = 0;
 	}
 
-	client.state = ACTIVE;
-	this->_clients.insert(std::make_pair(client.username, new Client(client)));
-	this->broadcast(client.username, "has connected");
-	return (PURPLE "\n * Account registered correctly * \n" R);
-}
-
-std::string	Server::logUsername(Client &client, std::string msg)
-{
-	client.state = ONLINE;
-	if (this->_clients.find(msg) == this->_clients.end())
-		return (RED + std::string("Account doesn't exist") + GREY ONLINE_OPTS R);
-	else if (this->_clients[msg]->state == ACTIVE)
-		return (RED + std::string("Account already logged in") + GREY ONLINE_OPTS R);
-
-	client.state = LOG_PASS;
-	client.username = msg;
-	return (GREY + std::string("Password:") + R);
-}
-
-std::string	Server::logPass(Client &client, std::string msg)
-{
-	if (msg != this->_clients[client.username]->password)
-	{
-		client.state = ONLINE;
-		client.username = "";
-		return (RED + std::string("Incorrect password!") + GREY ONLINE_OPTS R);
-	}
-
-	this->_clients[client.username]->state = ACTIVE;
-	this->_clients[client.username]->fd = client.fd;
-	client = *this->_clients[client.username];
-	this->broadcast(client.username, "has connected");
-	return (PURPLE + std::string("\n * Successfully logged in* \n") + R);
-}
-
-void	Server::homeScreen(Client &client)
-{
-	(void)client;
-}
-
-std::string	Server::chatMsg(Client &client, std::string msg)
-{
-	this->broadcast(client.username, msg);
-	return ("wip");
+	return (std::string(buff));
 }
 
 std::string Server::getMsg(Client &client)
@@ -379,7 +282,7 @@ std::string Server::getMsg(Client &client)
 	if (bytes_read <= 0)
 	{
 		if (bytes_read < 0)
-			broadcast(client.username, strerror(errno));
+			broadcast(client, NULL, strerror(errno));
 		this->removeClient(&client);
 		buff[0] = 0;
 	}
@@ -387,66 +290,118 @@ std::string Server::getMsg(Client &client)
 	return (std::string(buff));
 }
 
-void	Server::broadcast(std::string const &user, std::string const &msg)
+std::vector<std::string> Server::splitMsg(std::string msg)
 {
-	std::string output = PURPLE + user + ": " R + msg;
-	std::cout << output << std::endl;
+	std::vector<std::string> split_msg;
+	size_t start, pos = 0;
 
-	online_iter it = this->_online.begin();
-	for (; it != this->_online.end(); ++it)
-		if (user != it->second->username)
-			if (send(it->first, output.c_str(), output.length(), 0) < 0)
-				throw (std::runtime_error("Failed to send to " + it->second->username));
-}
-
-void	Server::clientDataConfig()
-{
-	if (this->_clients.empty())
-		return ;
-
-	std::string config_dir = std::string(getenv("HOME")) + "/.config/my_irc/";
-	system(("mkdir -p " + config_dir).c_str());
-
-	std::string config_file = config_dir + "/clients.csv";
-	std::ofstream file(config_file.c_str());
-
-	if (!file.is_open())
-		throw (std::runtime_error("Failed to open config file " + config_file));
-
-	file << "username,password\n"; // can add nickname, ip, channels, etc.
-
-	for (clients_iter it = this->_clients.begin(); it != this->_clients.end(); ++it)
-		if (it->second && !it->second->username.empty())
-			file	<< it->second->username << ","
-					<< it->second->password << "\n";
-
-	file.flush();
-	file.close();
-}
-
-void	Server::clientDataRetrieve()
-{
-	std::string config_file = std::string(getenv("HOME")) + "/.config/my_irc/clients.csv";
-	std::ifstream file(config_file.c_str());
-
-	if (!file.is_open())
-		return ;
-
-	std::string uname;
-	std::string pass;
-
-	getline(file, uname);
-	while (!uname.empty())
+	while (pos != msg.npos)
 	{
-		getline(file, uname, ',');
-		getline(file, pass, '\n');
-
-		Client *client  = new Client();
-		client->username = uname;
-		client->password = pass;
-
-		this->_clients[uname] = client;
+		pos = msg.find_first_of(" \t");
+		split_msg.push_back(msg.substr(start, pos));
+		start = pos;
 	}
 
-	file.close();
+	if (split_msg.size() < 2)
+		split_msg.push_back("INVALID");
+
+	return (split_msg);
+}
+
+void	Server::authCmds(std::vector<std::string> split_msg, CmdsEnum cmd, Client &client)
+{
+	std::string output;
+
+	switch (cmd)
+	{
+		case INVALID:
+			output = RED "Invalid - command not recognised" R;
+		case PASS:
+			output = this->passCmd(split_msg);
+		case NICK:
+			output = this->nickCmd(split_msg);
+		case USER:
+			output = this->userCmd(split_msg);
+	}
+
+	if (send(client.fd, output.c_str(), output.length(), 0) < 0)
+		throw (std::runtime_error("Failed to send to socket " + client.fd));
+}
+
+void	Server::channelCmds(std::vector<std::string> split_msg, CmdsEnum cmd, Client &client)
+{
+	std::string output;
+	Channel *channel;
+
+
+	if (split_msg[1][0] == '#')
+		if (this->_channels.find(split_msg[1]) != this->_channels.end())
+			channel = this->_channels[split_msg[1]];
+	else if (cmd == INVITE && split_msg.size() > 2 && split_msg[2][0] == '#')
+		if (this->_channels.find(split_msg[1]) != this->_channels.end())
+			channel = this->_channels[split_msg[1]];
+	else if (cmd != JOIN)
+		this->broadcast(client, NULL, RED "Invalid - channel not found" R);
+
+	switch (cmd)
+	{
+		case JOIN:
+			if (!channel)
+			{
+				this->_channels[split_msg[1]] = new Channel(split_msg[1]);
+				output = PURPLE "Channel created\n" R;
+			}
+			output += channel->joinCmd(client, split_msg); break;
+		case MODE:
+			output = channel->modeCmd(client, split_msg); break;
+		case TOPIC:
+			output = channel->topicCmd(client, split_msg); break;
+		case INVITE:
+			output = channel->inviteCmd(client, split_msg); break;
+		case PRIVMSG:
+			output = channel->privmsgCmd(client, split_msg); break;
+		case KICK:
+			output = channel->kickCmd(client, split_msg); break;
+	}
+
+	this->broadcast(client, channel, output);
+}
+
+std::string Server::passCmd(std::vector<std::string> split_msg)
+{
+	if (split_msg.size() != 2)
+		return (RED "JOIN: invalid command format\n" GREY "Expected: JOIN <password>" R);
+
+	if (split_msg[1] != this->_password)
+		return (RED "Invalid password" R);
+
+	return (PURPLE "Password is correct - access granted!" R);
+}
+
+std::string Server::nickCmd(std::vector<std::string> split_msg)
+{
+
+}
+
+std::string Server::userCmd(std::vector<std::string> split_msg)
+{}
+
+void	Server::broadcast(Client &client, Channel *channel, std::string const &msg)
+{
+	std::string output = PURPLE + client.username + ": " R + msg;
+	std::cout << output << std::endl;
+
+	if (!channel)
+	{
+		if (send(client.fd, output.c_str(), output.length(), 0) < 0)
+			throw (std::runtime_error("Failed to send to socket " + client.fd));
+		return;
+	}
+
+	std::vector<Client *>::iterator it = channel->members.begin();
+	for (; it != channel->members.end(); ++it)
+		if (&client != *it && (*it)->state == ACTIVE && (*it)->in_channel == channel->_name)
+			if (send((*it)->fd, output.c_str(), output.length(), 0) < 0)
+				throw (std::runtime_error("Failed to send to " + (*it)->username));
+
 }

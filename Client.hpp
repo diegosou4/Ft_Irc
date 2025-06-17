@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/05 13:15:34 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/16 18:05:34 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/17 21:39:50 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,14 +18,11 @@
 #include <sstream>
 #include <iostream>
 
+class Channel;
+
 enum clientState
 {
 	ONLINE,
-	REG_USERNAME,
-	REG_PASS,
-	REG_PASSCONFIRM,
-	LOG_USERNAME,
-	LOG_PASS,
 	ACTIVE,
 	OFFLINE
 };
@@ -41,7 +38,8 @@ class Client
 		Client	&operator=(Client const &src);
 
 		int	fd;
+		std::string nickname;
 		std::string username;
-		std::string password;
 		clientState	state;
+		std::string	in_channel;
 };
