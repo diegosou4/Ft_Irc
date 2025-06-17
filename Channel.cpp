@@ -1,7 +1,6 @@
 #include "Channel.hpp"
 
-Channel::Channel(const std::string &name) : _name(name) {
-	_limit = 50;
+Channel::Channel(const std::string &name) : _name(name), _limit(50) {
 }
 
 Channel::Channel(const std::string &name, const int limit) : _name(name), _limit(limit) {
@@ -13,13 +12,19 @@ void	Channel::setName(const std::string &name) {
 	this->_name = name;
 }
 
-std::string	Channel::getName(void) const { return (this->_name); }
+std::string	Channel::getName(void) const {
+	return (this->_name);
+}
 
-void	Channel::setTopic(const std::string &topic) {
+void	Channel::setTopic(const std::string &topic, Client *op) {
+	if (!isOperator(op->getNick()))
+		return ;
 	this->_topic = topic;
 }
 
-std::string	Channel::getTopic(void) const { return (this->_topic); }
+std::string	Channel::getTopic(void) const {
+	return (this->_topic);
+}
 
 void		Channel::setPassword(const std::string &password) {
 	this->_password = password;
@@ -30,20 +35,21 @@ void		Channel::setLimit(const int &limit) {
 }
 
 void		Channel::addClient(Client *client, const std::string &password) {
-	int	fd = client->getFd();
+	// int	fd = client->getFd();
+	std::string nick = client->getNick();
 
-	if (_banned.find(fd) != _banned.end()) {
+	if (_banned.find(nick) != _banned.end()) {
 		// send message to client saying that they're banned from this channel
 		return ;
 	}
 	if (_clients.size() > _limit) {
 		// send message to client saying that the channel is full
 	}
-	if (_clients.find(fd) != _clients.end()) {
+	if (_clients.find(nick) != _clients.end()) {
 		// send message to client saying that they're already in the channel
 		return ;
 	}
-	if (_inviteOnly && _invited.find(fd) == _invited.end()) {
+	if (_inviteOnly && _invited.find(nick) == _invited.end()) {
 		// send message to client saying that the channel is invite only (+i)
 		return ;
 	}
@@ -51,14 +57,12 @@ void		Channel::addClient(Client *client, const std::string &password) {
 		// send message to client saying that password is incorrect (+k)
 		return ;
 	}
-	_clients[fd] = client;
+	_clients[nick] = client;
 	if (_clients.size() == 1)
-		_operators.insert(fd);
-
+		_operators.insert(nick);
 	//broadcast JOIN to channel
 	std::string join = ":" + client->getPrefix() + " JOIN: " + _name;
 	broadcast(join, NULL);
-
 	if (!_topic.empty())
 		// broadcast topic message to new client
 }
@@ -72,12 +76,13 @@ void		Channel::broadcast(const std::string &message, Client *exclude) {
 }
 
 void		Channel::removeClient(Client *client) {
-	int fd = client->getFd();
+	// int fd = client->getFd();
+	std::string nick = client->getNick();
 
-	if (_clients.find(fd) == _clients.end())
+	if (_clients.find(nick) == _clients.end())
 		return ;
-	_clients.erase(fd);
-	_operators.erase(fd);
+	_clients.erase(nick);
+	_operators.erase(nick);
 	// _invited.erase(fd); unsure if needed or not
 	
 	std::string part = ":" + client->getPrefix() + " PART " + _name;
@@ -98,15 +103,15 @@ void		Channel::removeClient(Client *client) {
 
 void	Channel::setBanned(Client *op, Client *target) {	
 	// Check to see if op is an operator
-	if (!isOperator(op->getFd()))
+	if (!isOperator(op->getNick()))
 		return ;
-	if (_banned.find(target->getFd()) == _banned.end())
-		_banned.insert(target->getFd());
+	if (_banned.find(target->getNick()) == _banned.end())
+		_banned.insert(target->getNick());
 }
 
 void	Channel::unban(Client *op, Client *target) {
 	// Check to see if op is an operator
-	if (!isOperator(op->getFd()))
+	if (!isOperator(op->getNick()))
 		return ;
 	if (_banned.find(target->getFd()) != _banned.end())
 		_banned.erase(target->getFd());
@@ -114,13 +119,13 @@ void	Channel::unban(Client *op, Client *target) {
 
 void	Channel::setOperator(Client *op, Client *client) {
 	// Check to see if is op is an operator
-	if (!isOperator(op->getFd()))
+	if (!isOperator(op->getNick()))
 		return ;
 	_operators.insert(_operators.end(), op->getFd());
 }
 
-bool	Channel::isOperator(int fd) const {
-	return (_operators.find(fd) != _operators.end());
+bool	Channel::isOperator(std::string nick) const {
+	return (_operators.find(nick) != _operators.end());
 }
 
 bool	Channel::isEmpty(void) const {

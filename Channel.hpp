@@ -9,15 +9,15 @@ class Client;
 
 class	Channel {
 	private :
-		std::string				_name;
-		std::string				_topic;
-		std::string				_password;
-		std::map<int, Client *> _clients;  // using client fd as key
-		std::set<int>			_operators;  // list of operators
-		std::set<int>			_invited;  // list of invited clients
-		std::set<int>			_banned;  // list of banned clients
-		bool					_inviteOnly;
-		size_t					_limit;
+		std::string						_name;
+		std::string						_topic;
+		std::string						_password;
+		std::map<std::string, Client *> _clients;  // using client fd as key
+		std::set<std::string>			_operators;  // list of operators
+		std::set<std::string>			_invited;  // list of invited clients
+		std::set<std::string>			_banned;  // list of banned clients
+		bool							_inviteOnly;
+		size_t							_limit;
 	public :
 		Channel(const std::string &name);
 		Channel(const std::string &name, const int limit);
@@ -26,7 +26,7 @@ class	Channel {
 		void		setName(const std::string &name);
 		std::string	getName(void) const;
 
-		void		setTopic(const std::string &topic);
+		void		setTopic(const std::string &topic, Client *op);
 		std::string	getTopic(void) const;
 
 		void		setLimit(const int &limit);
@@ -39,7 +39,7 @@ class	Channel {
 		void		setPassword(const std::string &password);
 		void		setOperator(Client *op, Client *target);
 
-		bool		isOperator(int fd) const;
+		bool		isOperator(std::string nick) const;
 		bool		isEmpty(void) const;
 
 		void		removeClient(Client *client);
