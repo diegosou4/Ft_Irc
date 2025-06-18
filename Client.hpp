@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/05 13:15:34 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/17 21:39:50 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/18 22:03:04 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,14 +17,19 @@
 #include <unistd.h>
 #include <sstream>
 #include <iostream>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 class Channel;
 
 enum clientState
 {
-	ONLINE,
-	ACTIVE,
-	OFFLINE
+	OFFLINE,
+	AT_DOOR,
+	PASS_OK,
+	NICK_OK,
+	AUTH_OK,
+	ACTIVE
 };
 
 class Client

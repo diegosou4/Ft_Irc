@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/18 17:49:43 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/18 21:35:55 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -125,7 +125,7 @@ class Server
 		void	addSocket(bool isclient);
 		void	initServer(int max_fds);
 
-		void	welcomeScreen(struct pollfd &newpollfd);
+		void	welcomeScreen(Client &client);
 		void	treatRevent();
 
 		void	pollIn(Client &client);
@@ -134,12 +134,12 @@ class Server
 		void	pollNVal();
 
 		std::vector<std::string> splitMsg(std::string msg);
-		void	authCmds(std::vector<std::string> split_msg, CmdsEnum cmd, Client &client);
-		void	channelCmds(std::vector<std::string> split_msg, CmdsEnum cmd, Client &client);
+		void	authCmds(std::vector<std::string> &split_msg, CmdsEnum cmd, Client &client);
+		void	channelCmds(std::vector<std::string> &split_msg, CmdsEnum cmd, Client &client);
 
-		std::string passCmd(std::vector<std::string> split_msg);
-		std::string nickCmd(std::vector<std::string> split_msg);
-		std::string userCmd(std::vector<std::string> split_msg);
+		std::string passCmd(Client &client, std::vector<std::string> &split_msg);
+		std::string nickCmd(Client &client, std::vector<std::string> &split_msg);
+		std::string userCmd(Client &client, std::vector<std::string> &split_msg);
 
 		std::string getMsg(Client &client);
 		void	broadcast(Client &client, Channel *channel, std::string const &msg);

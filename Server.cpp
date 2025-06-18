@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/18 18:44:40 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/18 22:13:19 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,7 +110,6 @@ void	Server::handleClient(size_t max_fds, int timeout)
 				throw (std::runtime_error("All client slots are taken!"));
 
 			this->addSocket(true);
-			std::cout << "user@hostname is attempting connection" << std::endl;
 		}
 
 		this->treatRevent();
@@ -150,8 +149,8 @@ void	Server::removeClient(Client *client)
 	if (!client)
 		return;
 
-	if (this->_clients.find(client->username) != this->_clients.end())
-		this->_clients[client->username]->state = OFFLINE;
+	if (this->_clients.find(client->nickname) != this->_clients.end())
+		this->_clients[client->nickname]->state = OFFLINE;
 
 	for (pollfd_iter it = this->_fds.begin(); it != this->_fds.end(); ++it)
 		if (client->fd == it->fd)
@@ -216,20 +215,21 @@ void	Server::addSocket(bool isclient)
 		fcntl(newpoll.fd, F_SETFL, O_NONBLOCK);
 
 		Client *newclient = new Client(newpoll.fd);
-		newclient->state = ONLINE;
+		newclient->state = AT_DOOR;
 		this->_online[newpoll.fd] = newclient;
 
-		this->welcomeScreen(newpoll);
+		this->welcomeScreen(*newclient);
 	}
 
 	this->_fds.push_back(newpoll);
 }
 
-void	Server::welcomeScreen(struct pollfd &newpoll)
+void	Server::welcomeScreen(Client &client)
 {
-	std::string msg = 	PURPLE WELCOME GREY INSTRUCTIONS R;
+	std::cout << PURPLE << client.nickname << R " is at the door" << std::endl;
 
-	if (send(newpoll.fd, msg.c_str(), msg.length(), 0) < 0)
+	std::string msg = PURPLE WELCOME GREY INSTRUCTIONS R;
+	if (send(client.fd, msg.c_str(), msg.length(), 0) < 0)
 		throw std::runtime_error("Failed to send welcome message");
 }
 
@@ -312,7 +312,7 @@ std::vector<std::string> Server::splitMsg(std::string msg)
 	return (split_msg);
 }
 
-void	Server::authCmds(std::vector<std::string> split_msg, CmdsEnum cmd, Client &client)
+void	Server::authCmds(std::vector<std::string> &split_msg, CmdsEnum cmd, Client &client)
 {
 	std::string output;
 
@@ -321,11 +321,11 @@ void	Server::authCmds(std::vector<std::string> split_msg, CmdsEnum cmd, Client &
 		case INVALID:
 			output = RED "Invalid - command not recognised" R; break;
 		case PASS:
-			output = this->passCmd(split_msg); break;
+			output = this->passCmd(client, split_msg); break;
 		case NICK:
-			output = this->nickCmd(split_msg); break;
+			output = this->nickCmd(client, split_msg); break;
 		case USER:
-			output = this->userCmd(split_msg); break;
+			output = this->userCmd(client, split_msg); break;
 		default:
 			break;
 	}
@@ -334,7 +334,7 @@ void	Server::authCmds(std::vector<std::string> split_msg, CmdsEnum cmd, Client &
 		throw (std::runtime_error("Failed to send to socket " + client.fd));
 }
 
-void	Server::channelCmds(std::vector<std::string> split_msg, CmdsEnum cmd, Client &client)
+void	Server::channelCmds(std::vector<std::string> &split_msg, CmdsEnum cmd, Client &client)
 {
 	std::string output;
 	Channel *channel;
@@ -379,7 +379,7 @@ void	Server::channelCmds(std::vector<std::string> split_msg, CmdsEnum cmd, Clien
 	this->broadcast(client, channel, output);
 }
 
-std::string Server::passCmd(std::vector<std::string> split_msg)
+std::string Server::passCmd(Client &client, std::vector<std::string> &split_msg)
 {
 	if (split_msg.size() != 2)
 		return (RED "JOIN: invalid command format\n" GREY "Expected: JOIN <password>" R);
@@ -387,22 +387,43 @@ std::string Server::passCmd(std::vector<std::string> split_msg)
 	if (split_msg[1] != this->_password)
 		return (RED "Invalid password - access denied" R);
 
-	return (PURPLE "Password is correct - access granted!" R);
+	std::cout << PURPLE << client.nickname << R " has been granted access" << std::endl;
+	client.state = PASS_OK;
+
+	return (GREY "Password is correct - access granted!\nPlease proceed with NICK" R);
 }
 
-std::string Server::nickCmd(std::vector<std::string> split_msg)
+std::string Server::nickCmd(Client &client, std::vector<std::string> &split_msg)
 {
-	return (split_msg[0]);
+	if (split_msg.size() != 2)
+		return (RED "JOIN: invalid command format\n" GREY "Expected: NICK <nickname>" R);
+
+	if (client.state != PASS_OK)
+		return (RED "Error - You need to enter the server using PASS <password>" R);
+
+	if (this->_clients.find(split_msg[1]) == this->_clients.end())
+	{
+		client.state = NICK_OK;
+		this->_clients[split_msg[1]] = new Client(client);
+		return (GREY "Nickname created - Please proceed with USER" R);
+	}
+
+	client = *this->_clients[split_msg[1]];
+	client.state = AUTH_OK;
+	std::cout << PURPLE << client.nickname << R " has logged in" << std::endl;
+
+	return (PURPLE "Welcome back, " + client.nickname + R);
 }
 
-std::string Server::userCmd(std::vector<std::string> split_msg)
+std::string Server::userCmd(Client &client, std::vector<std::string> &split_msg)
 {
+	(void)client;
 	return (split_msg[0]);
 }
 
 void	Server::broadcast(Client &client, Channel *channel, std::string const &msg)
 {
-	std::string output = PURPLE + client.username + ": " R + msg;
+	std::string output = PURPLE + client.nickname + ": " R + msg;
 	std::cout << output << std::endl;
 
 	if (!channel)
@@ -416,6 +437,6 @@ void	Server::broadcast(Client &client, Channel *channel, std::string const &msg)
 	for (; it != channel->members.end(); ++it)
 		if (&client != *it && (*it)->state == ACTIVE && (*it)->in_channel == channel->_name)
 			if (send((*it)->fd, output.c_str(), output.length(), 0) < 0)
-				throw (std::runtime_error("Failed to send to " + (*it)->username));
+				throw (std::runtime_error("Failed to send to " + (*it)->nickname));
 
 }
