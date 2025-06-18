@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/05 13:15:44 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/16 22:29:48 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/18 17:46:01 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,8 @@
 #include <fcntl.h>
 #include <poll.h>
 #include <iostream>
+#include <stdio.h>
+#include <cerrno>
 
 #define PURPLE	"\001\033[1;38;2;209;174;231m\002"
 #define GREY	"\001\033[1;37m\002"

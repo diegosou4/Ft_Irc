@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/17 22:02:48 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/18 18:44:40 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,27 @@
 
 Server::Server(int port, std::string password): _port(port), _password(password)
 {
-	this->clientDataRetrieve();
+	this->cmdMap.insert(std::make_pair("PASS", PASS));
+	this->cmdMap.insert(std::make_pair("NICK", NICK));
+	this->cmdMap.insert(std::make_pair("USER", USER));
+	this->cmdMap.insert(std::make_pair("JOIN", JOIN));
+	this->cmdMap.insert(std::make_pair("MODE", MODE));
+	this->cmdMap.insert(std::make_pair("TOPIC", TOPIC));
+	this->cmdMap.insert(std::make_pair("INVITE", INVITE));
+	this->cmdMap.insert(std::make_pair("PRIVMSG", PRIVMSG));
+	this->cmdMap.insert(std::make_pair("KICK", KICK));
+
+	/* this->cmdMap = {
+		{"PASS", PASS},
+		{"NICK", NICK},
+		{"USER", USER},
+		{"JOIN", JOIN},
+		{"MODE", MODE},
+		{"TOPIC", TOPIC},
+		{"INVITE", INVITE},
+		{"PRIVMSG", PRIVMSG},
+		{"KICK", KICK}
+	}; */
 
 	this->_fd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -41,7 +61,6 @@ Server::~Server()
 	}
 	this->_online.clear();
 
-	this->clientDataConfig();
 	for (clients_iter it = this->_clients.begin(); it != this->_clients.end(); ++it)
 		if (it->second)
 			delete it->second;
@@ -91,6 +110,7 @@ void	Server::handleClient(size_t max_fds, int timeout)
 				throw (std::runtime_error("All client slots are taken!"));
 
 			this->addSocket(true);
+			std::cout << "user@hostname is attempting connection" << std::endl;
 		}
 
 		this->treatRevent();
@@ -142,7 +162,7 @@ void	Server::removeClient(Client *client)
 	this->_online.erase(online_client);
 
 	Channel *channel = this->_channels.find(client->in_channel)->second;
-	this->broadcast(*client, *channel, "has left");
+	this->broadcast(*client, channel, "has left");
 	delete client;
 }
 
@@ -207,7 +227,7 @@ void	Server::addSocket(bool isclient)
 
 void	Server::welcomeScreen(struct pollfd &newpoll)
 {
-	std::string msg = 	PURPLE WELCOME GREY ONLINE_OPTS R;
+	std::string msg = 	PURPLE WELCOME GREY INSTRUCTIONS R;
 
 	if (send(newpoll.fd, msg.c_str(), msg.length(), 0) < 0)
 		throw std::runtime_error("Failed to send welcome message");
@@ -220,7 +240,7 @@ void	Server::pollIn(Client &client)
 		return ;
 
 	std::vector<std::string> split_msg = this->splitMsg(msg);
-	CmdsEnum cmd = cmdMap.find(split_msg[0])->second;
+	CmdsEnum cmd = this->cmdMap.find(split_msg[0])->second;
 
 	std::string output;
 	if (cmd < 4)
@@ -272,34 +292,18 @@ std::string Server::getMsg(Client &client)
 	return (std::string(buff));
 }
 
-std::string Server::getMsg(Client &client)
-{
-	char buff[BUFFSIZE];
-	memset(buff, 0, BUFFSIZE);
-
-	int bytes_read = recv(client.fd, buff, BUFFSIZE, 0);
-
-	if (bytes_read <= 0)
-	{
-		if (bytes_read < 0)
-			broadcast(client, NULL, strerror(errno));
-		this->removeClient(&client);
-		buff[0] = 0;
-	}
-
-	return (std::string(buff));
-}
-
 std::vector<std::string> Server::splitMsg(std::string msg)
 {
 	std::vector<std::string> split_msg;
-	size_t start, pos = 0;
+	size_t pos = 0;
 
-	while (pos != msg.npos)
+	while (pos <= msg.size())
 	{
-		pos = msg.find_first_of(" \t");
-		split_msg.push_back(msg.substr(start, pos));
-		start = pos;
+		pos = msg.find_first_of(" \t\0");
+		split_msg.push_back(msg.substr(0, pos));
+		if (pos == msg.size())
+			break;
+		msg = msg.substr(pos +1, msg.size());
 	}
 
 	if (split_msg.size() < 2)
@@ -315,13 +319,15 @@ void	Server::authCmds(std::vector<std::string> split_msg, CmdsEnum cmd, Client &
 	switch (cmd)
 	{
 		case INVALID:
-			output = RED "Invalid - command not recognised" R;
+			output = RED "Invalid - command not recognised" R; break;
 		case PASS:
-			output = this->passCmd(split_msg);
+			output = this->passCmd(split_msg); break;
 		case NICK:
-			output = this->nickCmd(split_msg);
+			output = this->nickCmd(split_msg); break;
 		case USER:
-			output = this->userCmd(split_msg);
+			output = this->userCmd(split_msg); break;
+		default:
+			break;
 	}
 
 	if (send(client.fd, output.c_str(), output.length(), 0) < 0)
@@ -335,11 +341,15 @@ void	Server::channelCmds(std::vector<std::string> split_msg, CmdsEnum cmd, Clien
 
 
 	if (split_msg[1][0] == '#')
+	{
 		if (this->_channels.find(split_msg[1]) != this->_channels.end())
 			channel = this->_channels[split_msg[1]];
+	}
 	else if (cmd == INVITE && split_msg.size() > 2 && split_msg[2][0] == '#')
+	{
 		if (this->_channels.find(split_msg[1]) != this->_channels.end())
 			channel = this->_channels[split_msg[1]];
+	}
 	else if (cmd != JOIN)
 		this->broadcast(client, NULL, RED "Invalid - channel not found" R);
 
@@ -362,6 +372,8 @@ void	Server::channelCmds(std::vector<std::string> split_msg, CmdsEnum cmd, Clien
 			output = channel->privmsgCmd(client, split_msg); break;
 		case KICK:
 			output = channel->kickCmd(client, split_msg); break;
+		default:
+			break;
 	}
 
 	this->broadcast(client, channel, output);
@@ -373,18 +385,20 @@ std::string Server::passCmd(std::vector<std::string> split_msg)
 		return (RED "JOIN: invalid command format\n" GREY "Expected: JOIN <password>" R);
 
 	if (split_msg[1] != this->_password)
-		return (RED "Invalid password" R);
+		return (RED "Invalid password - access denied" R);
 
 	return (PURPLE "Password is correct - access granted!" R);
 }
 
 std::string Server::nickCmd(std::vector<std::string> split_msg)
 {
-
+	return (split_msg[0]);
 }
 
 std::string Server::userCmd(std::vector<std::string> split_msg)
-{}
+{
+	return (split_msg[0]);
+}
 
 void	Server::broadcast(Client &client, Channel *channel, std::string const &msg)
 {

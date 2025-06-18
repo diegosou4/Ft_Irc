@@ -6,13 +6,13 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/17 20:47:34 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/17 21:49:29 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/18 17:43:27 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Channel.hpp"
 
-Channel::Channel(std::string name)
+Channel::Channel(std::string name): _name(name)
 {}
 
 Channel::~Channel()
@@ -20,10 +20,10 @@ Channel::~Channel()
 
 std::string Channel::joinCmd(Client &client, std::vector<std::string> msg)
 {
+	(void)msg;
 	client.state = ACTIVE;
 	client.in_channel = this->_name;
 
-	std::vector<Client *>::iterator it = this->members.begin();
 	std::find(this->members.begin(), this->members.end(), &client) != this->members.end();
 	if (std::find(this->members.begin(), this->members.end(), &client) != this->members.end())
 		return (RED + client.username + R " is already in channel " + this->_name);

@@ -6,7 +6,7 @@
 #    By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/05/26 21:49:04 by cbouvet           #+#    #+#              #
-#    Updated: 2025/06/16 22:30:32 by cbouvet          ###   ########.fr        #
+#    Updated: 2025/06/18 17:42:09 by cbouvet          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,7 +14,7 @@ NAME = ircserv
 CXX = @c++
 CXX_FLAGS = -Werror -Wall -Wextra -std=c++98
 SRC = 	main.cpp \
-		Server.cpp	Client.cpp
+		Server.cpp	Client.cpp Channel.cpp
 OBJ = $(SRC:.cpp=.o)
 
 all: $(NAME)

@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/17 21:53:46 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/18 17:49:43 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,6 +55,7 @@
 ▐▙█▟▌▐▙▄▄▖▐▙▄▄▖▝▚▄▄▖▝▚▄▞▘▐▌  ▐▌▐▙▄▄▖\n\
                                     \n"
 #define ONLINE_OPTS	"\n\n1 - Log in    |    2 - Register"
+#define INSTRUCTIONS "Please enter using PASS and NICK"
 
 enum CmdsEnum
 {
@@ -68,19 +69,6 @@ enum CmdsEnum
 	INVITE,
 	PRIVMSG,
 	KICK
-};
-
-static std::map<std::string, CmdsEnum> cmdMap =
-{
-	{"PASS", PASS},
-	{"NICK", NICK},
-	{"USER", USER},
-	{"JOIN", JOIN},
-	{"MODE", MODE},
-	{"TOPIC", TOPIC},
-	{"INVITE", INVITE},
-	{"PRIVMSG", PRIVMSG},
-	{"KICK", KICK}
 };
 /*
 PASS secretpassword
@@ -108,6 +96,7 @@ class Server
 		std::map<std::string, Client *> _clients;
 		std::map<int, Client *>	_online;
 		std::map<std::string, Channel *> _channels;
+		std::map<std::string, CmdsEnum> cmdMap;
 
 		typedef std::vector<struct pollfd>::iterator pollfd_iter;
 		typedef std::map<int, Client *>::iterator online_iter;
@@ -153,7 +142,7 @@ class Server
 		std::string userCmd(std::vector<std::string> split_msg);
 
 		std::string getMsg(Client &client);
-		void	Server::broadcast(Client &client, Channel *channel, std::string const &msg);
+		void	broadcast(Client &client, Channel *channel, std::string const &msg);
 };
 
 //To add:
