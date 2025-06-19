@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/18 21:35:55 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/19 16:07:48 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,9 +129,9 @@ class Server
 		void	treatRevent();
 
 		void	pollIn(Client &client);
-		void	pollErr(pollfd_iter &it);
-		void	pollHup(pollfd_iter &it);
-		void	pollNVal();
+		void	pollErr(Client &client);
+		void	pollHup(Client &client);
+		void	pollNVal(Client &client);
 
 		std::vector<std::string> splitMsg(std::string msg);
 		void	authCmds(std::vector<std::string> &split_msg, CmdsEnum cmd, Client &client);

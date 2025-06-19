@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/19 14:50:04 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/19 16:39:22 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,13 +129,13 @@ void	Server::treatRevent()
 		switch (it->revents)
 		{
 			case POLLHUP:
-				this->pollHup(it); break;
+				this->pollHup(*client); break;
 			case POLLIN:
 				this->pollIn(*client); break;
 			case POLLERR:
-				this->pollErr(it); break;
+				this->pollErr(*client); break;
 			case POLLNVAL:
-				this->pollNVal(); break;
+				this->pollNVal(*client); break;
 			default:
 				break;
 		}
@@ -251,29 +251,45 @@ void	Server::pollIn(Client &client)
 		this->channelCmds(split_msg, cmd, client);
 }
 
-void	Server::pollErr(pollfd_iter &it)
+void	Server::pollErr(Client &client)
 {
 	std::string error = strerror(errno);
-	send(it->fd, error.c_str(), error.length(), 0);
+	send(client.fd, error.c_str(), error.length(), 0);
+	std::cerr << RED "Error occurred with client " << client.nickname << ":" + error << R << std::endl;
 
-	throw (std::runtime_error("Error occurred in client socket :" + error));
+	if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
+	{
+		std::cout << "Retrying ..." << std::endl;
+		return ;
+	}
+	else if (errno == ETIMEDOUT)
+	{
+		std::cout << "Reopening attempt ..." << std::endl;
+		close(client.fd);
 
-	/* to add:
-		-> try to recover connection - unsure how
-		-> if not recoverable, cleanup resources*/
+		client.fd = socket(AF_INET, SOCK_STREAM, 0);
+		if (client.fd >= 0)
+		{
+			fcntl(client.fd,  F_SETFL, O_NONBLOCK);
+			std::cout << PURPLE "Reconnection successful" R << std::endl;
+			return ;
+		}
+	}
+
+	std::cerr << RED "Unrecoverable - closing socket" R << std::endl;
+	this->removeClient(&client);
 }
 
-void	Server::pollHup(pollfd_iter &it)
+void	Server::pollHup(Client &client)
 {
-	this->removeClient(this->_online[it->fd]);
-	/* to add:
-		-> remove client form active conversations*/
+	this->removeClient(&client);
 }
 
-void	Server::pollNVal()
+void	Server::pollNVal(Client &client)
 {
-	std::cout << "POLLNVAL triggered" << std::endl;
-	throw (std::runtime_error("Invalid socket descriptor"));
+	std::cerr << RED "File descriptor " << client.fd << " is invalid" R << std::endl;
+	std::cerr << RED "Unrecoverable - closing socket" R << std::endl;
+	this->removeClient(&client);
 }
 
 std::string Server::getMsg(Client &client)
@@ -476,5 +492,4 @@ void	Server::broadcast(Client &client, Channel *channel, std::string const &msg)
 		if (&client != *it && (*it)->state == ACTIVE)
 			if (send((*it)->fd, output.c_str(), output.length(), 0) < 0)
 				throw (std::runtime_error("Failed to send to " + (*it)->nickname));
-
 }
