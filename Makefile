@@ -13,7 +13,7 @@
 
 NAME = ircserv
 CXX = @c++
-CXX_FLAGS = -Werror -Wall -Wextra -std=c++98
+CXX_FLAGS = -g -Werror -Wall -Wextra -std=c++98
 SRC = 	main.cpp \
 		Server.cpp	Client.cpp Channel.cpp
 OBJ = $(SRC:.cpp=.o)

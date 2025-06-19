@@ -15,53 +15,114 @@
 #include "Client.hpp"
 #include "Channel.hpp"
 
-
-Client::Client(): fd(-1), state(OFFLINE), in_channel("")
+Client::Client() : _client_fd(-1), _real_name("unregistered"), _username("unregistered"), _nickname("unregistered"), _Ip_address(""), _state(OFFLINE) 
 {
-	char hostname[1000];
 
-	if (!gethostname(hostname, 1000))
-		this->nickname = "user@" + std::string(hostname);
-	else
-		this->nickname = "user@unknown";
 }
 
-Client::Client(int fd): fd(fd), state(OFFLINE), in_channel("")
+Client::Client(int fd)
+	: _client_fd(fd),
+	  _real_name("unregistered"),
+	  _username("unregistered"),
+	  _nickname("unregistered"),
+	  _Ip_address(""),
+	  _state(AT_DOOR)
 {
-	struct sockaddr_in addr;
-	socklen_t addrlen = sizeof(addr);
 
-	if (!getpeername(fd, (struct sockaddr *)&addr, &addrlen))
-		this->nickname = "user@" + std::string(inet_ntoa(addr.sin_addr));
-	else
-		this->nickname = "user@unknown";
 }
 
-Client::Client(Client const &src)
+
+Client::Client(Client const &src) : _client_fd(src._client_fd), _real_name(src._real_name), _username(src._username), _Ip_address(src._Ip_address), _state(src._state) 
 {
-	this->fd = src.fd;
-	this->state = src.state;
-	this->nickname = src.nickname;
-	this->username = src.username;
-	this->in_channel = src.in_channel;
+	*this = src;
 }
 
-Client::~Client()
+Client::~Client() 
 {
+	
 }
 
-Client	&Client::operator=(Client const &src)
+
+
+Client &Client::operator=(Client const &src) 
 {
-	if (this != &src)
-	{
-		//this->fd = src.fd;
-		this->state = src.state;
-		this->nickname = src.nickname;
-		this->username = src.username;
-		this->in_channel = src.in_channel;
+	if (this != &src) {
+		_client_fd = src._client_fd;
+		_real_name = src._real_name;
+		_username = src._username;
+		_Ip_address = src._Ip_address;
+		_state = src._state;
 	}
+	return *this;
+}
 
-	return (*this);
+void Client::setClientFd(int fd) 
+{
+	_client_fd = fd;
+}
+
+void Client::setRealname(std::string realname) 
+{
+	_real_name = realname;
+}
+
+void Client::setUsername(std::string username) 
+{
+	_username = username;
+}
+
+void Client::setIpAddress(std::string ip_address) 
+{
+	_Ip_address = ip_address;
+}
+
+void Client::setState(clientState state) 
+{
+	_state = state;
 }
 
 
+
+std::string Client::getIpAddress() const 
+{
+	return _Ip_address;
+}
+
+int Client::getClientFd() const 
+{
+	return _client_fd;
+}
+
+std::string Client::getRealname() const 
+{
+	 return _real_name;
+}
+
+
+clientState Client::getState() const 
+{
+	return _state;
+}
+
+std::string Client::getUsername() const 
+{
+	return _username;
+}
+
+std::string Client::getInChannel() const 
+{
+	return _in_channel;
+}
+
+void Client::setInChannel(std::string in_channel) 
+{
+	_in_channel = in_channel;
+}
+std::string Client::getNickname() const 
+{
+	return _nickname;
+}
+void Client::setNickname(std::string nickname) 
+{
+	_nickname = nickname;
+}

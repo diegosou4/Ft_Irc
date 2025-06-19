@@ -34,6 +34,14 @@ enum clientState
 
 class Client
 {
+	private : 
+        int _client_fd;
+		std::string _real_name;
+		std::string _username;
+		std::string _nickname;
+		std::string _Ip_address;
+		clientState _state;
+		std::string	_in_channel;
 	public:
 		Client();
 		Client(int fd);
@@ -41,10 +49,19 @@ class Client
 		~Client();
 
 		Client	&operator=(Client const &src);
-
-		int	fd;
-		std::string nickname;
-		std::string username;
-		clientState	state;
-		std::string	in_channel;
+		void setClientFd(int fd);
+		void setRealname(std::string realname);
+		void setUsername(std::string username);
+		void setInChannel(std::string in_channel);
+		void setIpAddress(std::string ip_address);
+		void setNickname(std::string nickname);
+		void setState(clientState state);
+		std::string getIpAddress() const;
+		int getClientFd() const;
+		clientState getState() const;
+		std::string getRealname() const;
+		std::string getUsername() const;
+		std::string getInChannel() const;
+		std::string getNickname() const;
+		
 };
