@@ -1,4 +1,3 @@
-
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
@@ -6,16 +5,15 @@
 #                                                     +:+ +:+         +:+      #
 #    By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2025/05/26 21:49:04 by cbouvet           #+#    #+#              #
-#    Updated: 2025/06/18 17:42:09 by cbouvet          ###   ########.fr        #
+#    Created: 2025/06/16 22:11:14 by cbouvet           #+#    #+#              #
+#    Updated: 2025/06/16 22:11:37 by cbouvet          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-NAME = ircserv
+NAME = test_client
 CXX = @c++
 CXX_FLAGS = -Werror -Wall -Wextra -std=c++98
-SRC = 	main.cpp \
-		Server.cpp	Client.cpp Channel.cpp
+SRC = 	main.cpp TestClient.cpp
 OBJ = $(SRC:.cpp=.o)
 
 all: $(NAME)
@@ -38,13 +36,3 @@ fclean: clean
 re: fclean all
 
 .PHONY: all clean fclean re
-
-
-fclean: clean
-	@echo "$(RED)Removing Progam..$(NC)"
-	@rm -rf $(NAME)
-
-re: fclean all
-
-.PHONY: all clean fclean re
-
