@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/19 16:39:22 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/19 17:24:57 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,18 +52,11 @@ Server::~Server()
 		close(this->_fd);
 	this->_fds.clear();
 
-	for (online_iter it = this->_online.begin(); it != this->_online.end(); ++it)
-	{
-		if (it->first > 0)
-			close(it->first);
-		if (it->second)
-			delete it->second;
-	}
-	this->_online.clear();
-
 	for (clients_iter it = this->_clients.begin(); it != this->_clients.end(); ++it)
 		if (it->second)
 			delete it->second;
+
+	this->_clients.clear();
 }
 
 int Server::getFd()const
@@ -76,12 +69,14 @@ int	Server::getPort()const
 	return (this->_port);
 }
 
-Client &Server::getClient(int fd)
+Client *Server::getClient(int fd)
 {
-	if (this->_online.find(fd) == this->_online.end())
-		throw (std::runtime_error("Client with corresponding fd not found"));
+	for (clients_iter it = this->_clients.begin(); it != this->_clients.end(); ++it)
+	if (it->second->fd == fd)
+		return (it->second);
 
-	return (*this->_online[fd]);
+	std::cerr << RED "Client with corresponding fd not found" R << std::endl;
+	return (NULL);
 }
 
 void	Server::initServer(int max_fds)
@@ -125,7 +120,9 @@ void	Server::treatRevent()
 
 	for (; it != this->_fds.end(); ++it)
 	{
-		Client *client = this->_online[it->fd];
+		Client *client = this->getClient(it->fd);
+		if (!client)
+			continue ;
 		switch (it->revents)
 		{
 			case POLLHUP:
@@ -144,32 +141,27 @@ void	Server::treatRevent()
 	}
 }
 
-void	Server::removeClient(Client *client)
+void	Server::removeClient(Client &client)
 {
-	if (!client)
-		return;
-
-	if (this->_clients.find(client->nickname) != this->_clients.end())
-		this->_clients[client->nickname]->state = OFFLINE;
-
 	for (pollfd_iter it = this->_fds.begin(); it != this->_fds.end(); ++it)
-		if (client->fd == it->fd)
+		if (client.fd == it->fd)
 			it->fd = REMOVAL;
 
-	online_iter online_client = this->_online.find(client->fd);
-	close(online_client->first);
-	this->_online.erase(online_client);
+	for (channels_iter it = this->_channels.begin(); it != this->_channels.end(); ++it)
+		if (std::find(it->second->members.begin(), it->second->members.end(), &client) != it->second->members.end())
+			this->broadcast(client, it->second, "has left");
 
-	std::map<std::string, Channel *>::iterator it = this->_channels.begin();
-	for (; it != this->_channels.end(); ++it)
-		if (std::find(it->second->members.begin(), it->second->members.end(), client) != it->second->members.end())
-			this->broadcast(*client, it->second, "has left");
-	client->state = OFFLINE;
+	close(client.fd);
+	client.state = OFFLINE;
 }
 
 bool	Server::hasClient()
 {
-	return (!this->_online.empty());
+	for (clients_iter it = this->_clients.begin(); it != this->_clients.end(); ++it)
+		if (it->second->state == ACTIVE)
+			return (true);
+
+	return (false);
 }
 
 Server::Server(Server const &src)
@@ -218,7 +210,7 @@ void	Server::addSocket(bool isclient)
 
 		Client *newclient = new Client(newpoll.fd);
 		newclient->state = AT_DOOR;
-		this->_online[newpoll.fd] = newclient;
+		this->_clients[newclient->nickname]= newclient;
 
 		this->welcomeScreen(*newclient);
 	}
@@ -277,19 +269,19 @@ void	Server::pollErr(Client &client)
 	}
 
 	std::cerr << RED "Unrecoverable - closing socket" R << std::endl;
-	this->removeClient(&client);
+	this->removeClient(client);
 }
 
 void	Server::pollHup(Client &client)
 {
-	this->removeClient(&client);
+	this->removeClient(client);
 }
 
 void	Server::pollNVal(Client &client)
 {
 	std::cerr << RED "File descriptor " << client.fd << " is invalid" R << std::endl;
 	std::cerr << RED "Unrecoverable - closing socket" R << std::endl;
-	this->removeClient(&client);
+	this->removeClient(client);
 }
 
 std::string Server::getMsg(Client &client)
@@ -303,7 +295,7 @@ std::string Server::getMsg(Client &client)
 	{
 		if (bytes_read < 0)
 			broadcast(client, NULL, strerror(errno));
-		this->removeClient(&client);
+		this->removeClient(client);
 		buff[0] = 0;
 	}
 
@@ -341,7 +333,7 @@ void	Server::authCmds(std::vector<std::string> &split_msg, CmdsEnum cmd, Client 
 		case PASS:
 			output = this->passCmd(client, split_msg); break;
 		case NICK:
-			output = this->nickCmd(client, split_msg); break;
+			output = this->nickCmd(&client, split_msg); break;
 		case USER:
 			output = this->userCmd(client, split_msg); break;
 		default:
@@ -414,11 +406,11 @@ std::string Server::passCmd(Client &client, std::vector<std::string> &split_msg)
 	return (GREY "Password is correct - access granted!\nPlease proceed with NICK" R);
 }
 
-std::string Server::nickCmd(Client &client, std::vector<std::string> &split_msg)
+std::string Server::nickCmd(Client *client, std::vector<std::string> &split_msg)
 {
-	if (client.state < PASS_OK)
+	if (client->state < PASS_OK)
 		return (RED "Error - Please enter the server using PASS <password>" R);
-	else if (client.state > PASS_OK)
+	else if (client->state > PASS_OK)
 		return (PURPLE "Your nickname has already been set" R);
 
 	if (split_msg.size() != 2)
@@ -426,17 +418,20 @@ std::string Server::nickCmd(Client &client, std::vector<std::string> &split_msg)
 
 	if (this->_clients.find(split_msg[1]) == this->_clients.end())
 	{
-		std::cout << PURPLE << client.nickname << R " has set nickname to " GREY << split_msg[1] << R << std::endl;
-		client.state = NICK_OK;
-		client.nickname = split_msg[1];
+		std::cout << PURPLE << client->nickname << R " has set nickname to " GREY << split_msg[1] << R << std::endl;
+		client->state = NICK_OK;
+		client->nickname = split_msg[1];
 		return (GREY "Nickname created - Please proceed with USER" R);
 	}
 
-	client = *this->_clients[split_msg[1]];
-	client.state = ACTIVE;
-	std::cout << PURPLE << client.nickname << R " has logged in" << std::endl;
+	this->_clients.erase(client->nickname);
+	delete client;
 
-	return (PURPLE "Welcome back, " + client.nickname + R);
+	client = this->_clients[split_msg[1]];
+	client->state = ACTIVE;
+	std::cout << PURPLE << client->nickname << R " has logged in" << std::endl;
+
+	return (PURPLE "Welcome back, " + client->nickname + R);
 }
 
 std::string Server::userCmd(Client &client, std::vector<std::string> &split_msg)
@@ -467,8 +462,6 @@ std::string Server::userCmd(Client &client, std::vector<std::string> &split_msg)
 	}
 
 	client.state = ACTIVE;
-	this->_clients[client.nickname] = new Client(client);
-
 	std::cout << PURPLE << client.nickname << R " has completed registration\n"
 	<< GREY " > username: " R << client.username << GREY " - realname: " R << client.realname << std::endl;
 

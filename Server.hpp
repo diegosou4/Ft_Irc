@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/19 16:07:48 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/19 17:13:45 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,26 +94,23 @@ class Server
 
 		std::vector<struct pollfd>	_fds;
 		std::map<std::string, Client *> _clients;
-		std::map<int, Client *>	_online;
 		std::map<std::string, Channel *> _channels;
 		std::map<std::string, CmdsEnum> cmdMap;
 
 		typedef std::vector<struct pollfd>::iterator pollfd_iter;
-		typedef std::map<int, Client *>::iterator online_iter;
 		typedef std::map<std::string, Client *>::iterator clients_iter;
-
-		//std::map<std::string, Channel> _channels?
+		typedef std::map<std::string, Channel *>::iterator channels_iter;
 
 	public:
-		Server(int port, std::string password); // create fd socket here
+		Server(int port, std::string password);
 		~Server();
 
 		int getFd()const;
 		int	getPort()const;
-		Client &getClient(int fd);
+		Client *getClient(int fd);
 
 		void	handleClient(size_t max_fds, int timeout);
-		void	removeClient(Client *client);
+		void	removeClient(Client &client);
 
 		bool	hasClient();
 
@@ -138,7 +135,7 @@ class Server
 		void	channelCmds(std::vector<std::string> &split_msg, CmdsEnum cmd, Client &client);
 
 		std::string passCmd(Client &client, std::vector<std::string> &split_msg);
-		std::string nickCmd(Client &client, std::vector<std::string> &split_msg);
+		std::string nickCmd(Client *client, std::vector<std::string> &split_msg);
 		std::string userCmd(Client &client, std::vector<std::string> &split_msg);
 
 		std::string getMsg(Client &client);
