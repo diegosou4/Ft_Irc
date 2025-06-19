@@ -6,36 +6,18 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/19 17:24:57 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/19 22:51:11 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 
+//----------------------Constructors/Destructors-------------------------------
+
+// Constructs + sets up all server attributes
 Server::Server(int port, std::string password): _port(port), _password(password)
 {
-	this->cmdMap.insert(std::make_pair("PASS", PASS));
-	this->cmdMap.insert(std::make_pair("NICK", NICK));
-	this->cmdMap.insert(std::make_pair("USER", USER));
-	this->cmdMap.insert(std::make_pair("JOIN", JOIN));
-	this->cmdMap.insert(std::make_pair("MODE", MODE));
-	this->cmdMap.insert(std::make_pair("TOPIC", TOPIC));
-	this->cmdMap.insert(std::make_pair("INVITE", INVITE));
-	this->cmdMap.insert(std::make_pair("PRIVMSG", PRIVMSG));
-	this->cmdMap.insert(std::make_pair("KICK", KICK));
-
-	/* this->cmdMap = {
-		{"PASS", PASS},
-		{"NICK", NICK},
-		{"USER", USER},
-		{"JOIN", JOIN},
-		{"MODE", MODE},
-		{"TOPIC", TOPIC},
-		{"INVITE", INVITE},
-		{"PRIVMSG", PRIVMSG},
-		{"KICK", KICK}
-	}; */
-
+	this->setCmdMap();
 	this->_fd = socket(AF_INET, SOCK_STREAM, 0);
 
 	if (this->_fd < 0)
@@ -46,6 +28,14 @@ Server::Server(int port, std::string password): _port(port), _password(password)
 	std::cout << GREY "Server has been properly set up" R << std::endl;
 }
 
+// Private copy constructor to force compilation error
+Server::Server(Server const &src)
+{
+	throw (std::runtime_error("Copy constructor not allowed!"));
+	(void)src;
+}
+
+// Destroys + frees memory and clears containers
 Server::~Server()
 {
 	if (this->_fd > 0)
@@ -55,20 +45,35 @@ Server::~Server()
 	for (clients_iter it = this->_clients.begin(); it != this->_clients.end(); ++it)
 		if (it->second)
 			delete it->second;
-
 	this->_clients.clear();
 }
 
+//-------------------------Operator overloads----------------------------------
+
+// Private assignment operator to force compilation error
+Server	&Server::operator=(Server const &src)
+{
+	throw (std::runtime_error("Assignment operator not allowed!"));
+
+	(void)src;
+	return (*this);
+}
+
+//---------------------------Getters/Setters-----------------------------------
+
+// Returns server socket fd
 int Server::getFd()const
 {
 	return (this->_fd);
 }
 
+// Returns port on which server is listening
 int	Server::getPort()const
 {
 	return (this->_port);
 }
 
+// Returns client from _clients container that matches given fd
 Client *Server::getClient(int fd)
 {
 	for (clients_iter it = this->_clients.begin(); it != this->_clients.end(); ++it)
@@ -79,17 +84,23 @@ Client *Server::getClient(int fd)
 	return (NULL);
 }
 
-void	Server::initServer(int max_fds)
+//-----------------------------Init/setup--------------------------------------
+
+// Sets socket options + defines socket address struct
+void	Server::setSocket(in_port_t port, in_addr_t ip)
 {
-	if (bind(this->_fd, this->_gen_addr, this->_addrlen) < 0)
-		throw (std::runtime_error("Server binding failed"));
+	int opt = 1;
+	setsockopt(this->_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
-	if (listen(this->_fd, max_fds) < 0)
-		throw(std::runtime_error("Server fails to listen"));
+	this->_addr.sin_family = AF_INET;
+	this->_addr.sin_addr.s_addr = ip;
+	this->_addr.sin_port = port;
 
-	this->addSocket(false);
+	this->_gen_addr = (struct sockaddr *)&this->_addr;
+	this->_addrlen = sizeof(this->_addr);
 }
 
+// Launches server, listens to pollfd activity, adds new clients and treats events
 void	Server::handleClient(size_t max_fds, int timeout)
 {
 	this->initServer(max_fds);
@@ -111,6 +122,47 @@ void	Server::handleClient(size_t max_fds, int timeout)
 	}
 }
 
+// Binds socket fd with local address, prepares to listen to connections, add server socket to pollfd vector
+void	Server::initServer(int max_fds)
+{
+	if (bind(this->_fd, this->_gen_addr, this->_addrlen) < 0)
+		throw (std::runtime_error("Server binding failed"));
+
+	if (listen(this->_fd, max_fds) < 0)
+		throw(std::runtime_error("Server fails to listen"));
+
+	this->addSocket(false);
+}
+
+// Adds new socket to pollfd vector + adds it to _client map & sets to non-blocking if is a client
+void	Server::addSocket(bool isclient)
+{
+	struct pollfd newpoll = {};
+	newpoll.events = POLLIN;
+
+	if (!isclient)
+		newpoll.fd = this->_fd;
+	else
+	{
+		newpoll.fd = accept(this->_fd, this->_gen_addr, &this->_addrlen);
+		if (newpoll.fd < 0)
+			throw (std::runtime_error("Server failed to accept client connection"));
+
+		fcntl(newpoll.fd, F_SETFL, O_NONBLOCK);
+
+		Client *newclient = new Client(newpoll.fd);
+		newclient->state = AT_DOOR;
+		this->_clients[newclient->nickname]= newclient;
+
+		this->welcomeScreen(*newclient);
+	}
+
+	this->_fds.push_back(newpoll);
+}
+
+//----------------------------Poll/revents-------------------------------------
+
+// Loops around all pollfds for revent activity - if found, sends to relevant event-managing method
 void	Server::treatRevent()
 {
 	if (this->_fds.size() <= 1)
@@ -141,92 +193,15 @@ void	Server::treatRevent()
 	}
 }
 
-void	Server::removeClient(Client &client)
+// POLLUP = client left
+// Sends to client removal function
+void	Server::pollHup(Client &client)
 {
-	for (pollfd_iter it = this->_fds.begin(); it != this->_fds.end(); ++it)
-		if (client.fd == it->fd)
-			it->fd = REMOVAL;
-
-	for (channels_iter it = this->_channels.begin(); it != this->_channels.end(); ++it)
-		if (std::find(it->second->members.begin(), it->second->members.end(), &client) != it->second->members.end())
-			this->broadcast(client, it->second, "has left");
-
-	close(client.fd);
-	client.state = OFFLINE;
+	this->removeClient(client);
 }
 
-bool	Server::hasClient()
-{
-	for (clients_iter it = this->_clients.begin(); it != this->_clients.end(); ++it)
-		if (it->second->state == ACTIVE)
-			return (true);
-
-	return (false);
-}
-
-Server::Server(Server const &src)
-{
-	throw (std::runtime_error("Copy constructor not allowed!"));
-	(void)src;
-}
-
-Server	&Server::operator=(Server const &src)
-{
-	throw (std::runtime_error("Assignment operator not allowed!"));
-
-	(void)src;
-	return (*this);
-}
-
-void	Server::setSocket(in_port_t port, in_addr_t ip)
-{
-	//Set socket options
-	int opt = 1;
-	setsockopt(this->_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-
-	//Define socket address
-	this->_addr.sin_family = AF_INET;
-	this->_addr.sin_addr.s_addr = ip;
-	this->_addr.sin_port = port;
-
-	this->_gen_addr = (struct sockaddr *)&this->_addr;
-	this->_addrlen = sizeof(this->_addr);
-}
-
-void	Server::addSocket(bool isclient)
-{
-	struct pollfd newpoll = {};
-	newpoll.events = POLLIN;
-
-	if (!isclient)
-		newpoll.fd = this->_fd;
-	else
-	{
-		newpoll.fd = accept(this->_fd, this->_gen_addr, &this->_addrlen);
-		if (newpoll.fd < 0)
-			throw (std::runtime_error("Server failed to accept client connection"));
-
-		fcntl(newpoll.fd, F_SETFL, O_NONBLOCK);
-
-		Client *newclient = new Client(newpoll.fd);
-		newclient->state = AT_DOOR;
-		this->_clients[newclient->nickname]= newclient;
-
-		this->welcomeScreen(*newclient);
-	}
-
-	this->_fds.push_back(newpoll);
-}
-
-void	Server::welcomeScreen(Client &client)
-{
-	std::cout << PURPLE << client.nickname << R " is at the door" << std::endl;
-
-	std::string msg = PURPLE WELCOME GREY INSTRUCTIONS R;
-	if (send(client.fd, msg.c_str(), msg.length(), 0) < 0)
-		throw std::runtime_error("Failed to send welcome message");
-}
-
+// POLLIN = message sent by client
+// Retrieves message, splits it into vector, sends it to command managers
 void	Server::pollIn(Client &client)
 {
 	std::string msg = getMsg(client);
@@ -243,6 +218,8 @@ void	Server::pollIn(Client &client)
 		this->channelCmds(split_msg, cmd, client);
 }
 
+// POLLERR = error occurred with fd
+// Depending on error code: ignores, reopen socket, or removes client
 void	Server::pollErr(Client &client)
 {
 	std::string error = strerror(errno);
@@ -272,11 +249,8 @@ void	Server::pollErr(Client &client)
 	this->removeClient(client);
 }
 
-void	Server::pollHup(Client &client)
-{
-	this->removeClient(client);
-}
-
+// POLLNVAL = file descriptor issue
+// Shows error message + sends to client removal
 void	Server::pollNVal(Client &client)
 {
 	std::cerr << RED "File descriptor " << client.fd << " is invalid" R << std::endl;
@@ -284,44 +258,9 @@ void	Server::pollNVal(Client &client)
 	this->removeClient(client);
 }
 
-std::string Server::getMsg(Client &client)
-{
-	char buff[BUFFSIZE];
-	memset(buff, 0, BUFFSIZE);
+//------------------------------Commands---------------------------------------
 
-	int bytes_read = recv(client.fd, buff, BUFFSIZE, 0);
-
-	if (bytes_read <= 0)
-	{
-		if (bytes_read < 0)
-			broadcast(client, NULL, strerror(errno));
-		this->removeClient(client);
-		buff[0] = 0;
-	}
-
-	return (std::string(buff));
-}
-
-std::vector<std::string> Server::splitMsg(std::string msg)
-{
-	std::vector<std::string> split_msg;
-	size_t pos = 0;
-
-	while (pos <= msg.size())
-	{
-		pos = msg.find_first_of(" \t\0");
-		split_msg.push_back(msg.substr(0, pos));
-		if (pos == msg.size())
-			break;
-		msg = msg.substr(pos +1, msg.size());
-	}
-
-	if (split_msg.size() < 2)
-		split_msg.push_back("INVALID");
-
-	return (split_msg);
-}
-
+// Manages non-channel-related commands - sends to relevant functions + sends output to client
 void	Server::authCmds(std::vector<std::string> &split_msg, CmdsEnum cmd, Client &client)
 {
 	std::string output;
@@ -344,6 +283,7 @@ void	Server::authCmds(std::vector<std::string> &split_msg, CmdsEnum cmd, Client 
 		throw (std::runtime_error("Failed to send to socket " + client.fd));
 }
 
+// Manages channel-related commands - sends to relevant functions + broadcasts output
 void	Server::channelCmds(std::vector<std::string> &split_msg, CmdsEnum cmd, Client &client)
 {
 	std::string output;
@@ -389,6 +329,7 @@ void	Server::channelCmds(std::vector<std::string> &split_msg, CmdsEnum cmd, Clie
 	this->broadcast(client, channel, output);
 }
 
+// If client state, command format, password are correct -> sets client to next state
 std::string Server::passCmd(Client &client, std::vector<std::string> &split_msg)
 {
 	if (client.state > AT_DOOR)
@@ -406,6 +347,7 @@ std::string Server::passCmd(Client &client, std::vector<std::string> &split_msg)
 	return (GREY "Password is correct - access granted!\nPlease proceed with NICK" R);
 }
 
+// If client state & command format are correct -> sets existing client as active - or sets non-existing client to next state
 std::string Server::nickCmd(Client *client, std::vector<std::string> &split_msg)
 {
 	if (client->state < PASS_OK)
@@ -434,6 +376,7 @@ std::string Server::nickCmd(Client *client, std::vector<std::string> &split_msg)
 	return (PURPLE "Welcome back, " + client->nickname + R);
 }
 
+// If client state & command format are correct -> updates username and realname - finalizes non-existing client registration
 std::string Server::userCmd(Client &client, std::vector<std::string> &split_msg)
 {
 	if (client.state <= AT_DOOR)
@@ -468,6 +411,73 @@ std::string Server::userCmd(Client &client, std::vector<std::string> &split_msg)
 	return (PURPLE "Welcome, " + client.nickname + R);
 }
 
+//--------------------------------Utils----------------------------------------
+
+// Creates map linking command to an enum
+void	Server::setCmdMap()
+{
+	this->cmdMap.insert(std::make_pair("PASS", PASS));
+	this->cmdMap.insert(std::make_pair("NICK", NICK));
+	this->cmdMap.insert(std::make_pair("USER", USER));
+	this->cmdMap.insert(std::make_pair("JOIN", JOIN));
+	this->cmdMap.insert(std::make_pair("MODE", MODE));
+	this->cmdMap.insert(std::make_pair("TOPIC", TOPIC));
+	this->cmdMap.insert(std::make_pair("INVITE", INVITE));
+	this->cmdMap.insert(std::make_pair("PRIVMSG", PRIVMSG));
+	this->cmdMap.insert(std::make_pair("KICK", KICK));
+}
+
+// Displays welcome screen to user + notifies server
+void	Server::welcomeScreen(Client &client)
+{
+	std::cout << PURPLE << client.nickname << R " is at the door" << std::endl;
+
+	std::string msg = PURPLE WELCOME GREY INSTRUCTIONS R;
+	if (send(client.fd, msg.c_str(), msg.length(), 0) < 0)
+		throw std::runtime_error("Failed to send welcome message");
+}
+
+// Retrieves message from user + perform checks - removes client if errors
+std::string Server::getMsg(Client &client)
+{
+	char buff[BUFFSIZE];
+	memset(buff, 0, BUFFSIZE);
+
+	int bytes_read = recv(client.fd, buff, BUFFSIZE, 0);
+
+	if (bytes_read <= 0)
+	{
+		if (bytes_read < 0)
+			broadcast(client, NULL, strerror(errno));
+		this->removeClient(client);
+		buff[0] = 0;
+	}
+
+	return (std::string(buff));
+}
+
+// Splits user command into vector string items
+std::vector<std::string> Server::splitMsg(std::string msg)
+{
+	std::vector<std::string> split_msg;
+	size_t pos = 0;
+
+	while (pos <= msg.size())
+	{
+		pos = msg.find_first_of(" \t\0");
+		split_msg.push_back(msg.substr(0, pos));
+		if (pos == msg.size())
+			break;
+		msg = msg.substr(pos +1, msg.size());
+	}
+
+	if (split_msg.size() < 2)
+		split_msg.push_back("INVALID");
+
+	return (split_msg);
+}
+
+// Broadcasts message to server, client, & channel if applicable
 void	Server::broadcast(Client &client, Channel *channel, std::string const &msg)
 {
 	std::string output = PURPLE + client.nickname + ": " R + msg;
@@ -485,4 +495,19 @@ void	Server::broadcast(Client &client, Channel *channel, std::string const &msg)
 		if (&client != *it && (*it)->state == ACTIVE)
 			if (send((*it)->fd, output.c_str(), output.length(), 0) < 0)
 				throw (std::runtime_error("Failed to send to " + (*it)->nickname));
+}
+
+// Removes client from pollfd, sets client as OFFLINE, closes fd, broadcast departure
+void	Server::removeClient(Client &client)
+{
+	for (pollfd_iter it = this->_fds.begin(); it != this->_fds.end(); ++it)
+		if (client.fd == it->fd)
+			it->fd = REMOVAL;
+
+	for (channels_iter it = this->_channels.begin(); it != this->_channels.end(); ++it)
+		if (std::find(it->second->members.begin(), it->second->members.end(), &client) != it->second->members.end())
+			this->broadcast(client, it->second, "has left");
+
+	close(client.fd);
+	client.state = OFFLINE;
 }

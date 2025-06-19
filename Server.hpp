@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/19 17:13:45 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/19 22:29:28 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,35 +102,38 @@ class Server
 		typedef std::map<std::string, Channel *>::iterator channels_iter;
 
 	public:
+	//----------------------Constructors/Destructors-------------------------------
 		Server(int port, std::string password);
 		~Server();
 
+		//---------------------------Getters/Setters-----------------------------------
 		int getFd()const;
 		int	getPort()const;
 		Client *getClient(int fd);
 
+		//-----------------------------Init/setup--------------------------------------
 		void	handleClient(size_t max_fds, int timeout);
 		void	removeClient(Client &client);
 
-		bool	hasClient();
-
 	private:
+	//----------------------Constructors/Destructors-------------------------------
 		Server(Server const &src);
+		//-------------------------Operator overloads----------------------------------
 		Server	&operator=(Server const &src);
 
+		//-----------------------------Init/setup--------------------------------------
 		void	setSocket(in_port_t port, in_addr_t ip);
-		void	addSocket(bool isclient);
 		void	initServer(int max_fds);
+		void	addSocket(bool isclient);
 
-		void	welcomeScreen(Client &client);
+		//----------------------------Poll/revents-------------------------------------
 		void	treatRevent();
-
 		void	pollIn(Client &client);
 		void	pollErr(Client &client);
 		void	pollHup(Client &client);
 		void	pollNVal(Client &client);
 
-		std::vector<std::string> splitMsg(std::string msg);
+		//------------------------------Commands---------------------------------------
 		void	authCmds(std::vector<std::string> &split_msg, CmdsEnum cmd, Client &client);
 		void	channelCmds(std::vector<std::string> &split_msg, CmdsEnum cmd, Client &client);
 
@@ -138,15 +141,11 @@ class Server
 		std::string nickCmd(Client *client, std::vector<std::string> &split_msg);
 		std::string userCmd(Client &client, std::vector<std::string> &split_msg);
 
+		//--------------------------------Utils----------------------------------------
+		void	setCmdMap();
+		void	welcomeScreen(Client &client);
 		std::string getMsg(Client &client);
+		std::vector<std::string> splitMsg(std::string msg);
 		void	broadcast(Client &client, Channel *channel, std::string const &msg);
 };
 
-//To add:
-// broadcast mechanism for server/wide messages
-// buffer overflow protection? Is it really needed tho?
-// logging system
-// client authentication system
-//Add signal handling (e.g., SIGINT) to gracefully shut down.
-//Track client metadata: nickname, state, etc.
-//Handle POLLERR, POLLHUP, POLLNVAL in treatMsg() or a central poll() result handler.
