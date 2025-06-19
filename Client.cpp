@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/05 13:15:41 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/18 21:55:36 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/19 14:34:41 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 #include "Channel.hpp"
 
 
-Client::Client(): fd(-1), state(OFFLINE), in_channel("")
+Client::Client(): fd(-1), state(OFFLINE)
 {
 	char hostname[1000];
 
@@ -26,7 +26,7 @@ Client::Client(): fd(-1), state(OFFLINE), in_channel("")
 		this->nickname = "user@unknown";
 }
 
-Client::Client(int fd): fd(fd), state(OFFLINE), in_channel("")
+Client::Client(int fd): fd(fd), state(OFFLINE)
 {
 	struct sockaddr_in addr;
 	socklen_t addrlen = sizeof(addr);
@@ -43,7 +43,6 @@ Client::Client(Client const &src)
 	this->state = src.state;
 	this->nickname = src.nickname;
 	this->username = src.username;
-	this->in_channel = src.in_channel;
 }
 
 Client::~Client()
@@ -58,7 +57,6 @@ Client	&Client::operator=(Client const &src)
 		this->state = src.state;
 		this->nickname = src.nickname;
 		this->username = src.username;
-		this->in_channel = src.in_channel;
 	}
 
 	return (*this);

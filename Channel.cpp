@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/17 20:47:34 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/18 17:43:27 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/19 14:34:23 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,8 +21,6 @@ Channel::~Channel()
 std::string Channel::joinCmd(Client &client, std::vector<std::string> msg)
 {
 	(void)msg;
-	client.state = ACTIVE;
-	client.in_channel = this->_name;
 
 	std::find(this->members.begin(), this->members.end(), &client) != this->members.end();
 	if (std::find(this->members.begin(), this->members.end(), &client) != this->members.end())
