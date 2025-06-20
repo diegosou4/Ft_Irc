@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/20 12:07:09 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/20 12:51:40 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,33 +113,34 @@ class Server
 		void	removeClient(Client &client);
 
 	private:
-		// Forbidden orthodox canonical member-functions
+		// Forbidden orthodox canonical member-functions - Server.hpp
 		Server(Server const &src);
 		Server	&operator=(Server const &src);
 
-		// Init/setup
+		// Init/setup - Server.hpp
 		void	setSocket(in_port_t port, in_addr_t ip);
 		void	initServer(int max_fds);
 		void	addSocket(bool isclient);
 
-		// Poll/revents
+		// Poll/revents - Revents.hpp
 		void	treatRevent();
 		void	pollIn(Client &client);
 		void	pollErr(Client &client);
 		void	pollHup(Client &client);
 		void	pollNVal(Client &client);
 
-		// Commands
-		std::string passCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
-		std::string nickCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
-		std::string userCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
-		std::string joinCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
+		// Commands - Commands.hpp
+		std::string passCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg);
+		std::string nickCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg);
+		std::string userCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg);
+		std::string joinCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg);
 
-		std::string passCheck(Client &client, std::string password);
-		std::string nickCheck(Client *client, std::string nickname);
-		std::string userCheck(Client &client, std::vector<std::string> &user_args);
-		std::string joinCheck(Client &client, Channel *channel, std::string channelname);
-		// Utils
+		std::string passCmd(Client &client, std::string password);
+		std::string nickCmd(Client *client, std::string nickname);
+		std::string userCmd(Client &client, std::vector<std::string> &user_args);
+		std::string joinCmd(Client &client, Channel *channel, std::string channelname);
+
+		// Utils - Utils.hpp
 		void	setCmdMaps();
 		void	welcomeScreen(Client &client);
 		std::string getMsg(Client &client);
