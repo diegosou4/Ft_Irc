@@ -6,13 +6,12 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 13:00:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/20 13:11:43 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/20 13:15:47 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 //--------------------------------Utils----------------------------------------
 #include "Server.hpp"
-
 
 // Creates maps linking command to an function
 void	Server::setCmdMaps()
