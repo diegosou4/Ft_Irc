@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/17 20:40:47 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/17 21:48:26 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/20 10:23:14 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,12 +31,12 @@ class Channel
 		Channel(std::string name);
 		~Channel();
 
-		std::string joinCmd(Client &client, std::vector<std::string>);
-		std::string modeCmd(Client &client, std::vector<std::string>);
-		std::string topicCmd(Client &client, std::vector<std::string>);
-		std::string inviteCmd(Client &client, std::vector<std::string>);
-		std::string privmsgCmd(Client &client, std::vector<std::string>);
-		std::string kickCmd(Client &client, std::vector<std::string>);
+		std::string joinCmd(Client &client);
+		std::string modeCmd(Client &client, std::vector<std::string> &msg);
+		std::string topicCmd(Client &client, std::vector<std::string> &msg);
+		std::string inviteCmd(Client &client, std::vector<std::string> &msg);
+		std::string privmsgCmd(Client &client, std::vector<std::string> &msg);
+		std::string kickCmd(Client &client, std::vector<std::string> &msg);
 
 		std::string _name;
 		std::vector<Client *> members;

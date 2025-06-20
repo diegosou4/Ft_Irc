@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/19 22:29:28 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/20 10:28:28 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,6 +101,12 @@ class Server
 		typedef std::map<std::string, Client *>::iterator clients_iter;
 		typedef std::map<std::string, Channel *>::iterator channels_iter;
 
+		typedef std::string (Server::*AuthCmds)(Client*, Channel *, std::vector<std::string>&);
+		typedef std::string (Channel::*ChanCmds)(Client&, std::vector<std::string>&);
+
+		std::map<std::string, AuthCmds> _authcmds;
+		std::map<std::string, ChanCmds> _chancmds;
+
 	public:
 	//----------------------Constructors/Destructors-------------------------------
 		Server(int port, std::string password);
@@ -137,10 +143,14 @@ class Server
 		void	authCmds(std::vector<std::string> &split_msg, CmdsEnum cmd, Client &client);
 		void	channelCmds(std::vector<std::string> &split_msg, CmdsEnum cmd, Client &client);
 
-		std::string passCmd(Client &client, std::vector<std::string> &split_msg);
+		/* std::string passCmd(Client &client, std::vector<std::string> &split_msg);
 		std::string nickCmd(Client *client, std::vector<std::string> &split_msg);
-		std::string userCmd(Client &client, std::vector<std::string> &split_msg);
+		std::string userCmd(Client &client, std::vector<std::string> &split_msg); */
 
+		std::string passCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
+		std::string nickCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
+		std::string userCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
+		std::string joinCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
 		//--------------------------------Utils----------------------------------------
 		void	setCmdMap();
 		void	welcomeScreen(Client &client);

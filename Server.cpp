@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/19 22:51:11 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/20 10:38:25 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -211,12 +211,73 @@ void	Server::pollIn(Client &client)
 	std::vector<std::string> split_msg = this->splitMsg(msg);
 	CmdsEnum cmd = this->cmdMap.find(split_msg[0])->second;
 
-	std::string output;
 	if (cmd < 4)
 		this->authCmds(split_msg, cmd, client);
 	else if (cmd < 10)
 		this->channelCmds(split_msg, cmd, client);
 }
+
+void Server::pollIn(client &client)
+{
+	std::string msg = getMsg(client);
+	if (msg.empty())
+		return;
+
+	std::vector<std::string> split_msg = this->splitMsg(msg);
+	CmdsEnum cmd = this->cmdMap.find(split_msg[0])->second;
+	Channel *channel = findChannel(split_msg);
+
+	std::string output;
+	switch (cmd)
+	{
+		case INVALID:
+			output = RED "Invalid - command not recognised" R; break;
+		case PASS:
+			output = this->passCmd(client, split_msg); break;
+		case NICK:
+			output = this->nickCmd(client, split_msg); break;
+		case USER:
+			output = this->userCmd(client, split_msg); break;
+		case JOIN:
+			output = this->joinCmd(client, channel, split_msg); break;
+		case MODE:
+			output = channel->modeCmd(client, channel, split_msg); break;
+		case TOPIC:
+			output = channel->topicCmd(client, channel, split_msg); break;
+		case INVITE:
+			output = channel->inviteCmd(client, channel, split_msg); break;
+		case PRIVMSG:
+			output = channel->privmsgCmd(client, channel, split_msg); break;
+		case KICK:
+			output = channel->kickCmd(client, channel, split_msg); break;
+	}
+
+	this->broadcast(client, channel, output);
+}
+
+void Server::pollIn(client &client)
+{
+	std::string msg = getMsg(client);
+	if (msg.empty())
+		return;
+
+	std::vector<std::string> split_msg = this->splitMsg(msg);
+	CmdsEnum cmd = this->cmdMap.find(split_msg[0])->second;
+	Channel *channel = findChannel(split_msg);
+
+	std::string output;
+
+	if (this->_authcmds.find(split_msg[0]) != this->_authcmds.end())
+		output = (this->*_authcmds[split_msg[0]])(client, channel, split_msg);
+	else if (channel && this->_chancmds.find(split_msg[0]) != this->_chancmds.end())
+		output = (channel->*_chancmds[split_msg[0]])(client, split_msg);
+	else
+		output = RED "Invalid - command not recognised" R;
+
+	this->broadcast(client, channel, output);
+}
+
+
 
 // POLLERR = error occurred with fd
 // Depending on error code: ignores, reopen socket, or removes client
@@ -414,7 +475,7 @@ std::string Server::userCmd(Client &client, std::vector<std::string> &split_msg)
 //--------------------------------Utils----------------------------------------
 
 // Creates map linking command to an enum
-void	Server::setCmdMap()
+/* void	Server::setCmdMap()
 {
 	this->cmdMap.insert(std::make_pair("PASS", PASS));
 	this->cmdMap.insert(std::make_pair("NICK", NICK));
@@ -425,6 +486,20 @@ void	Server::setCmdMap()
 	this->cmdMap.insert(std::make_pair("INVITE", INVITE));
 	this->cmdMap.insert(std::make_pair("PRIVMSG", PRIVMSG));
 	this->cmdMap.insert(std::make_pair("KICK", KICK));
+} */
+
+void	Server::setCmdMap()
+{
+	this->_authcmds["PASS"] = &Server::passCmd;
+	this->_authcmds["NICK"] = &Server::nickCmd;
+	this->_authcmds["USER"] = &Server::userCmd;
+	this->_authcmds["JOIN"] = &Server::joinCmd;
+
+	this->_chancmds["MODE"] = &Channel::modeCmd;
+	this->_chancmds["TOPIC"] = &Channel::topicCmd;
+	this->_chancmds["INVITE"] = &Channel::inviteCmd;
+	this->_chancmds["PRIVMSG"] = &Channel::privmsgCmd;
+	this->_chancmds["KICK"] = &Channel::kickCmd;
 }
 
 // Displays welcome screen to user + notifies server
@@ -492,7 +567,7 @@ void	Server::broadcast(Client &client, Channel *channel, std::string const &msg)
 
 	std::vector<Client *>::iterator it = channel->members.begin();
 	for (; it != channel->members.end(); ++it)
-		if (&client != *it && (*it)->state == ACTIVE)
+		if (&client != *it && (*it)-INVALID>state == ACTIVE)
 			if (send((*it)->fd, output.c_str(), output.length(), 0) < 0)
 				throw (std::runtime_error("Failed to send to " + (*it)->nickname));
 }
@@ -511,3 +586,4 @@ void	Server::removeClient(Client &client)
 	close(client.fd);
 	client.state = OFFLINE;
 }
+
