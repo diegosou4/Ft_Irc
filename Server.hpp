@@ -59,6 +59,7 @@
 
 enum CmdsEnum
 {
+	CAP,
 	INVALID,
 	PASS,
 	NICK,
@@ -68,7 +69,7 @@ enum CmdsEnum
 	TOPIC,
 	INVITE,
 	PRIVMSG,
-	KICK
+	KICK,
 };
 /*
 PASS secretpassword
@@ -134,6 +135,7 @@ class Server
 		void	authCmds(std::vector<std::string> &split_msg, CmdsEnum cmd, Client &client);
 		void	channelCmds(std::vector<std::string> &split_msg, CmdsEnum cmd, Client &client);
 
+		std::string capCmd(Client &client, std::vector<std::string> &split_msg);
 		std::string passCmd(Client &client, std::vector<std::string> &split_msg);
 		std::string nickCmd(Client *client, std::vector<std::string> &split_msg);
 		std::string userCmd(Client &client, std::vector<std::string> &split_msg);

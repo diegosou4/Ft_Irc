@@ -1,4 +1,4 @@
-
+std::cout
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
@@ -34,15 +34,6 @@ clean:
 fclean: clean
 	@rm -f $(NAME)
 	@echo "$(NAME) removed!"
-
-re: fclean all
-
-.PHONY: all clean fclean re
-
-
-fclean: clean
-	@echo "$(RED)Removing Progam..$(NC)"
-	@rm -rf $(NAME)
 
 re: fclean all
 

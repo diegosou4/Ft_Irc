@@ -14,6 +14,7 @@
 
 Server::Server(int port, std::string password): _port(port), _password(password)
 {
+	this->cmdMap.insert(std::make_pair("CAP", CAP));
 	this->cmdMap.insert(std::make_pair("PASS", PASS));
 	this->cmdMap.insert(std::make_pair("NICK", NICK));
 	this->cmdMap.insert(std::make_pair("USER", USER));
@@ -72,10 +73,13 @@ int	Server::getPort()const
 Client *Server::getClient(int fd)
 {
 	for (clients_iter it = this->_clients.begin(); it != this->_clients.end(); ++it)
-	if (it->second->getClientFd() == fd)
-		return (it->second);
+		if (it->second->getClientFd() == fd)
+			return (it->second);
 
-	std::cerr << RED "Client with corresponding fd not found" R << std::endl;
+	std::cout << this->_fds.size() << " fds in the vector" << std::endl;
+	std::cout << this->_fds[0].fd << " is the server fd" << std::endl;
+
+	std::cerr << RED "Client with corresponding fd not found" << fd << R << std::endl;
 	return (NULL);
 }
 
@@ -116,6 +120,11 @@ void Server::treatRevent(void)
 	std::vector<pollfd>::iterator it = this->_fds.begin();
 	while (it != this->_fds.end())
 	{
+		if (it->fd == this->_fd)
+		{
+			++it;
+			continue;
+		}
 		Client *client = this->getClient(it->fd);
 
 		if (!client)
@@ -144,6 +153,7 @@ void Server::treatRevent(void)
 			++it;
 	}
 }
+
 
 
 void	Server::removeClient(Client &client)
@@ -236,16 +246,20 @@ void	Server::welcomeScreen(Client &client)
 void	Server::pollIn(Client &client)
 {
 	std::string msg = getMsg(client);
+	// Debugging output
+	std::cout << "Raw message received: [" << msg << "]" << std::endl;
+
 	if (msg.empty())
 		return ;
-
+	
 	std::vector<std::string> split_msg = this->splitMsg(msg);
+
 	std::map<std::string, CmdsEnum>::iterator it = this->cmdMap.find(split_msg[0]);
 	if (it == this->cmdMap.end())
-		throw std::runtime_error("Command not found: " + split_msg[0]);
+		throw std::runtime_error("Command not found: " +  msg);
 
 	CmdsEnum cmd = it->second;
-	
+
 
 	std::string output;
 	if (cmd < 4)
@@ -297,21 +311,22 @@ void	Server::pollNVal(Client &client)
 
 std::string Server::getMsg(Client &client)
 {
-	char buff[BUFFSIZE];
-	memset(buff, 0, BUFFSIZE);
+    char buff[BUFFSIZE];
+    memset(buff, 0, BUFFSIZE);
 
-	int bytes_read = recv(client.getClientFd(), buff, BUFFSIZE, 0);
+    int bytes_read = recv(client.getClientFd(), buff, BUFFSIZE, 0);
 
-	if (bytes_read <= 0)
-	{
-		if (bytes_read < 0)
-			broadcast(client, NULL, strerror(errno));
-		this->removeClient(client);
-		buff[0] = 0;
-	}
+    if (bytes_read <= 0)
+    {
+        if (bytes_read < 0)
+            broadcast(client, NULL, strerror(errno));
+        this->removeClient(client);
+        return std::string();
+    }
 
-	return (std::string(buff));
+    return std::string(buff, bytes_read);
 }
+
 
 std::vector<std::string> Server::splitMsg(std::string msg)
 {
@@ -339,6 +354,8 @@ void	Server::authCmds(std::vector<std::string> &split_msg, CmdsEnum cmd, Client 
 
 	switch (cmd)
 	{
+		case CAP: 
+			output = this->capCmd(client, split_msg); break;
 		case INVALID:
 			output = RED "Invalid - command not recognised" R; break;
 		case PASS:
@@ -360,6 +377,12 @@ void	Server::channelCmds(std::vector<std::string> &split_msg, CmdsEnum cmd, Clie
 	std::string output;
 	Channel *channel;
 
+	std::cout << "Channel command received: " << cmd << std::endl;
+		for(std::vector<std::string>::iterator messagePart = split_msg.begin(); messagePart != split_msg.end(); ++messagePart)
+		{
+			std::cout << "Split message part: " << *messagePart << std::endl;
+		}
+	
 
 	if (split_msg[1][0] == '#')
 	{
@@ -402,6 +425,7 @@ void	Server::channelCmds(std::vector<std::string> &split_msg, CmdsEnum cmd, Clie
 
 std::string Server::passCmd(Client &client, std::vector<std::string> &split_msg)
 {
+
 	if (client.getState() > AT_DOOR)
 		return (PURPLE "You are already logged into the server" R);
 
@@ -496,4 +520,15 @@ void	Server::broadcast(Client &client, Channel *channel, std::string const &msg)
 		if (&client != *it && (*it)->getState() == ACTIVE)
 			if (send((*it)->getClientFd(), output.c_str(), output.length(), 0) < 0)
 				throw (std::runtime_error("Failed to send to " + (*it)->getNickname()));
+}
+
+std::string Server::capCmd(Client &client, std::vector<std::string> &split_msg)
+{
+	if(split_msg.size() != 2 || split_msg[1] != "LS")
+		return (RED "Invalid - expected: CAP LS" R);
+	if (client.getState() == ACTIVE)
+		return (PURPLE "You are already logged in" R);
+
+	client.setState(ACTIVE);
+	return (GREY "Capabilities set - you are now logged in!" R);
 }

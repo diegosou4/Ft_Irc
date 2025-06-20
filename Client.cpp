@@ -47,7 +47,6 @@ Client::~Client()
 Client &Client::operator=(Client const &src) 
 {
 	if (this != &src) {
-		_client_fd = src._client_fd;
 		_real_name = src._real_name;
 		_username = src._username;
 		_Ip_address = src._Ip_address;
