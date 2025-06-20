@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/20 10:58:42 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/20 12:07:09 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,11 @@
 ▐▙█▟▌▐▙▄▄▖▐▙▄▄▖▝▚▄▄▖▝▚▄▞▘▐▌  ▐▌▐▙▄▄▖\n\
                                     \n"
 #define ONLINE_OPTS	"\n\n1 - Log in    |    2 - Register"
-#define INSTRUCTIONS "Please enter using PASS and NICK"
+#define INSTRUCTIONS "Please enter using PASS"
+#define PASS_EXPECT "Expected: PASS <password>"
+#define NICK_EXPECT	"Expected: NICK <nickname>"
+#define USER_EXPECT "Expected: USER <username> <hostname> <servername> :<realname>"
+#define JOIN_EXPECT	"Expected: JOIN <#channelname>"
 
 /*
 PASS secretpassword
@@ -131,6 +135,10 @@ class Server
 		std::string userCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
 		std::string joinCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
 
+		std::string passCheck(Client &client, std::string password);
+		std::string nickCheck(Client *client, std::string nickname);
+		std::string userCheck(Client &client, std::vector<std::string> &user_args);
+		std::string joinCheck(Client &client, Channel *channel, std::string channelname);
 		// Utils
 		void	setCmdMaps();
 		void	welcomeScreen(Client &client);

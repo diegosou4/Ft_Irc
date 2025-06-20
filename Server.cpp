@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/20 11:01:44 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/20 12:36:34 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -168,9 +168,7 @@ void	Server::treatRevent()
 	if (this->_fds.size() <= 1)
 		return ;
 
-	pollfd_iter it = this->_fds.begin() +1;
-
-	for (; it != this->_fds.end(); ++it)
+	for (pollfd_iter it = this->_fds.begin() +1; it != this->_fds.end(); ++it)
 	{
 		Client *client = this->getClient(it->fd);
 		if (!client)
@@ -227,9 +225,7 @@ void Server::pollIn(Client &client)
 // Depending on error code: ignores, reopen socket, or removes client
 void	Server::pollErr(Client &client)
 {
-	std::string error = strerror(errno);
-	send(client.fd, error.c_str(), error.length(), 0);
-	std::cerr << RED "Error occurred with client " << client.nickname << ":" + error << R << std::endl;
+	std::cerr << RED "Error occurred with client " << client.nickname << ":" << strerror(errno) << R << std::endl;
 
 	if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
 	{
@@ -260,6 +256,7 @@ void	Server::pollNVal(Client &client)
 {
 	std::cerr << RED "File descriptor " << client.fd << " is invalid" R << std::endl;
 	std::cerr << RED "Unrecoverable - closing socket" R << std::endl;
+
 	this->removeClient(client);
 }
 
@@ -274,15 +271,9 @@ std::string Server::passCmd(Client *client, Channel *channel, std::vector<std::s
 		return (PURPLE "You are already logged into the server" R);
 
 	if (split_msg.size() != 2)
-		return (RED "JOIN: invalid command format\n" GREY "Expected: JOIN <password>" R);
+		return (RED "PASS: invalid command format\n" GREY PASS_EXPECT R);
 
-	if (split_msg[1] != this->_password)
-		return (RED "Invalid password - access denied" R);
-
-	std::cout << PURPLE << client->nickname << R " has been granted access" << std::endl;
-	client->state = PASS_OK;
-
-	return (GREY "Password is correct - access granted!\nPlease proceed with NICK" R);
+	return (this->passCheck(*client, split_msg[1]));
 }
 
 // If client state & command format are correct -> sets existing client as active - or sets non-existing client to next state
@@ -292,29 +283,14 @@ std::string Server::nickCmd(Client *client, Channel *channel, std::vector<std::s
 		throw (std::runtime_error("Fatal: client not found"));
 
 	if (client->state < PASS_OK)
-		return (RED "Error - Please enter the server using PASS <password>" R);
+		return (RED "Error - " INSTRUCTIONS R);
 	else if (client->state > PASS_OK)
 		return (PURPLE "Your nickname has already been set" R);
 
 	if (split_msg.size() != 2)
-		return (RED "JOIN: invalid command format\n" GREY "Expected: NICK <nickname>" R);
+		return (RED "NICK: invalid command format\n" GREY NICK_EXPECT R);
 
-	if (this->_clients.find(split_msg[1]) == this->_clients.end())
-	{
-		std::cout << PURPLE << client->nickname << R " has set nickname to " GREY << split_msg[1] << R << std::endl;
-		client->state = NICK_OK;
-		client->nickname = split_msg[1];
-		return (GREY "Nickname created - Please proceed with USER" R);
-	}
-
-	this->_clients.erase(client->nickname);
-	delete client;
-
-	client = this->_clients[split_msg[1]];
-	client->state = ACTIVE;
-	std::cout << PURPLE << client->nickname << R " has logged in" << std::endl;
-
-	return (PURPLE "Welcome back, " + client->nickname + R);
+	return (this->nickCheck(client, split_msg[1]));
 }
 
 // If client state & command format are correct -> updates username and realname - finalizes non-existing client registration
@@ -329,35 +305,88 @@ std::string Server::userCmd(Client *client, Channel *channel, std::vector<std::s
 		return (RED "Error - Please create a nickname using NICK" R);
 
 	if (split_msg.size() < 5 || split_msg[4][0] != ':' || split_msg[4].size() <= 1)
-		return (RED "JOIN: invalid command format\n" GREY "Expected: USER <username> <hostname> <servername> :<realname>" R);
+		return (RED "USER: invalid command format\n" GREY USER_EXPECT R);
 
-	client->username = split_msg[1];
-	client->realname = &split_msg[4][1];
-	for (size_t i = 5; i < split_msg.size(); i++)
-	{
-		client->realname += split_msg[i];
-		if (i != split_msg.size() -1)
-			client->realname += " ";
-	}
-
-	if (this->_clients.find(client->nickname) != this->_clients.end())
-	{
-		std::cout << PURPLE << client->nickname << R " has changed its user data to:\n"
-		<< GREY " > username: " R << client->username << GREY "	-	realname: " R << client->realname << std::endl;
-
-		return (PURPLE "Your user data has been correctly updated" R);
-	}
-
-	client->state = ACTIVE;
-	std::cout << PURPLE << client->nickname << R " has completed registration\n"
-	<< GREY " > username: " R << client->username << GREY " - realname: " R << client->realname << std::endl;
-
-	return (PURPLE "Welcome, " + client->nickname + R);
+	return (this->userCheck(*client, split_msg));
 }
 
 std::string Server::joinCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg)
 {
+	if (!client)
+		throw (std::runtime_error("Fatal: client not found"));
 
+	if (split_msg.size() != 2)
+		return (RED "JOIN: invalid command format\n" GREY JOIN_EXPECT R);
+
+	if (split_msg[1][0] != '#' || split_msg[1].length() < 2)
+		return (RED "Invalid channel name format\n" GREY JOIN_EXPECT R);
+
+	return (this->joinCheck(*client, channel, split_msg[1]));
+}
+
+std::string Server::passCheck(Client &client, std::string password)
+{
+	if (password != this->_password)
+	{
+		std::cout << PURPLE << client.nickname << R " access denied: invalid password" << std::endl;
+		return (RED "Invalid password - access denied" R);
+	}
+
+	client.state = PASS_OK;
+
+	std::cout << PURPLE << client.nickname << R " access granted" << std::endl;
+	return (GREY "Password is correct - access granted!\nPlease proceed with NICK" R);
+}
+
+std::string Server::nickCheck(Client *client, std::string nickname)
+{
+	if (this->_clients.find(nickname) == this->_clients.end())
+	{
+		std::cout << PURPLE << client->nickname << R " set nickname to " GREY << nickname << R << std::endl;
+
+		client->nickname = nickname;
+		client->state = NICK_OK;
+
+		return (GREY "Nickname created - Please proceed with USER" R);
+	}
+
+	this->_clients.erase(client->nickname);
+	delete client;
+
+	client = this->_clients[nickname];
+	client->state = ACTIVE;
+
+	std::cout << PURPLE << client->nickname << R " logged in" << std::endl;
+	return (PURPLE "Welcome back, " + client->nickname + R);
+}
+
+std::string Server::userCheck(Client &client, std::vector<std::string> &user_args)
+{
+	client.username = user_args[0];
+
+	client.realname = &user_args[4][1];
+	for (size_t i = 5; i < user_args.size(); i++)
+		client.realname += " " + user_args[i];
+
+	std::cout << PURPLE << client.nickname << R " changed user data to:\n"
+	<< GREY " > username: " R << client.username << GREY "	-	realname: " R << client.realname << std::endl;
+
+	if (!client.username.empty() && client.state == NICK_OK)
+		return (PURPLE "Your user data has been correctly updated" R);
+
+	client.state = ACTIVE;
+	return (PURPLE "Welcome, " + client.nickname + R);
+}
+
+std::string Server::joinCheck(Client &client, Channel *channel, std::string channelname)
+{
+	if (!channel)
+	{
+		channel = new Channel(channelname);
+		this->_channels[channelname] = channel;
+	}
+
+	return (channel->joinCmd(client));
 }
 
 //--------------------------------Utils----------------------------------------
