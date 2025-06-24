@@ -4,8 +4,8 @@
 # include <iostream>
 # include <map>
 # include <set>
-
-class Client;
+# include "../Client.hpp"
+# include "../Server.hpp"
 
 class	Channel {
 	private :

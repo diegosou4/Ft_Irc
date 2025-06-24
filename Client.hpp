@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/05 13:15:34 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/19 14:21:30 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/24 14:42:58 by feden-pe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,9 +18,8 @@
 #include <sstream>
 #include <iostream>
 #include <netinet/in.h>
+#include "includes/Channel.hpp"
 #include <arpa/inet.h>
-
-class Channel;
 
 enum clientState
 {
