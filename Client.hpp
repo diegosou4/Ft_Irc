@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/05 13:15:34 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/18 22:03:04 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/19 14:21:30 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,6 @@ enum clientState
 	AT_DOOR,
 	PASS_OK,
 	NICK_OK,
-	AUTH_OK,
 	ACTIVE
 };
 
@@ -49,19 +48,11 @@ class Client
 		~Client();
 
 		Client	&operator=(Client const &src);
-		void setClientFd(int fd);
-		void setRealname(std::string realname);
-		void setUsername(std::string username);
-		void setInChannel(std::string in_channel);
-		void setIpAddress(std::string ip_address);
-		void setNickname(std::string nickname);
-		void setState(clientState state);
-		std::string getIpAddress() const;
-		int getClientFd() const;
-		clientState getState() const;
-		std::string getRealname() const;
-		std::string getUsername() const;
-		std::string getInChannel() const;
-		std::string getNickname() const;
-		
+
+		int	fd;
+		std::string nickname;
+		std::string username;
+		std::string realname;
+		std::string hostname;
+		clientState	state;
 };
