@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/05 13:15:41 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/19 14:34:41 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/25 13:52:39 by feden-pe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,13 +15,18 @@
 #include "Client.hpp"
 #include "Channel.hpp"
 
-
-Client::Client(): fd(-1), state(OFFLINE)
+Client::Client() : _client_fd(-1), _real_name("unregistered"), _username("unregistered"), _nickname("unregistered"), _Ip_address(""), _state(OFFLINE) 
 {
 
 }
 
-Client::Client(int fd): fd(fd), state(OFFLINE)
+Client::Client(int fd)
+	: _client_fd(fd),
+	  _real_name("unregistered"),
+	  _username("unregistered"),
+	  _nickname("unregistered"),
+	  _Ip_address(""),
+	  _state(AT_DOOR)
 {
 
 }
@@ -29,10 +34,7 @@ Client::Client(int fd): fd(fd), state(OFFLINE)
 
 Client::Client(Client const &src) : _client_fd(src._client_fd), _real_name(src._real_name), _username(src._username), _Ip_address(src._Ip_address), _state(src._state) 
 {
-	this->fd = src.fd;
-	this->state = src.state;
-	this->nickname = src.nickname;
-	this->username = src.username;
+	*this = src;
 }
 
 Client::~Client() 
@@ -44,12 +46,11 @@ Client::~Client()
 
 Client &Client::operator=(Client const &src) 
 {
-	if (this != &src)
-	{
-		//this->fd = src.fd;
-		this->state = src.state;
-		this->nickname = src.nickname;
-		this->username = src.username;
+	if (this != &src) {
+		_real_name = src._real_name;
+		_username = src._username;
+		_Ip_address = src._Ip_address;
+		_state = src._state;
 	}
 	return *this;
 }

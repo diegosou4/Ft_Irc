@@ -1,44 +1,52 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Channel.hpp                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/06/17 20:40:47 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/24 14:37:12 by feden-pe         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
+#ifndef CHANNEL_HPP
+# define CHANNEL_HPP
 
-#pragma once
+# include <iostream>
+# include <map>
+# include <set>
+# include "Client.hpp"
+# include "Server.hpp"
 
-#include <vector>
-#include <iostream>
-#include "Client.hpp"
-#include <map>
-#include <algorithm>
+class	Channel {
+	private :
+		std::string						_name;
+		std::string						_topic;
+		std::string						_password;
+		std::vector<Client *>			_members;  // using nick as key
+		std::set<std::string>			_operators;  // list of operators
+		std::set<std::string>			_invited;  // list of invited clients
+		std::set<std::string>			_banned;  // list of banned clients
+		bool							_inviteOnly;
+		size_t							_limit;
+	public :
+		Channel(const std::string &name);
+		Channel(const std::string &name, const int limit);
+		~Channel();
 
-#define PURPLE	"\001\033[1;38;2;209;174;231m\002"
-#define GREY	"\001\033[1;37m\002"
-#define RED		"\001\033[1;31m\002"
-#define R		"\001\033[1;00m\002"
+		std::vector<Client *>	getMembers(void) const;
 
-// class Client;
-//
-// class Channel
-// {
-// 	public:
-// 		Channel(std::string name);
-// 		~Channel();
-//
-// 		std::string joinCmd(Client &client);
-// 		std::string modeCmd(Client &client, std::vector<std::string> &msg);
-// 		std::string topicCmd(Client &client, std::vector<std::string> &msg);
-// 		std::string inviteCmd(Client &client, std::vector<std::string> &msg);
-// 		std::string privmsgCmd(Client &client, std::vector<std::string> &msg);
-// 		std::string kickCmd(Client &client, std::vector<std::string> &msg);
-//
-// 		std::string _name;
-// 		std::vector<Client *> members;
-//
-// };
+		void		setName(const std::string &name);
+		std::string	getName(void) const;
+
+		std::string	setTopic(Client &op, const std::vector<std::string> &msg);
+		std::string	getTopic(void) const;
+
+		void		setLimit(const int &limit);
+
+		void		bradcast(const std::string &message, Client *exclude);
+
+		void		setBanned(Client *op, Client *target);
+		void		unban(Client *op, Client *target);
+
+		void		setPassword(const std::string &password);
+		void		setOperator(Client *op, Client *target);
+
+		bool		isOperator(std::string nick) const;
+		bool		isEmpty(void) const;
+
+		void		removeClient(Client *client);
+		// JOIN
+		std::string		addClient(Client &client, std::vector<std::string> msg);
+};
+
+#endif

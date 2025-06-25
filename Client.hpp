@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/05 13:15:34 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/24 14:42:58 by feden-pe         ###   ########.fr       */
+/*   Updated: 2025/06/25 13:53:01 by feden-pe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,8 +18,9 @@
 #include <sstream>
 #include <iostream>
 #include <netinet/in.h>
-#include "includes/Channel.hpp"
 #include <arpa/inet.h>
+
+class Channel;
 
 enum clientState
 {
@@ -27,6 +28,7 @@ enum clientState
 	AT_DOOR,
 	PASS_OK,
 	NICK_OK,
+	AUTH_OK,
 	ACTIVE
 };
 
@@ -47,11 +49,19 @@ class Client
 		~Client();
 
 		Client	&operator=(Client const &src);
-
-		int	fd;
-		std::string nickname;
-		std::string username;
-		std::string realname;
-		std::string hostname;
-		clientState	state;
+		void setClientFd(int fd);
+		void setRealname(std::string realname);
+		void setUsername(std::string username);
+		void setInChannel(std::string in_channel);
+		void setIpAddress(std::string ip_address);
+		void setNickname(std::string nickname);
+		void setState(clientState state);
+		std::string getIpAddress() const;
+		int getClientFd() const;
+		clientState getState() const;
+		std::string getRealname() const;
+		std::string getUsername() const;
+		std::string getInChannel() const;
+		std::string getNickname() const;
+		
 };
