@@ -4,15 +4,15 @@
 # include <iostream>
 # include <map>
 # include <set>
-# include "Client.hpp"
-# include "Server.hpp"
+# include "../Client.hpp"
+# include "../Server.hpp"
 
 class	Channel {
 	private :
 		std::string						_name;
 		std::string						_topic;
 		std::string						_password;
-		std::vector<Client *>			_members;  // using nick as key
+		std::map<std::string, Client *> _clients;  // using client fd as key
 		std::set<std::string>			_operators;  // list of operators
 		std::set<std::string>			_invited;  // list of invited clients
 		std::set<std::string>			_banned;  // list of banned clients
@@ -23,12 +23,10 @@ class	Channel {
 		Channel(const std::string &name, const int limit);
 		~Channel();
 
-		std::vector<Client *>	getMembers(void) const;
-
 		void		setName(const std::string &name);
 		std::string	getName(void) const;
 
-		std::string	setTopic(Client &op, const std::vector<std::string> &msg);
+		void		setTopic(const std::string &topic, Client *op);
 		std::string	getTopic(void) const;
 
 		void		setLimit(const int &limit);
@@ -46,7 +44,7 @@ class	Channel {
 
 		void		removeClient(Client *client);
 		// JOIN
-		std::string		addClient(Client &client, std::vector<std::string> msg);
+		void		addClient(Client *client, const std::string &password);
 };
 
 #endif

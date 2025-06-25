@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/19 17:24:57 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/25 15:36:40 by feden-pe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -163,7 +163,7 @@ void	Server::removeClient(Client &client)
 			it->fd = REMOVAL;
 
 	for (channels_iter it = this->_channels.begin(); it != this->_channels.end(); ++it)
-		if (std::find(it->second->members.begin(), it->second->members.end(), &client) != it->second->members.end())
+		if (std::find(it->second->getMembers().begin(), it->second->getMembers().end(), &client) != it->second->getMembers().end())
 			this->broadcast(client, it->second, "has left");
 
 	close(client.getClientFd());
@@ -405,17 +405,17 @@ void	Server::channelCmds(std::vector<std::string> &split_msg, CmdsEnum cmd, Clie
 				this->_channels[split_msg[1]] = new Channel(split_msg[1]);
 				output = PURPLE "Channel created\n" R;
 			}
-			output += channel->joinCmd(client, split_msg); break;
-		case MODE:
-			output = channel->modeCmd(client, split_msg); break;
+			output += channel->addClient(client, split_msg); break;
+		// case MODE:
+		// 	output = channel->modeCmd(client, split_msg); break;
 		case TOPIC:
-			output = channel->topicCmd(client, split_msg); break;
-		case INVITE:
-			output = channel->inviteCmd(client, split_msg); break;
-		case PRIVMSG:
-			output = channel->privmsgCmd(client, split_msg); break;
-		case KICK:
-			output = channel->kickCmd(client, split_msg); break;
+			output = channel->setTopic(client, split_msg); break;
+		// case INVITE:
+		// 	output = channel->inviteCmd(client, split_msg); break;
+		// case PRIVMSG:
+		// 	output = channel->privmsgCmd(client, split_msg); break;
+		// case KICK:
+		// 	output = channel->kickCmd(client, split_msg); break;
 		default:
 			break;
 	}
@@ -515,8 +515,8 @@ void	Server::broadcast(Client &client, Channel *channel, std::string const &msg)
 		return;
 	}
 
-	std::vector<Client *>::iterator it = channel->members.begin();
-	for (; it != channel->members.end(); ++it)
+	std::vector<Client *>::iterator it = channel->getMembers().begin();
+	for (; it != channel->getMembers().end(); ++it)
 		if (&client != *it && (*it)->getState() == ACTIVE)
 			if (send((*it)->getClientFd(), output.c_str(), output.length(), 0) < 0)
 				throw (std::runtime_error("Failed to send to " + (*it)->getNickname()));
