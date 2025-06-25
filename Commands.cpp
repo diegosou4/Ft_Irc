@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:48:21 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/20 12:59:11 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/25 19:05:31 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ std::string Server::passCheck(Client *client, Channel *channel, std::vector<std:
 	if (!client)
 		throw (std::runtime_error("Fatal: client not found"));
 
-	if (client->state > AT_DOOR)
+	if (client->getState() > AT_DOOR)
 		return (PURPLE "You are already logged into the server" R);
 
 	if (split_msg.size() != 2)
@@ -38,9 +38,9 @@ std::string Server::nickCheck(Client *client, Channel *channel, std::vector<std:
 	if (!client)
 		throw (std::runtime_error("Fatal: client not found"));
 
-	if (client->state < PASS_OK)
+	if (client->getState() < PASS_OK)
 		return (RED "Error - " INSTRUCTIONS R);
-	else if (client->state > PASS_OK)
+	else if (client->getState() > PASS_OK)
 		return (PURPLE "Your nickname has already been set" R);
 
 	if (split_msg.size() != 2)
@@ -57,9 +57,9 @@ std::string Server::userCheck(Client *client, Channel *channel, std::vector<std:
 	if (!client)
 		throw (std::runtime_error("Fatal: client not found"));
 
-	if (client->state <= AT_DOOR)
+	if (client->getState() <= AT_DOOR)
 		return (RED "Error - Please enter the server using PASS" R);
-	else if (client->state == PASS_OK)
+	else if (client->getState() == PASS_OK)
 		return (RED "Error - Please create a nickname using NICK" R);
 
 	if (split_msg.size() < 5 || split_msg[4][0] != ':' || split_msg[4].size() <= 1)
@@ -74,11 +74,11 @@ std::string Server::joinCheck(Client *client, Channel *channel, std::vector<std:
 	if (!client)
 		throw (std::runtime_error("Fatal: client not found"));
 
-	if (client->state <= AT_DOOR)
+	if (client->getState() <= AT_DOOR)
 		return (RED "Error - Please enter the server using PASS" R);
-	else if (client->state == PASS_OK)
+	else if (client->getState() == PASS_OK)
 		return (RED "Error - Please create a nickname using NICK" R);
-	else if (client->state == NICK_OK)
+	else if (client->getState() == NICK_OK)
 		return (RED "Error - Please finalize user data using USER" R);
 
 	if (split_msg.size() != 2)
@@ -95,13 +95,13 @@ std::string Server::passCmd(Client &client, std::string password)
 {
 	if (password != this->_password)
 	{
-		std::cout << PURPLE << client.nickname << R " access denied: invalid password" << std::endl;
+		std::cout << PURPLE << client.getNickname() << R " access denied: invalid password" << std::endl;
 		return (RED "Invalid password - access denied" R);
 	}
 
-	client.state = PASS_OK;
+	client.setState(PASS_OK);
 
-	std::cout << PURPLE << client.nickname << R " access granted" << std::endl;
+	std::cout << PURPLE << client.getNickname() << R " access granted" << std::endl;
 	return (GREY "Password is correct - access granted!\nPlease proceed with NICK" R);
 }
 
@@ -110,41 +110,41 @@ std::string Server::nickCmd(Client *client, std::string nickname)
 {
 	if (this->_clients.find(nickname) == this->_clients.end())
 	{
-		std::cout << PURPLE << client->nickname << R " set nickname to " GREY << nickname << R << std::endl;
+		std::cout << PURPLE << client->getNickname() << R " set nickname to " GREY << nickname << R << std::endl;
 
-		client->nickname = nickname;
-		client->state = NICK_OK;
+		client->setNickname(nickname);
+		client->setState(NICK_OK);
 
 		return (GREY "Nickname created - Please proceed with USER" R);
 	}
 
-	this->_clients.erase(client->nickname);
+	this->_clients.erase(client->getNickname());
 	delete client;
 
 	client = this->_clients[nickname];
-	client->state = ACTIVE;
+	client->setState(ACTIVE);
 
-	std::cout << PURPLE << client->nickname << R " logged in" << std::endl;
-	return (PURPLE "Welcome back, " + client->nickname + R);
+	std::cout << PURPLE << client->getNickname() << R " logged in" << std::endl;
+	return (PURPLE "Welcome back, " + client->getNickname() + R);
 }
 
 // Updates username and realname + finalizes new client registration if applicable
 std::string Server::userCmd(Client &client, std::vector<std::string> &user_args)
 {
-	client.username = user_args[0];
+	client.setUsername(user_args[0]);
 
-	client.realname = &user_args[4][1];
+	client.setRealname(&user_args[4][1]);
 	for (size_t i = 5; i < user_args.size(); i++)
-		client.realname += " " + user_args[i];
+		client.setRealname(client.getRealname() + " " + user_args[i]);
 
-	std::cout << PURPLE << client.nickname << R " changed user data to:\n"
-	<< GREY " > username: " R << client.username << GREY "	-	realname: " R << client.realname << std::endl;
+	std::cout << PURPLE << client.getNickname() << R " changed user data to:\n"
+	<< GREY " > username: " R << client.getUsername() << GREY "	-	realname: " R << client.getRealname() << std::endl;
 
-	if (!client.username.empty() && client.state == NICK_OK)
+	if (!client.getUsername().empty() && client.getState() == NICK_OK)
 		return (PURPLE "Your user data has been correctly updated" R);
 
-	client.state = ACTIVE;
-	return (PURPLE "Welcome, " + client.nickname + R);
+	client.setState(ACTIVE);
+	return (PURPLE "Welcome, " + client.getUsername() + R);
 }
 
 // Creates channel if non-existing + adds client to channel

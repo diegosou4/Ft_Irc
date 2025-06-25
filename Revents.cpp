@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:41:33 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/20 12:47:36 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/25 19:06:26 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,7 @@ void Server::pollIn(Client &client)
 // Depending on error code: ignores, reopen socket, or removes client
 void	Server::pollErr(Client &client)
 {
-	std::cerr << RED "Error occurred with client " << client.nickname << ":" << strerror(errno) << R << std::endl;
+	std::cerr << RED "Error occurred with client " << client.getNickname() << ":" << strerror(errno) << R << std::endl;
 
 	if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
 	{
@@ -86,12 +86,12 @@ void	Server::pollErr(Client &client)
 	else if (errno == ETIMEDOUT)
 	{
 		std::cout << "Reopening attempt ..." << std::endl;
-		close(client.fd);
+		close(client.getFd());
 
-		client.fd = socket(AF_INET, SOCK_STREAM, 0);
-		if (client.fd >= 0)
+		client.setFd(socket(AF_INET, SOCK_STREAM, 0));
+		if (client.getFd() >= 0)
 		{
-			fcntl(client.fd,  F_SETFL, O_NONBLOCK);
+			fcntl(client.getFd(),  F_SETFL, O_NONBLOCK);
 			std::cout << PURPLE "Reconnection successful" R << std::endl;
 			return ;
 		}
@@ -105,7 +105,7 @@ void	Server::pollErr(Client &client)
 // Shows error message + sends to client removal
 void	Server::pollNVal(Client &client)
 {
-	std::cerr << RED "File descriptor " << client.fd << " is invalid" R << std::endl;
+	std::cerr << RED "File descriptor " << client.getFd() << " is invalid" R << std::endl;
 	std::cerr << RED "Unrecoverable - closing socket" R << std::endl;
 
 	this->removeClient(client);

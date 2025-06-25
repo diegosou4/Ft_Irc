@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 13:00:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/20 13:15:47 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/25 19:08:45 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ void	Server::setCmdMaps()
 // Displays welcome screen to user + notifies server
 void	Server::welcomeScreen(Client &client)
 {
-	std::cout << PURPLE << client.nickname << R " is at the door" << std::endl;
+	std::cout << PURPLE << client.getNickname() << R " is at the door" << std::endl;
 
 	this->broadcast(client, NULL, PURPLE WELCOME GREY INSTRUCTIONS R);
 }
@@ -42,7 +42,7 @@ std::string Server::getMsg(Client &client)
 	char buff[BUFFSIZE];
 	memset(buff, 0, BUFFSIZE);
 
-	int bytes_read = recv(client.fd, buff, BUFFSIZE, 0);
+	int bytes_read = recv(client.getFd(), buff, BUFFSIZE, 0);
 
 	if (bytes_read <= 0)
 	{
@@ -94,32 +94,32 @@ void	Server::broadcast(Client &client, Channel *channel, std::string const &msg)
 {
 	if (!channel)
 	{
-		if (send(client.fd, msg.c_str(), msg.length(), 0) < 0)
-			throw (std::runtime_error("Failed to send to " + client.nickname));
+		if (send(client.getFd(), msg.c_str(), msg.length(), 0) < 0)
+			throw (std::runtime_error("Failed to send to " + client.getNickname()));
 		return;
 	}
 
-	std::string output = PURPLE + client.nickname + ": " R + msg;
+	std::string output = PURPLE + client.getNickname() + ": " R + msg;
 	std::cout << output << std::endl;
 
 	std::vector<Client *>::iterator it = channel->members.begin();
 	for (; it != channel->members.end(); ++it)
-		if (&client != *it && (*it)->state == ACTIVE)
-			if (send((*it)->fd, output.c_str(), output.length(), 0) < 0)
-				throw (std::runtime_error("Failed to send to " + (*it)->nickname));
+		if (&client != *it && (*it)->getState() == ACTIVE)
+			if (send((*it)->getFd(), output.c_str(), output.length(), 0) < 0)
+				throw (std::runtime_error("Failed to send to " + (*it)->getNickname()));
 }
 
 // Removes client from pollfd, sets client as OFFLINE, closes fd, broadcast departure
 void	Server::removeClient(Client &client)
 {
 	for (pollfd_iter it = this->_fds.begin(); it != this->_fds.end(); ++it)
-		if (client.fd == it->fd)
+		if (client.getFd() == it->fd)
 			it->fd = REMOVAL;
 
 	for (channels_iter it = this->_channels.begin(); it != this->_channels.end(); ++it)
 		if (std::find(it->second->members.begin(), it->second->members.end(), &client) != it->second->members.end())
 			this->broadcast(client, it->second, "has left");
 
-	close(client.fd);
-	client.state = OFFLINE;
+	close(client.getFd());
+	client.setState(OFFLINE);
 }

@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/25 18:40:48 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/25 19:07:06 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,7 +77,7 @@ int	Server::getPort()const
 Client *Server::getClient(int fd)
 {
 	for (clients_iter it = this->_clients.begin(); it != this->_clients.end(); ++it)
-	if (it->second->fd == fd)
+	if (it->second->getFd() == fd)
 		return (it->second);
 
 	std::cerr << RED "Client with corresponding fd not found" R << std::endl;
@@ -151,8 +151,8 @@ void	Server::addSocket(bool isclient)
 		fcntl(newpoll.fd, F_SETFL, O_NONBLOCK);
 
 		Client *newclient = new Client(newpoll.fd);
-		newclient->state = AT_DOOR;
-		this->_clients[newclient->nickname]= newclient;
+		newclient->setState(AT_DOOR);
+		this->_clients[newclient->getNickname()]= newclient;
 
 		this->welcomeScreen(*newclient);
 	}
