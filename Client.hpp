@@ -5,23 +5,23 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/06/05 13:15:34 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/19 14:21:30 by cbouvet          ###   ########.fr       */
+/*   Created: 2025/06/25 16:47:09 by cbouvet           #+#    #+#             */
+/*   Updated: 2025/06/25 18:51:41 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-// TO BE DONE BY DIEGO
-
 #pragma once
 
-#include <unistd.h>
-#include <sstream>
-#include <iostream>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
+// -LIBRARIES-
 class Channel;
 
+// -MACROS-
+#include <iostream>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+
+// -STRUCTS-
 enum clientState
 {
 	OFFLINE,
@@ -31,20 +31,41 @@ enum clientState
 	ACTIVE
 };
 
+// -CLASS-
 class Client
 {
+	private:
+		int	_client_fd;
+		clientState _state;
+
+		std::string _realname;
+		std::string _username;
+		std::string _nickname;
+		std::string _hostname; // more useful than IP - we can get IP from hostname anyways
+
 	public:
-		Client();
+		//Constructor/Destructor:
+		Client(); // check if we actually use it?
 		Client(int fd);
 		Client(Client const &src);
 		~Client();
 
-		Client	&operator=(Client const &src);
+		//Assignement operator:
+		Client &operator=(Client const &src);
 
-		int	fd;
-		std::string nickname;
-		std::string username;
-		std::string realname;
-		std::string hostname;
-		clientState	state;
+		//Setters:
+		void	setFd(int fd); // shorter to use in Server
+		void	setState(clientState state);
+		void	setRealname(std::string realname);
+		void	setUsername(std::string username);
+		void	setNickname(std::string nickname);
+		void	setHostname(std::string hostname);
+
+		//Getters:
+		int	getFd() const; // shorter to use in Server
+		clientState	getState() const;
+		std::string getRealname() const;
+		std::string getUsername() const;
+		std::string getNickname() const;
+		std::string getHostname() const;
 };
