@@ -32,6 +32,14 @@ enum clientState
 	ACTIVE
 };
 
+enum authState{
+	NO_ERROR,
+	NICK_IN_USE,
+	INVALID_NICK,
+	USERNAME_IN_USE,
+	INVALID_USERNAME,
+};
+
 class Client
 {
 	private : 
@@ -41,6 +49,7 @@ class Client
 		std::string _nickname;
 		std::string _Ip_address;
 		clientState _state;
+		authState _auth_state;
 		std::string	_in_channel;
 	public:
 		Client();
@@ -50,6 +59,7 @@ class Client
 
 		Client	&operator=(Client const &src);
 		void setClientFd(int fd);
+		void setAuthState(authState auth_state);
 		void setRealname(std::string realname);
 		void setUsername(std::string username);
 		void setInChannel(std::string in_channel);
@@ -59,6 +69,7 @@ class Client
 		std::string getIpAddress() const;
 		int getClientFd() const;
 		clientState getState() const;
+		authState getAuthState() const;
 		std::string getRealname() const;
 		std::string getUsername() const;
 		std::string getInChannel() const;

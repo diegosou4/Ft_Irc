@@ -15,7 +15,7 @@
 #include "Client.hpp"
 #include "Channel.hpp"
 
-Client::Client() : _client_fd(-1), _real_name("unregistered"), _username("unregistered"), _nickname("unregistered"), _Ip_address(""), _state(OFFLINE) 
+Client::Client() : _client_fd(-1), _real_name("unregistered"), _username("unregistered"), _nickname("unregistered"), _Ip_address(""), _state(OFFLINE) , _auth_state(NO_ERROR), _in_channel("")
 {
 
 }
@@ -26,7 +26,8 @@ Client::Client(int fd)
 	  _username("unregistered"),
 	  _nickname("unregistered"),
 	  _Ip_address(""),
-	  _state(AT_DOOR)
+	  _state(AT_DOOR),
+	  _auth_state(NO_ERROR)
 {
 
 }
@@ -113,6 +114,11 @@ std::string Client::getInChannel() const
 	return _in_channel;
 }
 
+authState Client::getAuthState() const 
+{
+	return _auth_state;
+}
+
 void Client::setInChannel(std::string in_channel) 
 {
 	_in_channel = in_channel;
@@ -124,4 +130,9 @@ std::string Client::getNickname() const
 void Client::setNickname(std::string nickname) 
 {
 	_nickname = nickname;
+}
+
+void Client::setAuthState(authState auth_state) 
+{
+	_auth_state = auth_state;
 }

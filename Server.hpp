@@ -71,6 +71,8 @@ enum CmdsEnum
 	PRIVMSG,
 	KICK,
 };
+
+
 /*
 PASS secretpassword
 NICK mynickname
@@ -140,6 +142,7 @@ class Server
 		std::string nickCmd(Client *client, std::vector<std::string> &split_msg);
 		std::string userCmd(Client &client, std::vector<std::string> &split_msg);
 
+		bool checkPoolNickname(std::map<std::string, Client *> &clients, const std::string &nickname);
 		std::string getMsg(Client &client);
 		void	broadcast(Client &client, Channel *channel, std::string const &msg);
 };

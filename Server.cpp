@@ -370,7 +370,13 @@ std::vector<std::string> Server::splitMsg(std::string msg)
 void	Server::authCmds(std::vector<std::string> &split_msg, CmdsEnum cmd, Client &client)
 {
 	std::string output;
-
+	if(client.getAuthState() == NICK_IN_USE)
+	{
+		output = RED "Error - Nickname already in use" R;
+		if (send(client.getClientFd(), output.c_str(), output.length(), 0) < 0)
+			throw (std::runtime_error("Failed to send to socket " + client.getClientFd()));
+		return ;
+	}
 	switch (cmd)
 	{
 		case CAP: 
@@ -407,9 +413,6 @@ void	Server::channelCmds(std::vector<std::string> &split_msg, CmdsEnum cmd, Clie
 			std::cout << "Split message part: " << *messagePart << std::endl;
 		}
 	
-	std::cout << "Channel name: " << split_msg[1] << std::endl;
-	std::cout << "Channel name: " << split_msg[0] << std::endl;
-	std::cout << "Command: " << cmd << std::endl;
 	if (split_msg[1][0] == '#')
 	{
 		if (this->_channels.find(split_msg[1]) != this->_channels.end())
@@ -460,6 +463,16 @@ std::string Server::passCmd(Client &client, std::vector<std::string> &split_msg)
 	return (GREY "Password is correct - access granted!\nPlease proceed with NICK" R);
 }
 
+bool Server::checkPoolNickname(std::map<std::string, Client *> &clients, const std::string &nickname)
+{
+	if (clients.find(nickname) != clients.end())
+	{
+		std::cout << RED "Error - Nickname already in use" R << std::endl;
+		return (true);
+	}
+	return "";
+}
+
 std::string Server::nickCmd(Client *client, std::vector<std::string> &split_msg)
 {
 	if (client->getState() < PASS_OK)
@@ -469,12 +482,19 @@ std::string Server::nickCmd(Client *client, std::vector<std::string> &split_msg)
 
 	if (split_msg.size() != 2)
 		return (RED "JOIN: invalid command format\n" GREY "Expected: NICK <nickname>" R);
+	if(checkPoolNickname(this->_clients, split_msg[1]) == true)
+	{
+		client->setAuthState(NICK_IN_USE);
+		return (RED "Error - Nickname already in use" R);
+	}
+		
 
 	if (this->_clients.find(split_msg[1]) == this->_clients.end())
 	{
 		std::cout << PURPLE << client->getNickname() << R " has set nickname to " GREY << split_msg[1] << R << std::endl;
 		client->setState(NICK_OK);
 		client->setNickname(split_msg[1]);
+		client->setAuthState(NO_ERROR);
 		return (GREY "Nickname created - Please proceed with USER" R);
 	}
 
