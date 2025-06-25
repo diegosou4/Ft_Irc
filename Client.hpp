@@ -6,16 +6,13 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 16:47:09 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/25 18:51:41 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/25 21:15:46 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 // -LIBRARIES-
-class Channel;
-
-// -MACROS-
 #include <iostream>
 #include <unistd.h>
 #include <arpa/inet.h>
@@ -30,6 +27,8 @@ enum clientState
 	NICK_OK,
 	ACTIVE
 };
+
+class Channel;
 
 // -CLASS-
 class Client
