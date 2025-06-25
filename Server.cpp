@@ -74,7 +74,11 @@ Client *Server::getClient(int fd)
 {
 	for (clients_iter it = this->_clients.begin(); it != this->_clients.end(); ++it)
 		if (it->second->getClientFd() == fd)
+		{
+			std::cout << "Found client with fd: " << fd << " - " << it->second->getNickname() << std::endl;
 			return (it->second);
+		}
+			
 
 	std::cout << this->_fds.size() << " fds in the vector" << std::endl;
 	std::cout << this->_fds[0].fd << " is the server fd" << std::endl;
@@ -125,7 +129,9 @@ void Server::treatRevent(void)
 			++it;
 			continue;
 		}
+		std::cout << "Processing fd: " << it->fd << "------------------" << std::endl;
 		Client *client = this->getClient(it->fd);
+		
 
 		if (!client)
 		{
@@ -254,18 +260,31 @@ void	Server::pollIn(Client &client)
 	
 	std::vector<std::string> split_msg = this->splitMsg(msg);
 
-	std::map<std::string, CmdsEnum>::iterator it = this->cmdMap.find(split_msg[0]);
-	if (it == this->cmdMap.end())
-		throw std::runtime_error("Command not found: " +  msg);
 
-	CmdsEnum cmd = it->second;
+	for (size_t i = 0; i < split_msg.size(); )
+	{
+		std::string cmdStr = split_msg[i];
+		std::map<std::string, CmdsEnum>::iterator cmdIt = this->cmdMap.find(cmdStr);
+		if (cmdIt == this->cmdMap.end())
+		{
+			std::cerr << "Command not found: " << cmdStr << std::endl;
+			break;
+		}
+		CmdsEnum cmd = cmdIt->second;
 
+		size_t j = i + 1;
+		while (j < split_msg.size() && this->cmdMap.find(split_msg[j]) == this->cmdMap.end())
+			++j;
 
-	std::string output;
-	if (cmd < 4)
-		this->authCmds(split_msg, cmd, client);
-	else if (cmd < 10)
-		this->channelCmds(split_msg, cmd, client);
+		std::vector<std::string> cmdArgs(split_msg.begin() + i, split_msg.begin() + j);
+
+		if (cmd <= 4)
+			this->authCmds(cmdArgs, cmd, client);
+		else if (cmd < 10)
+			this->channelCmds(cmdArgs, cmd, client);
+
+		i = j;
+	}
 }
 
 void	Server::pollErr(Client &client)
@@ -355,15 +374,20 @@ void	Server::authCmds(std::vector<std::string> &split_msg, CmdsEnum cmd, Client 
 	switch (cmd)
 	{
 		case CAP: 
-			output = this->capCmd(client, split_msg); break;
+			output = this->capCmd(client, split_msg);
+			break;
 		case INVALID:
-			output = RED "Invalid - command not recognised" R; break;
+			output = RED "Invalid - command not recognised" R;
+			break;
 		case PASS:
-			output = this->passCmd(client, split_msg); break;
+			output = this->passCmd(client, split_msg); 
+			break;
 		case NICK:
-			output = this->nickCmd(&client, split_msg); break;
+			output = this->nickCmd(&client, split_msg);
+			break;
 		case USER:
-			output = this->userCmd(client, split_msg); break;
+			output = this->userCmd(client, split_msg);
+			break;
 		default:
 			break;
 	}
@@ -375,15 +399,17 @@ void	Server::authCmds(std::vector<std::string> &split_msg, CmdsEnum cmd, Client 
 void	Server::channelCmds(std::vector<std::string> &split_msg, CmdsEnum cmd, Client &client)
 {
 	std::string output;
-	Channel *channel;
-
+	Channel *channel = NULL;
+	std::cout << client.getClientFd() << " - " << client.getNickname() << std::endl;
 	std::cout << "Channel command received: " << cmd << std::endl;
 		for(std::vector<std::string>::iterator messagePart = split_msg.begin(); messagePart != split_msg.end(); ++messagePart)
 		{
 			std::cout << "Split message part: " << *messagePart << std::endl;
 		}
 	
-
+	std::cout << "Channel name: " << split_msg[1] << std::endl;
+	std::cout << "Channel name: " << split_msg[0] << std::endl;
+	std::cout << "Command: " << cmd << std::endl;
 	if (split_msg[1][0] == '#')
 	{
 		if (this->_channels.find(split_msg[1]) != this->_channels.end())
@@ -396,30 +422,23 @@ void	Server::channelCmds(std::vector<std::string> &split_msg, CmdsEnum cmd, Clie
 	}
 	else if (cmd != JOIN)
 		this->broadcast(client, NULL, RED "Invalid - channel not found" R);
-
+	std::cout << "Channel found: " << std::endl;
 	switch (cmd)
 	{
 		case JOIN:
 			if (!channel)
 			{
+				std::cout << "Creating new channel: " << split_msg[1] << std::endl;
 				this->_channels[split_msg[1]] = new Channel(split_msg[1]);
+				std::cout << "Channel created: " << split_msg[1] << std::endl;
 				output = PURPLE "Channel created\n" R;
 			}
 			output += channel->addClient(client, split_msg); break;
-		// case MODE:
-		// 	output = channel->modeCmd(client, split_msg); break;
 		case TOPIC:
 			output = channel->setTopic(client, split_msg); break;
-		// case INVITE:
-		// 	output = channel->inviteCmd(client, split_msg); break;
-		// case PRIVMSG:
-		// 	output = channel->privmsgCmd(client, split_msg); break;
-		// case KICK:
-		// 	output = channel->kickCmd(client, split_msg); break;
 		default:
 			break;
 	}
-
 	this->broadcast(client, channel, output);
 }
 
@@ -506,8 +525,9 @@ std::string Server::userCmd(Client &client, std::vector<std::string> &split_msg)
 void	Server::broadcast(Client &client, Channel *channel, std::string const &msg)
 {
 	std::string output = PURPLE + client.getNickname() + ": " R + msg;
+	std::cout << client.getNickname() << " broadcasted: " << output << std::endl;
 	std::cout << output << std::endl;
-
+	std::cout<< "Debug" << std::endl;
 	if (!channel)
 	{
 		if (send(client.getClientFd(), output.c_str(), output.length(), 0) < 0)
@@ -515,6 +535,7 @@ void	Server::broadcast(Client &client, Channel *channel, std::string const &msg)
 		return;
 	}
 
+	std::cout<< "Debug2" << std::endl;
 	std::vector<Client *>::iterator it = channel->getMembers().begin();
 	for (; it != channel->getMembers().end(); ++it)
 		if (&client != *it && (*it)->getState() == ACTIVE)
@@ -524,6 +545,10 @@ void	Server::broadcast(Client &client, Channel *channel, std::string const &msg)
 
 std::string Server::capCmd(Client &client, std::vector<std::string> &split_msg)
 {
+	for (std::vector<std::string>::iterator it = split_msg.begin(); it != split_msg.end(); ++it)
+		std::cout << "Split message part: " << *it << std::endl;
+	std::cout << "CAP command received: " << split_msg[0] << std::endl;
+
 	if(split_msg.size() != 2 || split_msg[1] != "LS")
 		return (RED "Invalid - expected: CAP LS" R);
 	if (client.getState() == ACTIVE)

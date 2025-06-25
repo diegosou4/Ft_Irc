@@ -1,6 +1,13 @@
 #include "Channel.hpp"
 
-Channel::Channel(const std::string &name) : _name(name), _limit(50) {
+Channel::Channel(const std::string &name) : _name(name), _limit(50)  {
+	// Default constructor initializes the channel with a name and default limit
+	// and sets invite-only to false.
+	this->_topic = "";
+	this->_password = "";
+	_members.reserve(_limit); // Reserve space for members to avoid reallocations
+	_operators.clear();
+	_invited.clear();
 }
 
 Channel::Channel(const std::string &name, const int limit) : _name(name), _limit(limit) {
@@ -42,16 +49,18 @@ void		Channel::setLimit(const int &limit) {
 std::string		Channel::addClient(Client &client, std::vector<std::string> msg) {
 	(void) msg;
 	// int	fd = client->getFd();
+	std::cout << "Adding client to channel: " << client.getNickname() << std::endl;
 	std::string nick = client.getNickname();
-
 	if (_banned.find(nick) != _banned.end()) {
 		// send message to client saying that they're banned from this channel
 		return ("");
 	}
+	std::cout << "debug2: " << nick << std::endl;
 	if (_members.size() > _limit) {
 		// send message to client saying that the channel is full
 		return ("");
 	}
+	std::cout << "debug3: " << nick << std::endl;
 	if (std::find(_members.begin(), _members.end(), &client) != _members.end()) {
 		return (RED + client.getUsername() + R " is already in channel " + this->_name);
 	}
@@ -63,6 +72,7 @@ std::string		Channel::addClient(Client &client, std::vector<std::string> msg) {
 	// 	// send message to client saying that password is incorrect (+k)
 	// 	return ;
 	// }
+
 	_members.push_back(&client);
 	if (_members.size() == 1)
 		_operators.insert(nick);
