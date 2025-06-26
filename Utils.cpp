@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 13:00:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/26 13:51:01 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/26 21:34:16 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,8 +31,7 @@ void	Server::setCmdMaps()
 // Displays welcome screen to user + notifies server
 void	Server::welcomeScreen(Client &client)
 {
-	std::cout << PURPLE << client.getNickname() << R " is at the door" << std::endl;
-
+	this->broadcast(client, NULL, " is at the door");
 	this->broadcast(client, NULL, PURPLE WELCOME GREY INSTRUCTIONS R);
 }
 
@@ -79,9 +78,9 @@ Channel	*Server::findChannel(std::vector<std::string> &split_msg)
 	std::string channel_name;
 
 	if (split_msg.size() >= 2 && split_msg[1][0] == '#')
-		channel_name = split_msg[1][0];
+		channel_name = split_msg[1];
 	else if (split_msg.size() >= 3 && split_msg[2][0] == '#' && split_msg[0] == "INVITE")
-		channel_name = split_msg[2][0];
+		channel_name = split_msg[2];
 
 	if (this->_channels.find(channel_name) != this->_channels.end())
 		channel = this->_channels[channel_name];
@@ -92,18 +91,18 @@ Channel	*Server::findChannel(std::vector<std::string> &split_msg)
 // Broadcasts message to server, client, & channel if applicable
 void	Server::broadcast(Client &client, Channel *channel, std::string const &msg)
 {
-	if (!channel || !msg.compare(0, strlen(RED), RED))
+	if (msg[0] != ' ' || !msg.compare(0, strlen(RED), RED))
 	{
 		if (send(client.getFd(), msg.c_str(), msg.length(), 0) < 0)
 			throw (std::runtime_error("Failed to send to " + client.getNickname()));
-		return;
+		return ;
 	}
 
-	if (!msg.compare(0, strlen(RED), RED))
-		return ;
-
-	std::string output = PURPLE + client.getNickname() + ": " R + msg;
+	std::string output = PURPLE + client.getNickname() + ":" R + msg;
 	std::cout << output << std::endl;
+
+	if (!channel)
+		return ;
 
 	std::vector<Client *>::iterator it = channel->getMembers().begin();
 	for (; it != channel->getMembers().end(); ++it)
@@ -121,7 +120,9 @@ void	Server::removeClient(Client &client)
 
 	for (channels_iter it = this->_channels.begin(); it != this->_channels.end(); ++it)
 		if (std::find(it->second->getMembers().begin(), it->second->getMembers().end(), &client) != it->second->getMembers().end())
-			this->broadcast(client, it->second, "has left");
+			this->broadcast(client, it->second, " has left");
+
+	this->broadcast(client, NULL, " has left");
 
 	close(client.getFd());
 	client.setState(OFFLINE);

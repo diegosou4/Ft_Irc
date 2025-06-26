@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:27 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/26 13:54:40 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/26 21:02:32 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,12 +101,6 @@ std::vector<Client *> Channel::getMembers() const
 
 
 //-------------------- Command methods-----------------------
-std::string Channel::joinCmd(Client &client)
-{
-	(void)client;
-	return ("function to be made");
-}
-
 std::string Channel::modeCmd(Client &client, std::vector<std::string> &msg)
 {
 	if (!this->isMember(client))
@@ -139,21 +133,21 @@ std::string Channel::inviteCmd(Client &client, std::vector<std::string> &msg)
 {
 	(void)client;
 	(void)msg;
-	return ("function to be made");
+	return ("invite function to be made");
 }
 
 std::string Channel::privmsgCmd(Client &client, std::vector<std::string> &msg)
 {
 	(void)client;
 	(void)msg;
-	return ("function to be made");
+	return ("privmsg function to be made");
 }
 
 std::string Channel::kickCmd(Client &client, std::vector<std::string> &msg)
 {
 	(void)client;
 	(void)msg;
-	return ("function to be made");
+	return ("kick function to be made");
 }
 
 
@@ -196,11 +190,10 @@ Client *Channel::findMember(std::string name)
 	return (NULL);
 }
 
-std::string	Channel::addClient(Client &client, std::vector<std::string> &msg)
+std::string	Channel::addClient(Client &client)
 {
 	(void)client;
-	(void)msg;
-	return ("function to be made");
+	return ("addclient function to be made");
 }
 
 // Need to workout +/- differences for flags

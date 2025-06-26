@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:48:21 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/26 13:48:41 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/26 21:29:44 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,13 +95,13 @@ std::string Server::passCmd(Client &client, std::string password)
 {
 	if (password != this->_password)
 	{
-		std::cout << PURPLE << client.getNickname() << R " access denied: invalid password" << std::endl;
+		this->broadcast(client, NULL, " access denied: invalid password");
 		return (RED "Invalid password - access denied" R);
 	}
 
 	client.setState(PASS_OK);
 
-	std::cout << PURPLE << client.getNickname() << R " access granted" << std::endl;
+	this->broadcast(client, NULL, " access granted");
 	return (GREY "Password is correct - access granted!\nPlease proceed with NICK" R);
 }
 
@@ -110,7 +110,7 @@ std::string Server::nickCmd(Client *client, std::string nickname)
 {
 	if (this->_clients.find(nickname) == this->_clients.end())
 	{
-		std::cout << PURPLE << client->getNickname() << R " set nickname to " GREY << nickname << R << std::endl;
+		this->broadcast(*client, NULL, " set nickname to " + nickname);
 
 		client->setNickname(nickname);
 		client->setState(NICK_OK);
@@ -124,7 +124,7 @@ std::string Server::nickCmd(Client *client, std::string nickname)
 	client = this->_clients[nickname];
 	client->setState(ACTIVE);
 
-	std::cout << PURPLE << client->getNickname() << R " logged in" << std::endl;
+	this->broadcast(*client, NULL, " logged in");
 	return (PURPLE "Welcome back, " + client->getNickname() + R);
 }
 
@@ -140,7 +140,7 @@ std::string Server::userCmd(Client &client, std::vector<std::string> &user_args)
 	std::cout << PURPLE << client.getNickname() << R " changed user data to:\n"
 	<< GREY " > username: " R << client.getUsername() << GREY "	-	realname: " R << client.getRealname() << std::endl;
 
-	if (!client.getUsername().empty() && client.getState() == NICK_OK)
+	if (!client.getUsername().empty() && client.getState() == ACTIVE)
 		return (PURPLE "Your user data has been correctly updated" R);
 
 	client.setState(ACTIVE);
@@ -156,5 +156,5 @@ std::string Server::joinCmd(Client &client, Channel *channel, std::string channe
 		this->_channels[channelname] = channel;
 	}
 
-	return (channel->joinCmd(client));
+	return (channel->addClient(client));
 }

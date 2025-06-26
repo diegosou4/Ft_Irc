@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:41:33 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/26 13:57:12 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/26 21:24:32 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,9 @@ void Server::pollIn(Client &client)
 
 	if (this->_authcmds.find(split_msg[0]) != this->_authcmds.end())
 		output = (this->*_authcmds[split_msg[0]])(&client, channel, split_msg);
-	else if (channel && this->_chancmds.find(split_msg[0]) != this->_chancmds.end())
+	else if (!channel)
+		output = RED "Invalid - channel doesn't exist" R;
+	else if (this->_chancmds.find(split_msg[0]) != this->_chancmds.end())
 		output = (channel->*_chancmds[split_msg[0]])(client, split_msg);
 	else
 		output = RED "Invalid - command not recognised" R;
@@ -80,19 +82,19 @@ void	Server::pollErr(Client &client)
 
 	if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
 	{
-		std::cout << "Retrying ..." << std::endl;
+		std::cerr << "Retrying ..." << std::endl;
 		return ;
 	}
 	else if (errno == ETIMEDOUT)
 	{
-		std::cout << "Reopening attempt ..." << std::endl;
+		std::cerr << "Reopening attempt ..." << std::endl;
 		close(client.getFd());
 
 		client.setFd(socket(AF_INET, SOCK_STREAM, 0));
 		if (client.getFd() >= 0)
 		{
 			fcntl(client.getFd(),  F_SETFL, O_NONBLOCK);
-			std::cout << PURPLE "Reconnection successful" R << std::endl;
+			std::cerr << PURPLE "Reconnection successful" R << std::endl;
 			return ;
 		}
 	}
