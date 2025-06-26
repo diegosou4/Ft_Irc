@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:22 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/26 11:50:44 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/26 13:50:25 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,8 @@ class Channel
 		std::set<std::string>	_operators;
 		std::set<std::string>	_invited;
 		std::set<std::string>	_banned; //Ban is not compulsory in subject
-
+		// If we want to follow through with ban, we'll have to do it via hostmask
+		// Should we keep at it or remove this functionality?
 	public:
 		//Constructor/Destructor:
 		Channel(std::string const &name);
@@ -72,5 +73,5 @@ class Channel
 		void	unban(Client *op, Client *target);
 		Client *findMember(std::string name);
 		std::string	addClient(Client &client, std::vector<std::string> &msg);
-		std::string Channel::modeFlags(Client &client, char flag, std::string targetname)
+		std::string	modeFlags(Client &client, char flag, std::string targetname);
 };

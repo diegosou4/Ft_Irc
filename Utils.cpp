@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 13:00:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/25 19:08:45 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/26 13:51:01 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,18 +92,21 @@ Channel	*Server::findChannel(std::vector<std::string> &split_msg)
 // Broadcasts message to server, client, & channel if applicable
 void	Server::broadcast(Client &client, Channel *channel, std::string const &msg)
 {
-	if (!channel)
+	if (!channel || !msg.compare(0, strlen(RED), RED))
 	{
 		if (send(client.getFd(), msg.c_str(), msg.length(), 0) < 0)
 			throw (std::runtime_error("Failed to send to " + client.getNickname()));
 		return;
 	}
 
+	if (!msg.compare(0, strlen(RED), RED))
+		return ;
+
 	std::string output = PURPLE + client.getNickname() + ": " R + msg;
 	std::cout << output << std::endl;
 
-	std::vector<Client *>::iterator it = channel->members.begin();
-	for (; it != channel->members.end(); ++it)
+	std::vector<Client *>::iterator it = channel->getMembers().begin();
+	for (; it != channel->getMembers().end(); ++it)
 		if (&client != *it && (*it)->getState() == ACTIVE)
 			if (send((*it)->getFd(), output.c_str(), output.length(), 0) < 0)
 				throw (std::runtime_error("Failed to send to " + (*it)->getNickname()));
@@ -117,7 +120,7 @@ void	Server::removeClient(Client &client)
 			it->fd = REMOVAL;
 
 	for (channels_iter it = this->_channels.begin(); it != this->_channels.end(); ++it)
-		if (std::find(it->second->members.begin(), it->second->members.end(), &client) != it->second->members.end())
+		if (std::find(it->second->getMembers().begin(), it->second->getMembers().end(), &client) != it->second->getMembers().end())
 			this->broadcast(client, it->second, "has left");
 
 	close(client.getFd());

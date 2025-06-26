@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/26 21:57:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/20 13:20:17 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/26 13:49:32 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,11 @@
 #define R		"\001\033[1;00m\002"
 //Arg-checking:
 #define ARG_EXPECT	"Expected: ./test_client <port> <password>\n"
-#define DIGIT_CHARS	"0123456789"
+
+#ifndef DIGIT_CHARS
+ #define DIGIT_CHARS	"0123456789"
+#endif
+
 //Set values:
 #define MAX_CLIENTS	10
 #define TIMEOUT		-1

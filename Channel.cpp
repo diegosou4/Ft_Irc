@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:27 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/26 11:53:04 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/26 13:54:40 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 Channel::Channel(std::string const &name): _name(name), _limit(50)
 {}
 
-Channel::Channel(std::string const &name, int const limit): _name, _limit(limit)
+Channel::Channel(std::string const &name, int const limit): _name(name), _limit(limit)
 {}
 
 Channel::~Channel()
@@ -102,7 +102,10 @@ std::vector<Client *> Channel::getMembers() const
 
 //-------------------- Command methods-----------------------
 std::string Channel::joinCmd(Client &client)
-{}
+{
+	(void)client;
+	return ("function to be made");
+}
 
 std::string Channel::modeCmd(Client &client, std::vector<std::string> &msg)
 {
@@ -114,7 +117,7 @@ std::string Channel::modeCmd(Client &client, std::vector<std::string> &msg)
 
 	//perform format checks
 
-	this->modeFlags(client, msg[1][0], msg[2]);
+	return (this->modeFlags(client, msg[1][0], msg[2]));
 	// COULD DO A HELPER WITH NOTHING + ANOTHER WITH INT + ANOTHER WITH STR +ANOTHER W CLIENT
 }
 
@@ -133,21 +136,38 @@ std::string Channel::topicCmd(Client &client, std::vector<std::string> &msg)
 }
 
 std::string Channel::inviteCmd(Client &client, std::vector<std::string> &msg)
-{}
+{
+	(void)client;
+	(void)msg;
+	return ("function to be made");
+}
 
 std::string Channel::privmsgCmd(Client &client, std::vector<std::string> &msg)
-{}
+{
+	(void)client;
+	(void)msg;
+	return ("function to be made");
+}
 
 std::string Channel::kickCmd(Client &client, std::vector<std::string> &msg)
-{}
+{
+	(void)client;
+	(void)msg;
+	return ("function to be made");
+}
 
 
 //------------------------- Utils----------------------------
 bool	Channel::isEmpty() const
-{}
+{
+	return (this->_members.empty());
+}
 
 bool	Channel::isMember(Client &client) const
-{}
+{
+	(void)client;
+	return (true);
+}
 
 bool	Channel::isOperator(std::string nick) const
 {
@@ -158,7 +178,10 @@ bool	Channel::isOperator(std::string nick) const
 }
 
 void	Channel::unban(Client *op, Client *target)
-{}
+{
+	(void)op;
+	(void)target;
+}
 
 Client *Channel::findMember(std::string name)
 {
@@ -174,10 +197,17 @@ Client *Channel::findMember(std::string name)
 }
 
 std::string	Channel::addClient(Client &client, std::vector<std::string> &msg)
-{}
+{
+	(void)client;
+	(void)msg;
+	return ("function to be made");
+}
 
+// Need to workout +/- differences for flags
 std::string Channel::modeFlags(Client &client, char flag, std::string arg)
 {
+	(void)client;
+
 	if (flag == 'i' || flag == 't')
 	{
 		if (!arg.empty())
@@ -224,5 +254,6 @@ std::string Channel::modeFlags(Client &client, char flag, std::string arg)
 			return (RED + arg + " is already banned from " + this->_name);
 		return (" has banned " + arg + " from " + this->_name);
 	}
+	return ("unsure yet");
 }
 
