@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:27 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/26 11:41:48 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/26 11:53:04 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ void	Channel::setLimit(int const &limit)
 
 bool	Channel::setOperator(std::string target)
 {
-	if (this->_operators.find(target) != this->_operators.end())
+	if (this->isOperator(target))
 		return (false);
 
 	this->_operators.insert(target);
@@ -74,7 +74,7 @@ bool	Channel::setBanned(std::string target) //Ban is not compulsory in subject
 	if (it != this->_members.end())
 		this->_members.erase(it);
 
-	if (this->_operators.find(target) != this->_operators.end())
+	if (this->isOperator(target))
 		this->_operators.erase(target);
 
 	this->_banned.insert(target);
@@ -85,13 +85,19 @@ bool	Channel::setBanned(std::string target) //Ban is not compulsory in subject
 
 //------------------------ Getters---------------------------
 std::string	Channel::getName() const
-{}
+{
+	return (this->_name);
+}
 
 std::string	Channel::getTopic() const
-{}
+{
+	return (this->_topic);
+}
 
 std::vector<Client *> Channel::getMembers() const
-{}
+{
+	return (this->_members);
+}
 
 
 //-------------------- Command methods-----------------------
@@ -101,19 +107,30 @@ std::string Channel::joinCmd(Client &client)
 std::string Channel::modeCmd(Client &client, std::vector<std::string> &msg)
 {
 	if (!this->isMember(client))
-		return (RED " is not a member of " + this->_name);
+		return (RED "You are not a member of " + this->_name);
 
-	if (this->_operators.find(client.getNickname()) == this->_operators.end())
-		return (RED " is not an operator of " + this->_name);
+	if (!isOperator(client.getNickname()))
+		return (RED "You are not an operator of " + this->_name);
 
-	// decompose message
-	// retrieve target, check if exists, check if in channel
-	// switch flags
-	// send to appropriate action
+	//perform format checks
+
+	this->modeFlags(client, msg[1][0], msg[2]);
+	// COULD DO A HELPER WITH NOTHING + ANOTHER WITH INT + ANOTHER WITH STR +ANOTHER W CLIENT
 }
 
 std::string Channel::topicCmd(Client &client, std::vector<std::string> &msg)
-{}
+{
+	if (!this->isMember(client))
+		return (RED "You are not a member of " + this->_name);
+
+	if (!isOperator(client.getNickname()))
+		return (RED "You are not an operator of " + this->_name);
+
+	//perform format checks
+
+	this->setTopic(&msg[2][1]);
+	return (" has set " + this->_name + " topic to: " + this->_topic);
+}
 
 std::string Channel::inviteCmd(Client &client, std::vector<std::string> &msg)
 {}
@@ -133,7 +150,12 @@ bool	Channel::isMember(Client &client) const
 {}
 
 bool	Channel::isOperator(std::string nick) const
-{}
+{
+	if (this->_operators.find(nick) != this->_operators.end())
+		return (true);
+
+	return (false);
+}
 
 void	Channel::unban(Client *op, Client *target)
 {}
@@ -154,7 +176,7 @@ Client *Channel::findMember(std::string name)
 std::string	Channel::addClient(Client &client, std::vector<std::string> &msg)
 {}
 
-std::string Channel::OpFlags(Client &client, char flag, std::string arg)
+std::string Channel::modeFlags(Client &client, char flag, std::string arg)
 {
 	if (flag == 'i' || flag == 't')
 	{

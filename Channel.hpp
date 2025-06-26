@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:22 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/26 11:38:29 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/26 11:50:44 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,5 +72,5 @@ class Channel
 		void	unban(Client *op, Client *target);
 		Client *findMember(std::string name);
 		std::string	addClient(Client &client, std::vector<std::string> &msg);
-		std::string Channel::OpFlags(Client &client, char flag, std::string targetname)
+		std::string Channel::modeFlags(Client &client, char flag, std::string targetname)
 };
