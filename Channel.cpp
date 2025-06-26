@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:27 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/25 22:07:04 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/26 11:41:48 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,9 +45,13 @@ void	Channel::setLimit(int const &limit)
 	this->_limit = limit;
 }
 
-void	Channel::setOperator(Client const &target)
+bool	Channel::setOperator(std::string target)
 {
-	this->_operators.insert(target.getNickname());
+	if (this->_operators.find(target) != this->_operators.end())
+		return (false);
+
+	this->_operators.insert(target);
+	return (true);
 	/* previous notation:
 	 _operators.insert(_operators.end(), client->getNickname());
 	doesn't work:
@@ -57,9 +61,25 @@ void	Channel::setOperator(Client const &target)
 	Should we use a different type of container? */
 }
 
-void	Channel::setBanned(Client const &target)
+bool	Channel::setBanned(std::string target) //Ban is not compulsory in subject
 {
-	this->_banned.insert(target.getNickname());
+	if (this->_banned.find(target) != this->_banned.end())
+		return (false);
+
+	member_iter it = this->_members.begin();
+	for (; it != this->_members.end(); ++it)
+		if ((*it)->getNickname() == target)
+			break;
+
+	if (it != this->_members.end())
+		this->_members.erase(it);
+
+	if (this->_operators.find(target) != this->_operators.end())
+		this->_operators.erase(target);
+
+	this->_banned.insert(target);
+
+	return (true);
 }
 
 
@@ -87,6 +107,7 @@ std::string Channel::modeCmd(Client &client, std::vector<std::string> &msg)
 		return (RED " is not an operator of " + this->_name);
 
 	// decompose message
+	// retrieve target, check if exists, check if in channel
 	// switch flags
 	// send to appropriate action
 }
@@ -117,6 +138,69 @@ bool	Channel::isOperator(std::string nick) const
 void	Channel::unban(Client *op, Client *target)
 {}
 
+Client *Channel::findMember(std::string name)
+{
+	member_iter it = this->_members.begin();
+
+	for (; it != this->_members.end(); ++it)
+	{
+		if ((*it)->getNickname() == name)
+			return (*it);
+	}
+
+	return (NULL);
+}
+
 std::string	Channel::addClient(Client &client, std::vector<std::string> &msg)
 {}
+
+std::string Channel::OpFlags(Client &client, char flag, std::string arg)
+{
+	if (flag == 'i' || flag == 't')
+	{
+		if (!arg.empty())
+			return (RED "Invalid use of flag " + flag);
+		if (flag == 'i')
+			std::cout << "invite function to be made";
+		else if (flag == 't')
+			std::cout << "topic function to be made";
+	}
+
+	if (arg.empty())
+			return (RED "Invalid use of flag " + flag);
+
+	if (flag == 'k')
+	{
+		this->setPassword(arg);
+		return (" has set password to " + arg);
+	}
+	else if (flag == 'l')
+	{
+		if (arg.find_first_not_of(DIGIT_CHARS))
+			return (RED "Invalid limit: has to be numerical");
+
+		int limit = atoi(arg.c_str());
+		if (arg.length() > 2 || limit > 50)
+			return (RED "Invalid limit: can't be higher than 50");
+
+		this->setLimit(limit);
+		return (" has set channel member limit to " + arg);
+	}
+
+	if (!this->findMember(arg))
+			return (RED + arg + " is not a member of " + this->_name);
+
+	if (flag == 'o')
+	{
+		if (!this->setOperator(arg))
+			return (RED + arg + "is already an operator of " + this->_name);
+		return (" has set " + arg + " as operator of " + this->_name);
+	}
+	else if (flag == 'b')
+	{
+		if (!this->setBanned(arg))
+			return (RED + arg + " is already banned from " + this->_name);
+		return (" has banned " + arg + " from " + this->_name);
+	}
+}
 

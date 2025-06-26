@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:22 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/25 22:05:45 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/26 11:38:29 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,10 +19,13 @@
 #include "Client.hpp"
 
 #define RED		"\001\033[1;31m\002"
+#define DIGIT_CHARS	"01234567789"
 
 class Channel
 {
 	private:
+		typedef std::vector<Client *>::iterator member_iter;
+
 		std::string	_name;
 		std::string _topic;
 		std::string _password;
@@ -33,7 +36,7 @@ class Channel
 		std::vector<Client *> 	_members;
 		std::set<std::string>	_operators;
 		std::set<std::string>	_invited;
-		std::set<std::string>	_banned;
+		std::set<std::string>	_banned; //Ban is not compulsory in subject
 
 	public:
 		//Constructor/Destructor:
@@ -46,8 +49,8 @@ class Channel
 		void	setTopic(std::string const &topic);
 		void	setPassword(std::string const &password);
 		void	setLimit(int const &limit);
-		void	setOperator(Client const &target);
-		void	setBanned(Client const &target);
+		bool	setOperator(std::string target);
+		bool	setBanned(std::string target);
 
 		//Getters:
 		std::string	getName() const;
@@ -67,5 +70,7 @@ class Channel
 		bool	isMember(Client &client) const;
 		bool	isOperator(std::string nick) const;
 		void	unban(Client *op, Client *target);
+		Client *findMember(std::string name);
 		std::string	addClient(Client &client, std::vector<std::string> &msg);
-}
+		std::string Channel::OpFlags(Client &client, char flag, std::string targetname)
+};
