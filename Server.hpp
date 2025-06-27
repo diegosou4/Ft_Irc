@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/27 13:53:32 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/27 20:32:42 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,8 +40,8 @@ class Server
 		typedef std::vector<struct pollfd>::iterator pollfd_iter;
 		typedef std::map<std::string, Client *>::iterator clients_iter;
 		typedef std::map<std::string, Channel *>::iterator channels_iter;
-		typedef std::string (Server::*AuthCmds)(Client*, Channel *, std::vector<std::string>&);
-		typedef std::string (Channel::*ChanCmds)(Client&, std::vector<std::string>&);
+		typedef int (Server::*AuthCmds)(Client*, Channel *, std::vector<std::string>&);
+		typedef int (Channel::*ChanCmds)(Client&, std::vector<std::string>&);
 
 		// Regular attributes:
 		int	_fd;
@@ -92,26 +92,27 @@ class Server
 		void	pollNVal(Client &client);
 
 		// Commands - Commands.cpp
-		std::string passCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg);
-		std::string nickCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg);
-		std::string userCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg);
-		std::string joinCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg);
+		int passCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg);
+		int nickCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg);
+		int userCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg);
+		int joinCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg);
+		int privMsgCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg);
 
-		std::string passCmd(Client &client, std::string password);
-		std::string nickCmd(Client *client, std::string nickname);
-		std::string userCmd(Client &client, std::vector<std::string> &user_args);
-		std::string joinCmd(Client &client, Channel *channel, std::string channelname);
+		int passCmd(Client &client, std::string password);
+		int nickCmd(Client *client, std::string nickname);
+		int userCmd(Client &client, std::vector<std::string> &user_args);
+		int joinCmd(Client &client, Channel *channel, std::string channelname);
 
 		// Utils - Utils.cpp
 		void	setCmdMaps();
-		void	welcomeScreen(Client &client);
 		std::string getMsg(Client &client);
 		std::vector<std::string> splitMsg(std::string &msg);
 		Channel	*findChannel(std::vector<std::string> &split_msg);
 
 		void	printServer(Client *client, std::string const &msg);
 		void	sendClient(Client &client, std::string const &msg);
-		void	sendNumeric(Client &client, int code, std::string &msg);
+		void	sendNumeric(Client &client, int code);
+		void	sendNumeric(Client &client, int code, std::string const &msg);
 		void	broadcast(Client &client, Channel &channel, std::string &cmd, std::string const &msg)
 };
 

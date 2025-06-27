@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 13:00:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/27 13:53:57 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/27 20:32:14 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,19 +20,12 @@ void	Server::setCmdMaps()
 	this->_authcmds["NICK"] = &Server::nickCheck;
 	this->_authcmds["USER"] = &Server::userCheck;
 	this->_authcmds["JOIN"] = &Server::joinCheck;
+	this->_authcmds["PRIVMSG"] = &Server::privMsgCheck;
 
 	this->_chancmds["MODE"] = &Channel::modeCmd;
 	this->_chancmds["TOPIC"] = &Channel::topicCmd;
 	this->_chancmds["INVITE"] = &Channel::inviteCmd;
-	this->_chancmds["PRIVMSG"] = &Channel::privmsgCmd;
 	this->_chancmds["KICK"] = &Channel::kickCmd;
-}
-
-// Displays welcome screen to user + notifies server
-void	Server::welcomeScreen(Client &client)
-{
-	this->printServer(&client, "is at the door");
-	this->broadcast(client, NULL, WELCOME INSTRUCTIONS);
 }
 
 // Retrieves message from user + perform checks - removes client if errors
@@ -74,6 +67,7 @@ std::vector<std::string> Server::splitMsg(std::string &msg)
 
 Channel	*Server::findChannel(std::vector<std::string> &split_msg)
 {
+	//add looking for user if privmsg
 	Channel *channel = NULL;
 	std::string channel_name;
 
@@ -119,13 +113,15 @@ void	Server::sendClient(Client &client, std::string const &msg)
 		this->printServer(&client, RED "Failed to send message");
 }
 
-void	Server::sendNumeric(Client &client, int code, std::string &msg)
+void	Server::sendNumeric(Client &client, int code)
 {
 	std::stringstream ss;
 	std::string msg;
 
-	if (ErrMsg.find(code) != ErrMsg.end())
-		msg = ErrMsg.find(code)->second;
+	if (ErrMsg.find(code) == ErrMsg.end())
+		throw (std::runtime_error("Invalid error code"));
+
+	msg = ErrMsg.find(code)->second;
 
 	ss 	<< ":" << this->_name << " " \
 		<< std::setw(3) << std::setfill('0') \
@@ -134,6 +130,19 @@ void	Server::sendNumeric(Client &client, int code, std::string &msg)
 
 	this->sendClient(client, ss.str());
 }
+
+void	Server::sendNumeric(Client &client, int code, std::string const &msg)
+{
+	std::stringstream ss;
+
+	ss 	<< ":" << this->_name << " " \
+		<< std::setw(3) << std::setfill('0') \
+		<< code << " " << client.getNickname() \
+		<< " " << msg << "\r\n" << std::endl;
+
+	this->sendClient(client, ss.str());
+}
+
 void	Server::broadcast(Client &client, Channel &channel, std::string &cmd, std::string const &msg)
 {
 	std::string output = client.getPrefix() + " " + cmd + " " + msg + "\r\n";
@@ -141,7 +150,7 @@ void	Server::broadcast(Client &client, Channel &channel, std::string &cmd, std::
 	Channel::member_iter it = channel.getMembers().begin();
 	for (; it != channel.getMembers().end(); ++it)
 		if (*it != &client && (*it)->getState() == ACTIVE)
-			this->sendClient(**it, msg);
+			this->sendClient(**it, output);
 }
 
 

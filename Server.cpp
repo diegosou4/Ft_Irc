@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/27 11:08:33 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/27 19:59:18 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -154,7 +154,7 @@ void	Server::addSocket(bool isclient)
 		newclient->setState(AT_DOOR);
 		this->_clients[newclient->getNickname()]= newclient;
 
-		this->welcomeScreen(*newclient);
+		this->printServer(newclient, "is at the door");
 	}
 
 	this->_fds.push_back(newpoll);

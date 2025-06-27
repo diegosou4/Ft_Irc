@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:41:33 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/27 10:48:34 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/27 20:33:58 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,28 +57,30 @@ void Server::pollIn(Client &client)
 	if (msg.empty())
 		return;
 
+	int code = 0;
 	std::vector<std::string> split_msg = this->splitMsg(msg);
 	Channel *channel = findChannel(split_msg);
 
-	std::string output;
-
 	if (this->_authcmds.find(split_msg[0]) != this->_authcmds.end())
-		output = (this->*_authcmds[split_msg[0]])(&client, channel, split_msg);
+		code = (this->*_authcmds[split_msg[0]])(&client, channel, split_msg);
 	else if (!channel)
-		output = "Invalid - channel doesn't exist";
+			code = ERR_NOSUCHCHAN;
 	else if (this->_chancmds.find(split_msg[0]) != this->_chancmds.end())
-		output = (channel->*_chancmds[split_msg[0]])(client, split_msg);
+		code = (channel->*_chancmds[split_msg[0]])(client, split_msg);
 	else
-		output = "Invalid - command not recognised";
+		code = ERR_UNKNOWNCOMMAND;
 
-	this->broadcast(client, channel, output);
+	if (!code)
+		this->broadcast(client, *channel, split_msg[0], msg);
+	else
+		this->sendNumeric(client, code);
 }
 
 // POLLERR = error occurred with fd
 // Depending on error code: ignores, reopen socket, or removes client
 void	Server::pollErr(Client &client)
 {
-	this->printServer(*client, RED  "Error occurred: ");
+	this->printServer(&client, RED  "Error occurred: ");
 
 	if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
 	{

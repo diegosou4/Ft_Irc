@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:27 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/27 10:37:48 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/27 20:38:10 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,13 +101,13 @@ std::vector<Client *> Channel::getMembers() const
 
 
 //-------------------- Command methods-----------------------
-std::string Channel::modeCmd(Client &client, std::vector<std::string> &msg)
+int Channel::modeCmd(Client &client, std::vector<std::string> &msg)
 {
 	if (!this->isMember(client))
-		return ("You are not a member of " + this->_name);
+		return (ERR_NOTINCHAN);
 
 	if (!isOperator(client.getNickname()))
-		return ("You are not an operator of " + this->_name);
+		return (ERR_NOTCHANOP);
 
 	//perform format checks
 
@@ -115,35 +115,35 @@ std::string Channel::modeCmd(Client &client, std::vector<std::string> &msg)
 	// COULD DO A HELPER WITH NOTHING + ANOTHER WITH INT + ANOTHER WITH STR +ANOTHER W CLIENT
 }
 
-std::string Channel::topicCmd(Client &client, std::vector<std::string> &msg)
+int Channel::topicCmd(Client &client, std::vector<std::string> &msg)
 {
 	if (!this->isMember(client))
-		return ("You are not a member of " + this->_name);
+		return (ERR_NOTINCHAN);
 
 	if (!isOperator(client.getNickname()))
-		return ("You are not an operator of " + this->_name);
+		return (ERR_NOTCHANOP);
 
 	//perform format checks
 
 	this->setTopic(&msg[2][1]);
-	return (" has set " + this->_name + " topic to: " + this->_topic);
+	return (SUCCESS);
 }
 
-std::string Channel::inviteCmd(Client &client, std::vector<std::string> &msg)
+int Channel::inviteCmd(Client &client, std::vector<std::string> &msg)
 {
 	(void)client;
 	(void)msg;
 	return ("invite function to be made");
 }
 
-std::string Channel::privmsgCmd(Client &client, std::vector<std::string> &msg)
+int Channel::privmsgCmd(Client &client, std::vector<std::string> &msg)
 {
 	(void)client;
 	(void)msg;
 	return ("privmsg function to be made");
 }
 
-std::string Channel::kickCmd(Client &client, std::vector<std::string> &msg)
+int Channel::kickCmd(Client &client, std::vector<std::string> &msg)
 {
 	(void)client;
 	(void)msg;
@@ -197,7 +197,7 @@ std::string	Channel::addClient(Client &client)
 }
 
 // Need to workout +/- differences for flags
-std::string Channel::modeFlags(Client &client, char flag, std::string arg)
+int Channel::modeFlags(Client &client, char flag, std::string arg)
 {
 	(void)client;
 

@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:22 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/27 11:23:38 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/27 20:36:11 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include <iostream>
 #include <algorithm>
 #include "Client.hpp"
+#include "Macros.hpp"
 
 #define DIGIT_CHARS	"01234567789"
 
@@ -58,12 +59,12 @@ class Channel
 		std::vector<Client *> getMembers() const;
 
 		//Command functions:
-		std::string joinCmd(Client &client);
-		std::string modeCmd(Client &client, std::vector<std::string> &msg);
-		std::string topicCmd(Client &client, std::vector<std::string> &msg);
-		std::string inviteCmd(Client &client, std::vector<std::string> &msg);
-		std::string privmsgCmd(Client &client, std::vector<std::string> &msg);
-		std::string kickCmd(Client &client, std::vector<std::string> &msg);
+		int joinCmd(Client &client);
+		int modeCmd(Client &client, std::vector<std::string> &msg);
+		int topicCmd(Client &client, std::vector<std::string> &msg);
+		int inviteCmd(Client &client, std::vector<std::string> &msg);
+		int privmsgCmd(Client &client, std::vector<std::string> &msg);
+		int kickCmd(Client &client, std::vector<std::string> &msg);
 
 		//Utils:
 		bool	isEmpty() const;
@@ -72,5 +73,5 @@ class Channel
 		void	unban(Client *op, Client *target);
 		Client *findMember(std::string name);
 		std::string	addClient(Client &client);
-		std::string	modeFlags(Client &client, char flag, std::string targetname);
+		int	modeFlags(Client &client, char flag, std::string targetname);
 };

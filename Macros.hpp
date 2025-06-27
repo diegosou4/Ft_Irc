@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/27 12:11:32 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/27 13:45:52 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/27 20:38:02 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,7 @@
 #define USER_EXPECT		"Expected: USER <username> <hostname> <servername> :<realname>"
 #define JOIN_EXPECT		"Expected: JOIN <#channelname>"
 
+#define SUCCESS			000
 #define RPL_WELCOME		001
 
 #define	RPL_CHANMODE	324 //when MODE is required
@@ -49,6 +50,8 @@
 #define ERR_NOSUCHNICK		401 // user/channel doesn't exist
 #define ERR_NOSUCHCHAN		403 //channel doesn't exist - JOIN/MODE/NICK
 #define ERR_CANTSENDTOCHAN	404	//privmsg to channel failed
+
+#define ERR_UNKNOWNCOMMAND	421 //unknown command
 
 #define	ERR_NONICK			431 //NICK command used w/ nick
 #define ERR_INVALIDNICK		432	//NICK - invalid chars
@@ -69,11 +72,12 @@
 #define	ERR_BADCHANKEY		475	//invalid chan pass
 #define	ERR_NOTCHANOP		482	// MODE/KICK by a non-op
 
-static const std::map<int, std::string> _errNum
+static const std::map<int, std::string> ErrMsg
 {
 	{401, ":No such nick/channel"},
 	{403, ":No such channel"},
 	{404, ":Cannot send to channel"},
+	{421, ":Unknown command"},
 	{431, ":No nickname given"},
 	{432, ":Erroneous nickname"},
 	{433, ":Nickname is already in use"},
@@ -88,5 +92,5 @@ static const std::map<int, std::string> _errNum
 	{472, ":is unknown mode char to me"},
 	{473, ":Cannot join channel (+i)"},
 	{475, ":Cannot join channel (+k)"},
-	{482, ":You're not channel operator"},
+	{482, ":You're not channel operator"}
 };

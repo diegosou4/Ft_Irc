@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:48:21 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/27 10:51:43 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/27 20:33:08 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,24 +14,28 @@
 #include "Server.hpp"
 
 // Checks client existence, state & command format
-std::string Server::passCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg)
+int Server::passCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg)
 {
 	(void)channel;
 
 	if (!client)
 		throw (std::runtime_error("Fatal: client not found"));
 
-	if (client->getState() > AT_DOOR)
-		return ("You are already logged into the server");
+	if (client->getState() == ACTIVE)
+		this->sendNumeric(*client, ERR_ALREADYAUTHED)
+		return ("");
 
 	if (split_msg.size() != 2)
-		return ("PASS: invalid command format\n" PASS_EXPECT);
+	{
+		this->sendNumeric(*client, ERR_NEEDMOREPARAMS);
+		return ("");
+	}
 
 	return (this->passCmd(*client, split_msg[1]));
 }
 
 // Checks client existence, state & command format
-std::string Server::nickCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg)
+int Server::nickCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg)
 {
 	(void)channel;
 
@@ -50,7 +54,7 @@ std::string Server::nickCheck(Client *client, Channel *channel, std::vector<std:
 }
 
 // Checks client existence, state & command format
-std::string Server::userCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg)
+int Server::userCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg)
 {
 	(void)channel;
 
@@ -69,7 +73,7 @@ std::string Server::userCheck(Client *client, Channel *channel, std::vector<std:
 }
 
 // Checks client existence, state, command format & channel name format
-std::string Server::joinCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg)
+int Server::joinCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg)
 {
 	if (!client)
 		throw (std::runtime_error("Fatal: client not found"));
@@ -90,8 +94,13 @@ std::string Server::joinCheck(Client *client, Channel *channel, std::vector<std:
 	return (this->joinCmd(*client, channel, split_msg[1]));
 }
 
+int Server::privMsgCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg)
+{
+	//to be done
+}
+
 // Checks password + sets client to next state if correct
-std::string Server::passCmd(Client &client, std::string password)
+int Server::passCmd(Client &client, std::string password)
 {
 	if (password != this->_password)
 	{
@@ -106,7 +115,7 @@ std::string Server::passCmd(Client &client, std::string password)
 }
 
 // Sets existing client as active OR sets non-existing client to next state
-std::string Server::nickCmd(Client *client, std::string nickname)
+int Server::nickCmd(Client *client, std::string nickname)
 {
 	if (!client)
 		return (NULL);
@@ -132,7 +141,7 @@ std::string Server::nickCmd(Client *client, std::string nickname)
 }
 
 // Updates username and realname + finalizes new client registration if applicable
-std::string Server::userCmd(Client &client, std::vector<std::string> &user_args)
+int Server::userCmd(Client &client, std::vector<std::string> &user_args)
 {
 	client.setUsername(user_args[0]);
 
@@ -151,7 +160,7 @@ std::string Server::userCmd(Client &client, std::vector<std::string> &user_args)
 }
 
 // Creates channel if non-existing + adds client to channel
-std::string Server::joinCmd(Client &client, Channel *channel, std::string channelname)
+int Server::joinCmd(Client &client, Channel *channel, std::string channelname)
 {
 	if (!channel)
 	{
