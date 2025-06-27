@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 13:00:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/27 12:03:41 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/27 13:53:57 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,14 +119,17 @@ void	Server::sendClient(Client &client, std::string const &msg)
 		this->printServer(&client, RED "Failed to send message");
 }
 
-void	Server::sendNumeric(Client &client, int code, std::string const &msg)
+void	Server::sendNumeric(Client &client, int code, std::string &msg)
 {
 	std::stringstream ss;
+	std::string msg;
+
+	if (ErrMsg.find(code) != ErrMsg.end())
+		msg = ErrMsg.find(code)->second;
 
 	ss 	<< ":" << this->_name << " " \
 		<< std::setw(3) << std::setfill('0') \
 		<< code << " " << client.getNickname() \
-		/* << " " << params << " :" << msg << "\r\n" << std::endl; */
 		<< " " << msg << "\r\n" << std::endl;
 
 	this->sendClient(client, ss.str());

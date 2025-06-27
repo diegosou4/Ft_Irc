@@ -6,11 +6,14 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/27 12:11:32 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/27 12:13:04 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/27 13:45:52 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
+
+#include <map>
+#include <iostream>
 
 //General:
 #ifndef NULL
@@ -34,17 +37,7 @@
 #define JOIN_EXPECT		"Expected: JOIN <#channelname>"
 
 #define RPL_WELCOME		001
-#define WELCOME \
-"\n          ▗▄▄▄▖▗▄▄▖  ▗▄▄▖           \n\
-            █  ▐▌ ▐▌▐▌              \n\
-            █  ▐▛▀▚▖▐▌              \n\
-          ▗▄█▄▖▐▌ ▐▌▝▚▄▄▖           \n\
-                                    \n\
-▗▖ ▗▖▗▄▄▄▖▗▖    ▗▄▄▖ ▗▄▖ ▗▖  ▗▖▗▄▄▄▖\n\
-▐▌ ▐▌▐▌   ▐▌   ▐▌   ▐▌ ▐▌▐▛▚▞▜▌▐▌   \n\
-▐▌ ▐▌▐▛▀▀▘▐▌   ▐▌   ▐▌ ▐▌▐▌  ▐▌▐▛▀▀▘\n\
-▐▙█▟▌▐▙▄▄▖▐▙▄▄▖▝▚▄▄▖▝▚▄▞▘▐▌  ▐▌▐▙▄▄▖\n\
-                                    \n"
+
 #define	RPL_CHANMODE	324 //when MODE is required
 #define RPL_CREATTIME	329 // sent with MODE or INFO
 #define	RPL_NOTOPIC		331	//sent after JOIN if no topic
@@ -75,3 +68,25 @@
 #define	ERR_INVITEONLYCHAN	473 // try to join invite only channel
 #define	ERR_BADCHANKEY		475	//invalid chan pass
 #define	ERR_NOTCHANOP		482	// MODE/KICK by a non-op
+
+static const std::map<int, std::string> _errNum
+{
+	{401, ":No such nick/channel"},
+	{403, ":No such channel"},
+	{404, ":Cannot send to channel"},
+	{431, ":No nickname given"},
+	{432, ":Erroneous nickname"},
+	{433, ":Nickname is already in use"},
+	{441, ":They aren't on that channel"},
+	{442, ":You're not on that channel"},
+	{443, ":is already on channel"},
+	{461, ":Not enough parameters"},
+	{462, ":You may not reregister"},
+	{464, ":Password incorrect"},
+	{467, ":Channel key already set"},
+	{471, ":Cannot join channel (+l)"},
+	{472, ":is unknown mode char to me"},
+	{473, ":Cannot join channel (+i)"},
+	{475, ":Cannot join channel (+k)"},
+	{482, ":You're not channel operator"},
+};
