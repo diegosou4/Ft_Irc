@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:41:33 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/26 21:24:32 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/27 10:48:34 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,11 +65,11 @@ void Server::pollIn(Client &client)
 	if (this->_authcmds.find(split_msg[0]) != this->_authcmds.end())
 		output = (this->*_authcmds[split_msg[0]])(&client, channel, split_msg);
 	else if (!channel)
-		output = RED "Invalid - channel doesn't exist" R;
+		output = "Invalid - channel doesn't exist";
 	else if (this->_chancmds.find(split_msg[0]) != this->_chancmds.end())
 		output = (channel->*_chancmds[split_msg[0]])(client, split_msg);
 	else
-		output = RED "Invalid - command not recognised" R;
+		output = "Invalid - command not recognised";
 
 	this->broadcast(client, channel, output);
 }
@@ -78,28 +78,28 @@ void Server::pollIn(Client &client)
 // Depending on error code: ignores, reopen socket, or removes client
 void	Server::pollErr(Client &client)
 {
-	std::cerr << RED "Error occurred with client " << client.getNickname() << ":" << strerror(errno) << R << std::endl;
+	this->printServer(*client, RED  "Error occurred: ");
 
 	if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
 	{
-		std::cerr << "Retrying ..." << std::endl;
+		this->printServer(NULL, RED "Retrying ...");
 		return ;
 	}
 	else if (errno == ETIMEDOUT)
 	{
-		std::cerr << "Reopening attempt ..." << std::endl;
+		this->printServer(NULL, RED "Reopening attempt ...");
 		close(client.getFd());
 
 		client.setFd(socket(AF_INET, SOCK_STREAM, 0));
 		if (client.getFd() >= 0)
 		{
 			fcntl(client.getFd(),  F_SETFL, O_NONBLOCK);
-			std::cerr << PURPLE "Reconnection successful" R << std::endl;
+			this->printServer(NULL, PURPLE "Reconnection successful");
 			return ;
 		}
 	}
 
-	std::cerr << RED "Unrecoverable - closing socket" R << std::endl;
+	this->printServer(NULL, RED "Unrecoverable - closing socket");
 	this->removeClient(client);
 }
 
@@ -107,8 +107,7 @@ void	Server::pollErr(Client &client)
 // Shows error message + sends to client removal
 void	Server::pollNVal(Client &client)
 {
-	std::cerr << RED "File descriptor " << client.getFd() << " is invalid" R << std::endl;
-	std::cerr << RED "Unrecoverable - closing socket" R << std::endl;
+	this->printServer(&client, RED "Invalid file descriptor\nUnrecoverable - closing socket");
 
 	this->removeClient(client);
 }

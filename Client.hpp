@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 16:47:09 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/26 20:31:58 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/27 11:29:31 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ class Client
 		std::string _username;
 		std::string _nickname;
 		std::string _hostname; // more useful than IP - we can get IP from hostname anyways
+		std::string _prefix; // needed for compliance with RFC 2812 output responses
 
 	public:
 		//Constructor/Destructor:
@@ -59,6 +60,7 @@ class Client
 		void	setUsername(std::string username);
 		void	setNickname(std::string nickname);
 		void	setHostname(std::string hostname);
+		void	setPrefix();
 
 		//Getters:
 		int	getFd() const; // shorter to use in Server
@@ -67,4 +69,5 @@ class Client
 		std::string getUsername() const;
 		std::string getNickname() const;
 		std::string getHostname() const;
+		std::string getPrefix() const;
 };

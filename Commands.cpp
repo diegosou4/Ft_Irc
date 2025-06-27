@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:48:21 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/26 21:29:44 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/27 10:51:43 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,10 +22,10 @@ std::string Server::passCheck(Client *client, Channel *channel, std::vector<std:
 		throw (std::runtime_error("Fatal: client not found"));
 
 	if (client->getState() > AT_DOOR)
-		return (PURPLE "You are already logged into the server" R);
+		return ("You are already logged into the server");
 
 	if (split_msg.size() != 2)
-		return (RED "PASS: invalid command format\n" GREY PASS_EXPECT R);
+		return ("PASS: invalid command format\n" PASS_EXPECT);
 
 	return (this->passCmd(*client, split_msg[1]));
 }
@@ -39,12 +39,12 @@ std::string Server::nickCheck(Client *client, Channel *channel, std::vector<std:
 		throw (std::runtime_error("Fatal: client not found"));
 
 	if (client->getState() < PASS_OK)
-		return (RED "Error - " INSTRUCTIONS R);
+		return ("Error - " INSTRUCTIONS R);
 	else if (client->getState() > PASS_OK)
-		return (PURPLE "Your nickname has already been set" R);
+		return ("Your nickname has already been set");
 
 	if (split_msg.size() != 2)
-		return (RED "NICK: invalid command format\n" GREY NICK_EXPECT R);
+		return ("NICK: invalid command format\n" NICK_EXPECT);
 
 	return (this->nickCmd(client, split_msg[1]));
 }
@@ -63,7 +63,7 @@ std::string Server::userCheck(Client *client, Channel *channel, std::vector<std:
 		return (RED "Error - Please create a nickname using NICK" R);
 
 	if (split_msg.size() < 5 || split_msg[4][0] != ':' || split_msg[4].size() <= 1)
-		return (RED "USER: invalid command format\n" GREY USER_EXPECT R);
+		return (RED "USER: invalid command format\n" USER_EXPECT);
 
 	return (this->userCmd(*client, split_msg));
 }
@@ -82,10 +82,10 @@ std::string Server::joinCheck(Client *client, Channel *channel, std::vector<std:
 		return (RED "Error - Please finalize user data using USER" R);
 
 	if (split_msg.size() != 2)
-		return (RED "JOIN: invalid command format\n" GREY JOIN_EXPECT R);
+		return (RED "JOIN: invalid command format\n" JOIN_EXPECT);
 
 	if (split_msg[1][0] != '#' || split_msg[1].length() < 2)
-		return (RED "Invalid channel name format\n" GREY JOIN_EXPECT R);
+		return (RED "Invalid channel name format\n" JOIN_EXPECT);
 
 	return (this->joinCmd(*client, channel, split_msg[1]));
 }
@@ -95,27 +95,30 @@ std::string Server::passCmd(Client &client, std::string password)
 {
 	if (password != this->_password)
 	{
-		this->broadcast(client, NULL, " access denied: invalid password");
+		this->printServer(&client, "access denied - invalid password");
 		return (RED "Invalid password - access denied" R);
 	}
 
 	client.setState(PASS_OK);
 
-	this->broadcast(client, NULL, " access granted");
-	return (GREY "Password is correct - access granted!\nPlease proceed with NICK" R);
+	this->printServer(&client, "access granted");
+	return ("Password is correct - access granted!\nPlease proceed with NICK");
 }
 
 // Sets existing client as active OR sets non-existing client to next state
 std::string Server::nickCmd(Client *client, std::string nickname)
 {
+	if (!client)
+		return (NULL);
+
 	if (this->_clients.find(nickname) == this->_clients.end())
 	{
-		this->broadcast(*client, NULL, " set nickname to " + nickname);
+		this->printServer(client, "set nickname to " + nickname);
 
 		client->setNickname(nickname);
 		client->setState(NICK_OK);
 
-		return (GREY "Nickname created - Please proceed with USER" R);
+		return ("Nickname created - Please proceed with USER");
 	}
 
 	this->_clients.erase(client->getNickname());
@@ -124,8 +127,8 @@ std::string Server::nickCmd(Client *client, std::string nickname)
 	client = this->_clients[nickname];
 	client->setState(ACTIVE);
 
-	this->broadcast(*client, NULL, " logged in");
-	return (PURPLE "Welcome back, " + client->getNickname() + R);
+	this->printServer(client, "successfully logged in");
+	return ("Welcome back, " + client->getNickname());
 }
 
 // Updates username and realname + finalizes new client registration if applicable
@@ -137,14 +140,14 @@ std::string Server::userCmd(Client &client, std::vector<std::string> &user_args)
 	for (size_t i = 5; i < user_args.size(); i++)
 		client.setRealname(client.getRealname() + " " + user_args[i]);
 
-	std::cout << PURPLE << client.getNickname() << R " changed user data to:\n"
-	<< GREY " > username: " R << client.getUsername() << GREY "	-	realname: " R << client.getRealname() << std::endl;
+	this->printServer(&client, "changed user data to:\n" GREY " > username: " R + \
+		client.getUsername() + GREY "	-	realname: " R + client.getRealname());
 
 	if (!client.getUsername().empty() && client.getState() == ACTIVE)
-		return (PURPLE "Your user data has been correctly updated" R);
+		return ("Your user data has been correctly updated");
 
 	client.setState(ACTIVE);
-	return (PURPLE "Welcome, " + client.getUsername() + R);
+	return ("Welcome, " + client.getUsername());
 }
 
 // Creates channel if non-existing + adds client to channel

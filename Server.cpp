@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/26 13:39:38 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/27 11:08:33 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 //----------------------Constructors/Destructors-------------------------------
 
 // Constructs + sets up all server attributes
-Server::Server(int port, std::string password): _port(port), _password(password)
+Server::Server(int port, std::string password): _port(port), _password(password), _name("ircserv")
 {
 	this->setCmdMaps();
 	this->_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -25,7 +25,7 @@ Server::Server(int port, std::string password): _port(port), _password(password)
 
 	this->setSocket(htons(port), inet_addr(LOCALHOST));
 
-	std::cout << GREY "Server has been properly set up" R << std::endl;
+	this->printServer(NULL, GREY "Server has been properly set up");
 }
 
 // Private copy constructor to force compilation error
@@ -80,7 +80,7 @@ Client *Server::getClient(int fd)
 	if (it->second->getFd() == fd)
 		return (it->second);
 
-	std::cerr << RED "Client with corresponding fd not found" R << std::endl;
+	this->printServer(NULL, RED "No client found with requested fd");
 	return (NULL);
 }
 

@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 17:06:16 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/26 13:38:51 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/27 11:29:10 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,6 +89,13 @@ void	Client::setHostname(std::string hostname)
 	this->_hostname = hostname;
 }
 
+void	Client::setPrefix()
+{
+	this->_prefix = ":" + this->_nickname + \
+					"!" + this->_username + \
+					"@" + this->_hostname;
+}
+
 //------------------------ Getters---------------------------
 int	Client::getFd() const
 {
@@ -118,4 +125,9 @@ std::string Client::getNickname() const
 std::string Client::getHostname() const
 {
 	return (this->_hostname);
+}
+
+std::string Client::getPrefix() const
+{
+	return (this->_prefix);
 }

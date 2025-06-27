@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:27 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/26 21:02:32 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/27 10:37:48 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,10 +104,10 @@ std::vector<Client *> Channel::getMembers() const
 std::string Channel::modeCmd(Client &client, std::vector<std::string> &msg)
 {
 	if (!this->isMember(client))
-		return (RED "You are not a member of " + this->_name);
+		return ("You are not a member of " + this->_name);
 
 	if (!isOperator(client.getNickname()))
-		return (RED "You are not an operator of " + this->_name);
+		return ("You are not an operator of " + this->_name);
 
 	//perform format checks
 
@@ -118,10 +118,10 @@ std::string Channel::modeCmd(Client &client, std::vector<std::string> &msg)
 std::string Channel::topicCmd(Client &client, std::vector<std::string> &msg)
 {
 	if (!this->isMember(client))
-		return (RED "You are not a member of " + this->_name);
+		return ("You are not a member of " + this->_name);
 
 	if (!isOperator(client.getNickname()))
-		return (RED "You are not an operator of " + this->_name);
+		return ("You are not an operator of " + this->_name);
 
 	//perform format checks
 
@@ -204,7 +204,7 @@ std::string Channel::modeFlags(Client &client, char flag, std::string arg)
 	if (flag == 'i' || flag == 't')
 	{
 		if (!arg.empty())
-			return (RED "Invalid use of flag " + flag);
+			return ("Invalid use of flag " + flag);
 		if (flag == 'i')
 			std::cout << "invite function to be made";
 		else if (flag == 't')
@@ -212,7 +212,7 @@ std::string Channel::modeFlags(Client &client, char flag, std::string arg)
 	}
 
 	if (arg.empty())
-			return (RED "Invalid use of flag " + flag);
+			return ("Invalid use of flag " + flag);
 
 	if (flag == 'k')
 	{
@@ -222,29 +222,29 @@ std::string Channel::modeFlags(Client &client, char flag, std::string arg)
 	else if (flag == 'l')
 	{
 		if (arg.find_first_not_of(DIGIT_CHARS))
-			return (RED "Invalid limit: has to be numerical");
+			return ("Invalid limit: has to be numerical");
 
 		int limit = atoi(arg.c_str());
 		if (arg.length() > 2 || limit > 50)
-			return (RED "Invalid limit: can't be higher than 50");
+			return ("Invalid limit: can't be higher than 50");
 
 		this->setLimit(limit);
 		return (" has set channel member limit to " + arg);
 	}
 
 	if (!this->findMember(arg))
-			return (RED + arg + " is not a member of " + this->_name);
+			return (arg + " is not a member of " + this->_name);
 
 	if (flag == 'o')
 	{
 		if (!this->setOperator(arg))
-			return (RED + arg + "is already an operator of " + this->_name);
+			return (arg + "is already an operator of " + this->_name);
 		return (" has set " + arg + " as operator of " + this->_name);
 	}
 	else if (flag == 'b')
 	{
 		if (!this->setBanned(arg))
-			return (RED + arg + " is already banned from " + this->_name);
+			return (arg + " is already banned from " + this->_name);
 		return (" has banned " + arg + " from " + this->_name);
 	}
 	return ("unsure yet");

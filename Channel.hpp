@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:22 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/26 21:01:23 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/27 11:23:38 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,14 +18,11 @@
 #include <algorithm>
 #include "Client.hpp"
 
-#define RED		"\001\033[1;31m\002"
 #define DIGIT_CHARS	"01234567789"
 
 class Channel
 {
 	private:
-		typedef std::vector<Client *>::iterator member_iter;
-
 		std::string	_name;
 		std::string _topic;
 		std::string _password;
@@ -40,6 +37,8 @@ class Channel
 		// If we want to follow through with ban, we'll have to do it via hostmask
 		// Should we keep at it or remove this functionality?
 	public:
+		typedef std::vector<Client *>::iterator member_iter;
+
 		//Constructor/Destructor:
 		Channel(std::string const &name);
 		Channel(std::string const &name, int const limit);

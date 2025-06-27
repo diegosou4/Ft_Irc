@@ -6,13 +6,14 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/20 13:18:07 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/27 12:12:19 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 // -LIBRARIES-
+#include "Macros.hpp"
 #include <iostream>
 #include <algorithm>
 #include <vector>
@@ -24,43 +25,12 @@
 #include <fstream>
 #include <string.h>
 #include <csignal>
+#include <sstream>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <iomanip>
 #include "Client.hpp"
 #include "Channel.hpp"
-
-// -MACROS-
-//General:
-#ifndef NULL
-# define NULL		0
-#endif
-//Socket setup related:
-#define LOCALHOST	"127.0.0.1"
-#define BUFFSIZE	1000
-#define REMOVAL		-2
-//Colours:
-#define PURPLE	"\001\033[1;38;2;209;174;231m\002"
-#define GREY	"\001\033[1;37m\002"
-#define RED		"\001\033[1;31m\002"
-#define R		"\001\033[1;00m\002"
-//Output messages:
-#define WELCOME \
-"\n          ▗▄▄▄▖▗▄▄▖  ▗▄▄▖           \n\
-            █  ▐▌ ▐▌▐▌              \n\
-            █  ▐▛▀▚▖▐▌              \n\
-          ▗▄█▄▖▐▌ ▐▌▝▚▄▄▖           \n\
-                                    \n\
-▗▖ ▗▖▗▄▄▄▖▗▖    ▗▄▄▖ ▗▄▖ ▗▖  ▗▖▗▄▄▄▖\n\
-▐▌ ▐▌▐▌   ▐▌   ▐▌   ▐▌ ▐▌▐▛▚▞▜▌▐▌   \n\
-▐▌ ▐▌▐▛▀▀▘▐▌   ▐▌   ▐▌ ▐▌▐▌  ▐▌▐▛▀▀▘\n\
-▐▙█▟▌▐▙▄▄▖▐▙▄▄▖▝▚▄▄▖▝▚▄▞▘▐▌  ▐▌▐▙▄▄▖\n\
-                                    \n"
-#define ONLINE_OPTS		"\n\n1 - Log in    |    2 - Register"
-#define INSTRUCTIONS	"Please enter using PASS"
-#define PASS_EXPECT		"Expected: PASS <password>"
-#define NICK_EXPECT		"Expected: NICK <nickname>"
-#define USER_EXPECT		"Expected: USER <username> <hostname> <servername> :<realname>"
-#define JOIN_EXPECT		"Expected: JOIN <#channelname>"
 
 // -CLASS-
 class Server
@@ -76,6 +46,7 @@ class Server
 		// Regular attributes:
 		int	_fd;
 		int	_port;
+		std::string _name;
 		std::string	_password;
 
 		struct sockaddr_in	_addr;
@@ -137,6 +108,10 @@ class Server
 		std::string getMsg(Client &client);
 		std::vector<std::string> splitMsg(std::string &msg);
 		Channel	*findChannel(std::vector<std::string> &split_msg);
-		void	broadcast(Client &client, Channel *channel, std::string const &msg);
+
+		void	printServer(Client *client, std::string const &msg);
+		void	sendClient(Client &client, std::string const &msg);
+		void	sendNumeric(Client &client, int code, std::string const &msg);
+		void	broadcast(Client &client, Channel &channel, std::string &cmd, std::string const &msg)
 };
 
