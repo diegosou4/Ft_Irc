@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:41:33 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/27 20:33:58 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/27 20:46:16 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,10 +63,6 @@ void Server::pollIn(Client &client)
 
 	if (this->_authcmds.find(split_msg[0]) != this->_authcmds.end())
 		code = (this->*_authcmds[split_msg[0]])(&client, channel, split_msg);
-	else if (!channel)
-			code = ERR_NOSUCHCHAN;
-	else if (this->_chancmds.find(split_msg[0]) != this->_chancmds.end())
-		code = (channel->*_chancmds[split_msg[0]])(client, split_msg);
 	else
 		code = ERR_UNKNOWNCOMMAND;
 

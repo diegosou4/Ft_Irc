@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:48:21 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/27 20:33:08 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/27 20:44:55 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -170,3 +170,10 @@ int Server::joinCmd(Client &client, Channel *channel, std::string channelname)
 
 	return (channel->addClient(client));
 }
+
+int Server::privMsgCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg){}
+int Server::modeCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg){}
+int Server::topicCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg){}
+int Server::inviteCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg){}
+int Server::privmsgCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg){}
+int Server::kickCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg){}
