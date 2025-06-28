@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:22 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/27 20:36:11 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/28 14:56:00 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,7 @@ class Channel
 		//Command functions:
 		int joinCmd(Client &client);
 		int modeCmd(Client &client, std::vector<std::string> &msg);
-		int topicCmd(Client &client, std::vector<std::string> &msg);
+		int topicHandle(Client &client, std::vector<std::string> &msg);
 		int inviteCmd(Client &client, std::vector<std::string> &msg);
 		int privmsgCmd(Client &client, std::vector<std::string> &msg);
 		int kickCmd(Client &client, std::vector<std::string> &msg);

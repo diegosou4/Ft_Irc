@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/28 14:26:35 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/28 15:16:52 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,7 +90,7 @@ class Server
 		void	pollNVal(Client &client);
 
 		// Commands - Commands.cpp
-		void passCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg);
+		void cmdPass(Client *client, Channel *channel, std::vector<std::string> &split_msg);
 		void nickCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg);
 		void userCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg);
 		void joinCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg);
@@ -100,7 +100,6 @@ class Server
 		void privmsgCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
 		void kickCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
 
-		int passCmd(Client &client, std::string password);
 		int nickCmd(Client *client, std::string nickname);
 		int userCmd(Client &client, std::vector<std::string> &user_args);
 		int joinCmd(Client &client, Channel *channel, std::string channelname);

@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 16:47:09 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/27 11:29:31 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/28 15:16:40 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,6 @@ enum clientState
 	OFFLINE,
 	AT_DOOR,
 	PASS_OK,
-	NICK_OK,
 	ACTIVE
 };
 
@@ -70,4 +69,7 @@ class Client
 		std::string getNickname() const;
 		std::string getHostname() const;
 		std::string getPrefix() const;
+
+		bool	passedNick()const;
+		bool	passedUser()const;
 };

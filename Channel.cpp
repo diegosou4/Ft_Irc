@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:27 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/27 20:38:10 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/28 14:55:52 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,17 +115,22 @@ int Channel::modeCmd(Client &client, std::vector<std::string> &msg)
 	// COULD DO A HELPER WITH NOTHING + ANOTHER WITH INT + ANOTHER WITH STR +ANOTHER W CLIENT
 }
 
-int Channel::topicCmd(Client &client, std::vector<std::string> &msg)
+int Channel::topicHandle(Client &client, std::vector<std::string> &msg)
 {
-	if (!this->isMember(client))
-		return (ERR_NOTINCHAN);
+	/* differentiate between:
+		get topic
+			return RPL_NOTOPIC if none
+			return RPL_TOPIC if exists
 
-	if (!isOperator(client.getNickname()))
-		return (ERR_NOTCHANOP);
+		set topic
+			here, legitimacy of client must be verified
+				return ERR_NOTCHANOP if client is not op
+			if change successful ->
+			recompose message
+			this->setTopic
+			return SUCCESS*/
 
-	//perform format checks
-
-	this->setTopic(&msg[2][1]);
+	std::cout << "TOPIC Channel method WIP" << std::endl;
 	return (SUCCESS);
 }
 
@@ -134,13 +139,6 @@ int Channel::inviteCmd(Client &client, std::vector<std::string> &msg)
 	(void)client;
 	(void)msg;
 	return ("invite function to be made");
-}
-
-int Channel::privmsgCmd(Client &client, std::vector<std::string> &msg)
-{
-	(void)client;
-	(void)msg;
-	return ("privmsg function to be made");
 }
 
 int Channel::kickCmd(Client &client, std::vector<std::string> &msg)

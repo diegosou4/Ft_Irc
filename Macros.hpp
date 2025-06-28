@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/27 12:11:32 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/28 11:46:04 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/28 15:07:40 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,18 @@
 #define USER_EXPECT		"Expected: USER <username> <hostname> <servername> :<realname>"
 #define JOIN_EXPECT		"Expected: JOIN <#channelname>"
 
+#define WELCOME \
+"\n          ▗▄▄▄▖▗▄▄▖  ▗▄▄▖           \n\
+            █  ▐▌ ▐▌▐▌              \n\
+            █  ▐▛▀▚▖▐▌              \n\
+          ▗▄█▄▖▐▌ ▐▌▝▚▄▄▖           \n\
+                                    \n\
+▗▖ ▗▖▗▄▄▄▖▗▖    ▗▄▄▖ ▗▄▖ ▗▖  ▗▖▗▄▄▄▖\n\
+▐▌ ▐▌▐▌   ▐▌   ▐▌   ▐▌ ▐▌▐▛▚▞▜▌▐▌   \n\
+▐▌ ▐▌▐▛▀▀▘▐▌   ▐▌   ▐▌ ▐▌▐▌  ▐▌▐▛▀▀▘\n\
+▐▙█▟▌▐▙▄▄▖▐▙▄▄▖▝▚▄▄▖▝▚▄▞▘▐▌  ▐▌▐▙▄▄▖\n\
+                                    \n"
+
 #define SUCCESS			000
 #define RPL_WELCOME		001
 
@@ -61,7 +73,7 @@
 #define	ERR_NOTINCHAN		442 //PRIVMSG/LEAVE when ur not in
 #define	ERR_USERINCHAN		443 //INVITE someone already in
 
-#define	ERR_NOTREGISTERED	451	// not authed
+#define	ERR_NOTAUTHED	451	// not authed
 
 #define	ERR_NEEDMOREPARAMS	461	//not enough params with cmd
 #define	ERR_ALREADYAUTHED	462 //PASS/NICK/USER once already ACTIVE

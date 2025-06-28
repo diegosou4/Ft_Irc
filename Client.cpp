@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 17:06:16 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/27 11:29:10 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/28 15:15:48 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,9 +21,7 @@ Client::Client(): _client_fd(-1), _state(OFFLINE), _username(), _nickname(), _ho
 
 	if (!gethostname(hostname, 1000))
 		this->_hostname = hostname;
-
-	this->_nickname = "user@" + this->_hostname;
-} // the username remains empty because it's an attribute checked by the server
+}
 
 Client::Client(int fd): _client_fd(fd), _state(OFFLINE), _username(), _nickname(), _hostname("unknown")
 {
@@ -32,9 +30,7 @@ Client::Client(int fd): _client_fd(fd), _state(OFFLINE), _username(), _nickname(
 
 	if (!getpeername(fd, (struct sockaddr *)&addr, &addrlen))
 		this->_hostname = std::string(inet_ntoa(addr.sin_addr));
-
-	this->_nickname = "user@" + this->_hostname;
-} // the username remains empty because it's an attribute checked by the server
+}
 
 Client::Client(Client const &src) // We might not need - check if should delete
 {
@@ -119,6 +115,8 @@ std::string Client::getUsername() const
 
 std::string Client::getNickname() const
 {
+	if (this->_nickname.empty())
+		return ("user@" + this->_hostname); //Only for server display
 	return (this->_nickname);
 }
 
@@ -130,4 +128,18 @@ std::string Client::getHostname() const
 std::string Client::getPrefix() const
 {
 	return (this->_prefix);
+}
+
+bool	Client::passedNick()const
+{
+	if (this->_nickname.empty())
+		return (false);
+	return (true);
+}
+
+bool	Client::passedUser()const
+{
+	if (this->_username.empty() || this->_realname.empty())
+		return (false);
+	return (true);
 }

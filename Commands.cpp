@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:48:21 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/28 14:48:03 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/28 15:23:03 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,24 +14,30 @@
 #include "Server.hpp"
 
 // Checks client existence, state & command format
-void Server::passCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg)
+void Server::cmdPass(Client *client, Channel *channel, std::vector<std::string> &msg)
 {
-	(void)channel;
-
 	if (!client)
 		throw (std::runtime_error("Fatal: client not found"));
 
-	if (client->getState() == ACTIVE)
-		this->sendNumeric(*client, ERR_ALREADYAUTHED)
-		return ("");
+	(void)channel;
+	int code = 0;
 
-	if (split_msg.size() != 2)
+	if (client->getState() >= PASS_OK)
+		code = ERR_ALREADYAUTHED;
+	else if (msg.size() != 2)
+		code = ERR_NEEDMOREPARAMS;
+	else if (msg[1] != this->_password)
+		code = ERR_WRONGPASS;
+
+	if (code)
+		this->sendNumeric(*client, code);
+	else
 	{
-		this->sendNumeric(*client, ERR_NEEDMOREPARAMS);
-		return ("");
-	}
+		client->setState(PASS_OK);
 
-	return (this->passCmd(*client, split_msg[1]));
+		if (client->passedNick() && client->passedUser())
+			this->sendNumeric(*client, RPL_WELCOME, WELCOME);
+	}
 }
 
 // Checks client existence, state & command format
@@ -182,57 +188,28 @@ void Server::topicCmd(Client *client, Channel *channel, std::vector<std::string>
 	if (!client)
 		throw (std::runtime_error("Fatal: client lost"));
 
-	if (client->getState() != ACTIVE)
-		return (ERR_NOTREGISTERED);
-
-	if (!channel)
-		return (ERR_NOSUCHCHAN);
-
-	if (!channel->isMember(*client))
-		return (ERR_NOTINCHAN);
-
-	if (!channel->isOperator(client->getNickname()))
-		return (ERR_NOTCHANOP);
-
-	if (split_msg.size() < 2 || split_msg[2][0] != ':' || split_msg[2].length() <= 1))
-		return (ERR_UNKNOWNCOMMAND);
-
-	std::string topic = &split_msg[2][1];
-	for (size_t i = 3; i < split_msg.size(); i++)
-		topic += " " + split_msg[i];
-
-	return (channel->setTopic(topic));
-}
-
-void Server::topicCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg)
-{
-	int code = 0;
-
-	if (!client)
-		throw (std::runtime_error("Fatal: client lost"));
+	int code = 0; // Could I create a helper function that would centralize all checks?
 
 	if (client->getState() != ACTIVE)
-		code = ERR_NOTREGISTERED;
+		code = ERR_NOTAUTHED;
 	else if (!channel)
 		code = ERR_NOSUCHCHAN;
 	else if (!channel->isMember(*client))
-		code =ERR_NOTINCHAN;
-	else if (!channel->isOperator(client->getNickname()))
-		code = ERR_NOTCHANOP;
+		code = ERR_NOTINCHAN;
 	else if (split_msg.size() > 2 && (split_msg[2][0] != ':' || split_msg[2].length() <= 1))
 		code = ERR_NEEDMOREPARAMS;
 
 	if (!code)
-		code = channel->topicHandle(split_msg); // where separation of intent is made
+		code = channel->topicHandle(*client, split_msg);
 
 	if (code == RPL_NOTOPIC)
 		this->sendNumeric(*client, code, channel->getName() + " :No topic is set");
 	else if (code == RPL_TOPIC)
 		this->sendNumeric(*client, code, channel->getName() + " :" + channel->getTopic());
 	else if (code)
-		this->sendNumeric(client, code);
+		this->sendNumeric(*client, code);
 	else
-		this->broadcast(client, channel, split_msg[0], channel->getTopic());
+		this->broadcast(*client, *channel, split_msg[0], channel->getTopic());
 }
 
 void Server::inviteCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg)
