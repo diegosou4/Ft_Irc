@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:22 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/28 19:49:48 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/28 22:12:49 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,8 @@ class Channel
 		std::string	_name;
 		std::string _topic;
 		std::string _password;
+		std::string _modes//add modes
+		std::string _creat//add creation time
 
 		bool	_invite_only;
 		size_t	_limit;
@@ -54,6 +56,8 @@ class Channel
 		//Getters:
 		std::string	getName() const;
 		std::string	getTopic() const;
+		std::string getModes() const;
+		std::string getCreat() const;
 		std::vector<Client *> getMembers() const;
 
 		//Command functions:

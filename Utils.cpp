@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 13:00:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/28 20:23:23 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 00:41:43 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -183,6 +183,23 @@ bool	Server::authCheck(Client &client)
 	this->printServer(&client, "has successfully logged in");
 
 	return (true);
+}
+
+int		Server::cmdCheck(Client *client, Channel *channel, std::string target)
+{
+	if (!client)
+		throw (std::runtime_error("Fatal: client not found"));
+
+	if (client->getState() != ACTIVE)
+		return (ERR_NOTAUTHED);
+	else if (!target.empty() && this->_clients.find(target) == this->_clients.end())
+		return (ERR_NOSUCHNICK);
+	else if (!channel)
+		return(ERR_NOSUCHCHAN);
+	else if (!channel->isMember(*client))
+		return (ERR_NOTINCHAN);
+
+	return (SUCCESS);
 }
 
 

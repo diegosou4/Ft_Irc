@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:27 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/28 19:49:47 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/28 22:13:08 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -207,7 +207,8 @@ int	Channel::addClient(Client &client)
 // Need to workout +/- differences for flags
 int Channel::modeFlags(Client &client, char flag, std::string arg)
 {
-	(void)client;
+	/* check if client is op
+		if not return ERR_NOTCHANOP*/
 
 	if (flag == 'i' || flag == 't')
 	{
@@ -281,5 +282,17 @@ int Channel::kickMember(Client &client, std::string &target)
 
 	std::cout << "KICK Channel method WIP" << std::endl;
 	return (SUCCESS);
+}
+
+std::string Channel::getModes() const
+{
+	//return (this->_modes);
+	return ("channel->_modes to be implemented");
+}
+
+std::string Channel::getCreat() const
+{
+	//return (this->_modes);
+	return ("channel->_creat to be implemented");
 }
 

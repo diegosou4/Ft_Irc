@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:48:21 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/28 20:21:21 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 00:53:44 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -144,19 +144,10 @@ void Server::cmdInvite(Client *client, Channel *channel, std::vector<std::string
 	int code = 0;
 	Client target = NULL;
 
-	if (!client)
-		throw (std::runtime_error("Fatal: client not found"));
-
-	if (client->getState() != ACTIVE)
-		code = ERR_NOTAUTHED;
-	else if (!channel)
-		code = ERR_NOSUCHCHAN;
-	else if (!channel->isMember(*client))
-		code = ERR_NOTINCHAN;
-	else if (msg.size() != 3)
+	if (msg.size() != 3)
 		code = ERR_NEEDMOREPARAMS;
-	else if (this->_clients.find(msg[1]) == this->_clients.end())
-		code = ERR_NOSUCHNICK;
+	else
+		code = cmdCheck(client, channel, msg[1]);
 
 	if (!code)
 		code = channel->setInvited(msg[1]);
@@ -172,24 +163,15 @@ void Server::cmdInvite(Client *client, Channel *channel, std::vector<std::string
 
 void Server::cmdKick(Client *client, Channel *channel, std::vector<std::string> &msg)
 {
-	int code = 0;
 	std::string reason;
+	int code = 0;
 
-	if (!client)
-		throw (std::runtime_error("Fatal: client not found"));
-
-	if (client->getState() != ACTIVE)
-		code = ERR_NOTAUTHED;
-	else if (!channel)
-		code = ERR_NOSUCHCHAN;
-	else if (!channel->isMember(*client))
-		code = ERR_NOTINCHAN;
-	else if (msg.size() < 3)
+	if (msg.size() < 3)
 		code = ERR_NEEDMOREPARAMS;
 	else if (msg.size() > 3 && (msg[3][0] != ':' || msg[3].length() < 2))
 		code = ERR_NEEDMOREPARAMS;
-	else if (this->_clients.find(msg[2]) == this->_clients.end())
-		code = ERR_UNKNOWNCOMMAND;
+	else
+		code = cmdCheck(client, channel, msg[2]);
 
 	if (!code)
 		code = channel->kickMember(*client, msg[2]);
@@ -209,22 +191,19 @@ void Server::cmdKick(Client *client, Channel *channel, std::vector<std::string> 
 
 void Server::cmdPrivmsg(Client *client, Channel *channel, std::vector<std::string> &msg)
 {
-	int code = 0;
 	std::string output;
+	int code = 0;
 
-	if (!client)
-		throw (std::runtime_error("Fatal: client not found"));
-
-	if (client->getState() != ACTIVE)
-		code = ERR_NOTAUTHED;
-	else if (msg.size() < 3 || (msg[2][0] != ':' || msg[2].size() < 2))
+	if (msg.size() < 3 || (msg[2][0] != ':' || msg[2].size() < 2))
 		code = ERR_NEEDMOREPARAMS;
-	else if (!channel && msg[1][0] == '#')
-		code = ERR_NOSUCHCHAN;
-	else if (channel && !channel->isMember(*client))
-		code = ERR_NOTINCHAN;
-	else if (!channel && this->_clients.find(msg[1]) == this->_clients.end())
-		code = ERR_NOSUCHNICK;
+	else
+		code = cmdCheck(client, channel, msg[1]);
+
+	if ((code == ERR_NOSUCHNICK && channel) || (code == ERR_NOSUCHCHAN && msg[1][0] != '#'))
+		code = 0;
+
+	if (!code && channel && !channel->isMember(*client))
+		code == ERR_NOTINCHAN;
 
 	if (code)
 		return (this->sendNumeric(*client, code));
@@ -243,20 +222,12 @@ void Server::cmdTopic(Client *client, Channel *channel, std::vector<std::string>
 {
 	int code = 0;
 
-	// Could I create a helper function that would centralize all checks?
-	if (!client)
-		throw (std::runtime_error("Fatal: client lost"));
-
-	if (client->getState() != ACTIVE)
-		code = ERR_NOTAUTHED;
-	else if (!channel)
-		code = ERR_NOSUCHCHAN;
-	else if (!channel->isMember(*client))
-		code = ERR_NOTINCHAN;
-	else if (msg.size() < 5)
+	if (!code && msg.size() < 5)
 		code = ERR_NEEDMOREPARAMS;
-	else if (msg.size() > 2 && (msg[2][0] != ':' || msg[2].length() <= 1))
+	else if (!code && msg.size() > 2 && (msg[2][0] != ':' || msg[2].length() <= 1))
 		code = ERR_UNKNOWNCOMMAND;
+	else
+		code = cmdCheck(client, channel, "");
 
 	if (!code)
 		code = channel->topicHandle(*client, msg);
@@ -274,5 +245,61 @@ void Server::cmdTopic(Client *client, Channel *channel, std::vector<std::string>
 
 void Server::cmdMode(Client *client, Channel *channel, std::vector<std::string> &msg)
 {
+	int i = 0;
+	int code = 0;
 
+	if (msg.size() > 2 && msg[1][0] != '+' && msg[1][0] != '-')
+		code = ERR_UNKNOWNCOMMAND;
+	else
+		code = cmdCheck(client, channel, "");
+
+	if (!code && msg.size() == 2)
+	{
+		this->sendNumeric(*client, RPL_CHANMODE, channel->getName() + " " + channel->getModes());
+		this->sendNumeric(*client, RPL_CREATTIME, channel->getName() + " " + channel->getCreat());
+	}
+
+	int stop ;
+	for (stop = 1; stop < msg.size(); i++)
+	{
+		if (stop != 1 && msg[stop][0] != '+' && msg[stop][0] != '-')
+			break;
+		else if (msg[stop].find_first_not_of("+-ilkot") != msg[stop].npos)
+		{
+			code = ERR_UNKNOWNCOMMAND;
+			break;
+		}
+	}
+
+	if (code)
+		return (this->sendNumeric(*client, code));
+
+	int sign = msg[1][0];
+	for (int i = 1; i < stop; i++)
+	{
+		for (int j = 0; msg[i][j]; j++)
+		{
+			std::string arg = "";
+			if (msg[i][j] == '-' || msg[i][j] == '+')
+			{
+				if (!msg[i][j +1] || msg[i][j+1] == '+' || msg[i][j+1] == '-')
+					code = ERR_UNKNOWNCOMMAND; // this check should be done before!!
+ 				sign = msg[i][j];
+			}
+			else
+			{
+				if (stop < msg.size() && this->needsArg(sign, msg[i][j]))
+					arg = msg[stop++];
+				code = channel->modeFlags(client, sign, msg[i][j], arg); // contains switch to send to correct functions
+				if (code)
+					this->sendNumeric(*client, code);
+				else
+				{
+					if (!arg.empty())
+						arg = " " + arg;
+					this->broadcast(*client, *channel, msg[0], std::string(1, sign) + msg[i][j] + arg);
+				}
+			}
+		}
+	}
 }
