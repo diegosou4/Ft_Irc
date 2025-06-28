@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/28 17:39:54 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/28 19:36:03 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,15 +94,12 @@ class Server
 		void cmdNick(Client *client, Channel *channel, std::vector<std::string> &msg);
 		void cmdUser(Client *client, Channel *channel, std::vector<std::string> &msg);
 		void cmdJoin(Client *client, Channel *channel, std::vector<std::string> &msg);
-		void modeCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
 		void cmdTopic(Client *client, Channel *channel, std::vector<std::string> &msg);
-		void inviteCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
-		void privmsgCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
-		void kickCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
-
-		int nickCmd(Client *client, std::string nickname);
-		int userCmd(Client &client, std::vector<std::string> &user_args);
-		int joinCmd(Client &client, Channel *channel, std::string channelname);
+		void cmdInvite(Client *client, Channel *channel, std::vector<std::string> &msg);
+		void cmdKick(Client *client, Channel *channel, std::vector<std::string> &msg);
+		void cmdPrivmsg(Client *client, Channel *channel, std::vector<std::string> &msg);
+		void cmdTopic(Client *client, Channel *channel, std::vector<std::string> &msg);
+		void cmdMode(Client *client, Channel *channel, std::vector<std::string> &msg);
 
 		// Utils - Utils.cpp
 		void	setCmdMaps();
@@ -116,6 +113,7 @@ class Server
 		void	sendNumeric(Client &client, int code, std::string const &msg);
 		void	broadcast(Client &client, std::string &cmd, std::string const &msg);
 		void	broadcast(Client &client, Channel &channel, std::string &cmd, std::string const &msg);
+		void	broadcast(Client &client, Client &target, std::string &cmd, std::string const &msg);
 		bool	authCheck(Client &client);
 };
 

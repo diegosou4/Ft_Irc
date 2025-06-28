@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:22 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/28 17:10:31 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/28 19:49:48 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ class Channel
 		void	setPassword(std::string const &password);
 		void	setLimit(int const &limit);
 		bool	setOperator(std::string target);
-		bool	setBanned(std::string target);
+		int setInvited(std::string &name);
 
 		//Getters:
 		std::string	getName() const;
@@ -72,4 +72,5 @@ class Channel
 		Client *findMember(std::string name);
 		int	addClient(Client &client);
 		int	modeFlags(Client &client, char flag, std::string targetname);
+		int kickMember(Client &client, std::string &target);
 };

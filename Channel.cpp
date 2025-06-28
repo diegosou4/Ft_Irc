@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:27 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/28 17:10:01 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/28 19:49:47 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -193,7 +193,7 @@ int	Channel::addClient(Client &client)
 	/* Perform checks
 		if channel is at capacity
 			return ERR_CHANISFULL
-		if channel is invite only
+		if channel is invite only && !invited
 			return ERR_INVITEONLYCHAN
 		if user already in
 			return ERR_USERINCHAN
@@ -256,5 +256,30 @@ int Channel::modeFlags(Client &client, char flag, std::string arg)
 		return (" has banned " + arg + " from " + this->_name);
 	}
 	return ("unsure yet");
+}
+
+int Channel::setInvited(std::string &name)
+{
+	/* if already member
+		return ERR_USERINCHAN
+	else return SUCCESS*/
+
+	std::cout << "INVITED Channel method WIP" << std::endl;
+	return (SUCCESS);
+}
+
+int Channel::kickMember(Client &client, std::string &target)
+{
+	/*
+		if client not op
+			return ERR_NOTCHANOP
+	if target not a member
+		 return ERR_USERNOTINCHAN
+	remove user from all relevant containers
+	return SUCCESS
+		 */
+
+	std::cout << "KICK Channel method WIP" << std::endl;
+	return (SUCCESS);
 }
 

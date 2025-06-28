@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/27 12:11:32 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/28 17:10:00 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/28 20:18:20 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,7 @@
 #define	ERR_NOTINCHAN		442 //PRIVMSG/LEAVE when ur not in
 #define	ERR_USERINCHAN		443 //INVITE someone already in
 
-#define	ERR_NOTAUTHED	451	// not authed
+#define	ERR_NOTAUTHED		451	// not authed
 
 #define	ERR_NEEDMOREPARAMS	461	//not enough params with cmd
 #define	ERR_ALREADYAUTHED	462 //PASS/NICK/USER once already ACTIVE

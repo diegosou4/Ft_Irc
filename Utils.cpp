@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 13:00:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/28 17:39:57 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/28 20:23:23 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -160,6 +160,13 @@ void	Server::broadcast(Client &client, std::string &cmd, std::string const &msg)
 		if (it->second->isMember(client))
 			broadcast(client, *it->second, cmd, msg);
 }
+
+void	Server::broadcast(Client &client, Client &target, std::string &cmd, std::string const &msg)
+{
+	std::string output = client.getPrefix() + " " + cmd + " " + msg + "\r\n";
+	this->sendClient(target, output);
+}
+
 
 bool	Server::authCheck(Client &client)
 {
