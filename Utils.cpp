@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 13:00:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/28 15:19:11 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/28 16:29:15 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -151,6 +151,23 @@ void	Server::broadcast(Client &client, Channel &channel, std::string &cmd, std::
 	for (; it != channel.getMembers().end(); ++it)
 		if (*it != &client && (*it)->getState() == ACTIVE)
 			this->sendClient(**it, output);
+}
+
+bool	Server::authCheck(Client &client)
+{
+	if (client.getState() == ACTIVE)
+		return (true);
+
+	if (client.getState() != PASS_OK || !client.passedNick() || !client.passedUser())
+		return (false);
+
+	client.setState(ACTIVE);
+	this->_clients[client.getNickname()] = &client;
+
+	this->sendNumeric(client, RPL_WELCOME, WELCOME);
+	this->printServer(&client, "has successfully logged in");
+
+	return (true);
 }
 
 

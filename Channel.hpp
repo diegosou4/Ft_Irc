@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:22 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/28 14:56:00 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/28 15:51:26 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,8 +18,6 @@
 #include <algorithm>
 #include "Client.hpp"
 #include "Macros.hpp"
-
-#define DIGIT_CHARS	"01234567789"
 
 class Channel
 {

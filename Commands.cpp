@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:48:21 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/28 15:23:03 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/28 16:33:59 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,11 +16,11 @@
 // Checks client existence, state & command format
 void Server::cmdPass(Client *client, Channel *channel, std::vector<std::string> &msg)
 {
-	if (!client)
-		throw (std::runtime_error("Fatal: client not found"));
-
 	(void)channel;
 	int code = 0;
+
+	if (!client)
+		throw (std::runtime_error("Fatal: client not found"));
 
 	if (client->getState() >= PASS_OK)
 		code = ERR_ALREADYAUTHED;
@@ -32,50 +32,65 @@ void Server::cmdPass(Client *client, Channel *channel, std::vector<std::string> 
 	if (code)
 		this->sendNumeric(*client, code);
 	else
-	{
 		client->setState(PASS_OK);
 
-		if (client->passedNick() && client->passedUser())
-			this->sendNumeric(*client, RPL_WELCOME, WELCOME);
+	this->authCheck(*client);
+}
+
+// Checks client existence, state & command format
+void Server::cmdNick(Client *client, Channel *channel, std::vector<std::string> &msg)
+{
+	if (!client)
+		throw (std::runtime_error("Fatal: client not found"));
+
+	(void)channel;
+	int code = 0;
+
+	if (client->getState() == ACTIVE)
+		code = ERR_ALREADYAUTHED;
+	else if (msg.size() != 2)
+		code = ERR_NEEDMOREPARAMS;
+	else if (this->_clients.find(msg[1]) != this->_clients.end() || \
+	client->getNickname() == msg[1])
+		code = ERR_NICKINUSE;
+	else if (msg[1].find_first_not_of(DIGIT_CHARS ALPHA_CHARS) != msg[1].npos)
+		code = ERR_INVALIDNICK;
+
+	if (code)
+		this->sendNumeric(*client, code);
+	else
+		client->setNickname(msg[1]);
+
+	this->authCheck(*client);
+}
+
+// Checks client existence, state & command format
+void Server::cmdUser(Client *client, Channel *channel, std::vector<std::string> &msg)
+{
+	(void)channel;
+	int code = 0;
+
+	if (!client)
+		throw (std::runtime_error("Fatal: client not found"));
+
+	if (client->getState() == ACTIVE || client->passedUser())
+		code = ERR_ALREADYAUTHED;
+	else if (msg.size() < 5)
+		code = ERR_NEEDMOREPARAMS;
+	else if (msg.size() > 5 && (msg[4][0] != ':' || msg[24].length() <= 1))
+		code = ERR_UNKNOWNCOMMAND;
+
+	if (code)
+		this->sendNumeric(*client, code);
+	else
+	{
+		client->setUsername(msg[1]);
+		client->setRealname(&msg[4][1]);
+		for (size_t i = 5; i < msg.size(); i++)
+			client->setRealname(client->getRealname() + " " + msg[i]);
 	}
-}
 
-// Checks client existence, state & command format
-void Server::nickCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg)
-{
-	(void)channel;
-
-	if (!client)
-		throw (std::runtime_error("Fatal: client not found"));
-
-	if (client->getState() < PASS_OK)
-		return ("Error - " INSTRUCTIONS R);
-	else if (client->getState() > PASS_OK)
-		return ("Your nickname has already been set");
-
-	if (split_msg.size() != 2)
-		return ("NICK: invalid command format\n" NICK_EXPECT);
-
-	return (this->nickCmd(client, split_msg[1]));
-}
-
-// Checks client existence, state & command format
-void Server::userCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg)
-{
-	(void)channel;
-
-	if (!client)
-		throw (std::runtime_error("Fatal: client not found"));
-
-	if (client->getState() <= AT_DOOR)
-		return (RED "Error - Please enter the server using PASS" R);
-	else if (client->getState() == PASS_OK)
-		return (RED "Error - Please create a nickname using NICK" R);
-
-	if (split_msg.size() < 5 || split_msg[4][0] != ':' || split_msg[4].size() <= 1)
-		return (RED "USER: invalid command format\n" USER_EXPECT);
-
-	return (this->userCmd(*client, split_msg));
+	this->authCheck(*client);
 }
 
 // Checks client existence, state, command format & channel name format
@@ -100,71 +115,6 @@ void Server::joinCheck(Client *client, Channel *channel, std::vector<std::string
 	return (this->joinCmd(*client, channel, split_msg[1]));
 }
 
-void Server::privMsgCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg)
-{
-	//to be done
-}
-
-// Checks password + sets client to next state if correct
-int Server::passCmd(Client &client, std::string password)
-{
-	if (password != this->_password)
-	{
-		this->printServer(&client, "access denied - invalid password");
-		return (RED "Invalid password - access denied" R);
-	}
-
-	client.setState(PASS_OK);
-
-	this->printServer(&client, "access granted");
-	return ("Password is correct - access granted!\nPlease proceed with NICK");
-}
-
-// Sets existing client as active OR sets non-existing client to next state
-int Server::nickCmd(Client *client, std::string nickname)
-{
-	if (!client)
-		return (NULL);
-
-	if (this->_clients.find(nickname) == this->_clients.end())
-	{
-		this->printServer(client, "set nickname to " + nickname);
-
-		client->setNickname(nickname);
-		client->setState(NICK_OK);
-
-		return ("Nickname created - Please proceed with USER");
-	}
-
-	this->_clients.erase(client->getNickname());
-	delete client;
-
-	client = this->_clients[nickname];
-	client->setState(ACTIVE);
-
-	this->printServer(client, "successfully logged in");
-	return ("Welcome back, " + client->getNickname());
-}
-
-// Updates username and realname + finalizes new client registration if applicable
-int Server::userCmd(Client &client, std::vector<std::string> &user_args)
-{
-	client.setUsername(user_args[0]);
-
-	client.setRealname(&user_args[4][1]);
-	for (size_t i = 5; i < user_args.size(); i++)
-		client.setRealname(client.getRealname() + " " + user_args[i]);
-
-	this->printServer(&client, "changed user data to:\n" GREY " > username: " R + \
-		client.getUsername() + GREY "	-	realname: " R + client.getRealname());
-
-	if (!client.getUsername().empty() && client.getState() == ACTIVE)
-		return ("Your user data has been correctly updated");
-
-	client.setState(ACTIVE);
-	return ("Welcome, " + client.getUsername());
-}
-
 // Creates channel if non-existing + adds client to channel
 int Server::joinCmd(Client &client, Channel *channel, std::string channelname)
 {
@@ -185,6 +135,7 @@ void Server::privMsgCmd(Client *client, Channel *channel, std::vector<std::strin
 
 void Server::topicCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg)
 {
+	//See if can use ref instead
 	if (!client)
 		throw (std::runtime_error("Fatal: client lost"));
 
@@ -196,8 +147,10 @@ void Server::topicCmd(Client *client, Channel *channel, std::vector<std::string>
 		code = ERR_NOSUCHCHAN;
 	else if (!channel->isMember(*client))
 		code = ERR_NOTINCHAN;
-	else if (split_msg.size() > 2 && (split_msg[2][0] != ':' || split_msg[2].length() <= 1))
+	else if (msg.size() < 5)
 		code = ERR_NEEDMOREPARAMS;
+	else if (split_msg.size() > 2 && (split_msg[2][0] != ':' || split_msg[2].length() <= 1))
+		code = ERR_UNKNOWNCOMMAND;
 
 	if (!code)
 		code = channel->topicHandle(*client, split_msg);

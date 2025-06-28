@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/27 12:11:32 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/28 15:07:40 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/28 15:52:18 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,9 @@
 #define GREY	"\001\033[1;37m\002"
 #define RED		"\001\033[1;31m\002"
 #define R		"\001\033[1;00m\002"
+
+#define DIGIT_CHARS	"01234567789"
+#define ALPHA_CHARS "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 //Output messages:
 #define ONLINE_OPTS		"\n\n1 - Log in    |    2 - Register"
 #define INSTRUCTIONS	"Please enter using PASS"
