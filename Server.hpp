@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/27 20:44:58 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/28 14:26:35 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ class Server
 		typedef std::vector<struct pollfd>::iterator pollfd_iter;
 		typedef std::map<std::string, Client *>::iterator clients_iter;
 		typedef std::map<std::string, Channel *>::iterator channels_iter;
-		typedef int (Server::*AuthCmds)(Client*, Channel *, std::vector<std::string>&);
+		typedef void (Server::*AuthCmds)(Client*, Channel *, std::vector<std::string>&);
 
 		// Regular attributes:
 		int	_fd;
@@ -57,7 +57,6 @@ class Server
 		std::map<std::string, Client *> _clients;
 		std::map<std::string, Channel *> _channels;
 		std::map<std::string, AuthCmds> _authcmds;
-		std::map<std::string, ChanCmds> _chancmds;
 
 	public:
 		// Constructors/Destructors - Server.cpp
@@ -91,16 +90,15 @@ class Server
 		void	pollNVal(Client &client);
 
 		// Commands - Commands.cpp
-		int passCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg);
-		int nickCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg);
-		int userCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg);
-		int joinCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg);
-		int privMsgCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
-		int modeCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
-		int topicCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
-		int inviteCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
-		int privmsgCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
-		int kickCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
+		void passCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg);
+		void nickCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg);
+		void userCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg);
+		void joinCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg);
+		void modeCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
+		void topicCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
+		void inviteCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
+		void privmsgCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
+		void kickCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
 
 		int passCmd(Client &client, std::string password);
 		int nickCmd(Client *client, std::string nickname);

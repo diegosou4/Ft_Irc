@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 13:00:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/27 20:32:14 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/28 14:50:06 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -126,7 +126,7 @@ void	Server::sendNumeric(Client &client, int code)
 	ss 	<< ":" << this->_name << " " \
 		<< std::setw(3) << std::setfill('0') \
 		<< code << " " << client.getNickname() \
-		<< " " << msg << "\r\n" << std::endl;
+		<< " " << msg << "\r\n";
 
 	this->sendClient(client, ss.str());
 }
@@ -138,7 +138,7 @@ void	Server::sendNumeric(Client &client, int code, std::string const &msg)
 	ss 	<< ":" << this->_name << " " \
 		<< std::setw(3) << std::setfill('0') \
 		<< code << " " << client.getNickname() \
-		<< " " << msg << "\r\n" << std::endl;
+		<< " " << msg << "\r\n";
 
 	this->sendClient(client, ss.str());
 }

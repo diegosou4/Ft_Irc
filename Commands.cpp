@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:48:21 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/27 20:44:55 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/28 14:48:03 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 #include "Server.hpp"
 
 // Checks client existence, state & command format
-int Server::passCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg)
+void Server::passCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg)
 {
 	(void)channel;
 
@@ -35,7 +35,7 @@ int Server::passCheck(Client *client, Channel *channel, std::vector<std::string>
 }
 
 // Checks client existence, state & command format
-int Server::nickCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg)
+void Server::nickCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg)
 {
 	(void)channel;
 
@@ -54,7 +54,7 @@ int Server::nickCheck(Client *client, Channel *channel, std::vector<std::string>
 }
 
 // Checks client existence, state & command format
-int Server::userCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg)
+void Server::userCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg)
 {
 	(void)channel;
 
@@ -73,7 +73,7 @@ int Server::userCheck(Client *client, Channel *channel, std::vector<std::string>
 }
 
 // Checks client existence, state, command format & channel name format
-int Server::joinCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg)
+void Server::joinCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg)
 {
 	if (!client)
 		throw (std::runtime_error("Fatal: client not found"));
@@ -94,7 +94,7 @@ int Server::joinCheck(Client *client, Channel *channel, std::vector<std::string>
 	return (this->joinCmd(*client, channel, split_msg[1]));
 }
 
-int Server::privMsgCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg)
+void Server::privMsgCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg)
 {
 	//to be done
 }
@@ -171,9 +171,78 @@ int Server::joinCmd(Client &client, Channel *channel, std::string channelname)
 	return (channel->addClient(client));
 }
 
-int Server::privMsgCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg){}
-int Server::modeCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg){}
-int Server::topicCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg){}
-int Server::inviteCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg){}
-int Server::privmsgCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg){}
-int Server::kickCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg){}
+void Server::privMsgCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg)
+{
+	std::cout << "PRIVMSG function to be made" << std::endl;
+	return (SUCCESS);
+}
+
+void Server::topicCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg)
+{
+	if (!client)
+		throw (std::runtime_error("Fatal: client lost"));
+
+	if (client->getState() != ACTIVE)
+		return (ERR_NOTREGISTERED);
+
+	if (!channel)
+		return (ERR_NOSUCHCHAN);
+
+	if (!channel->isMember(*client))
+		return (ERR_NOTINCHAN);
+
+	if (!channel->isOperator(client->getNickname()))
+		return (ERR_NOTCHANOP);
+
+	if (split_msg.size() < 2 || split_msg[2][0] != ':' || split_msg[2].length() <= 1))
+		return (ERR_UNKNOWNCOMMAND);
+
+	std::string topic = &split_msg[2][1];
+	for (size_t i = 3; i < split_msg.size(); i++)
+		topic += " " + split_msg[i];
+
+	return (channel->setTopic(topic));
+}
+
+void Server::topicCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg)
+{
+	int code = 0;
+
+	if (!client)
+		throw (std::runtime_error("Fatal: client lost"));
+
+	if (client->getState() != ACTIVE)
+		code = ERR_NOTREGISTERED;
+	else if (!channel)
+		code = ERR_NOSUCHCHAN;
+	else if (!channel->isMember(*client))
+		code =ERR_NOTINCHAN;
+	else if (!channel->isOperator(client->getNickname()))
+		code = ERR_NOTCHANOP;
+	else if (split_msg.size() > 2 && (split_msg[2][0] != ':' || split_msg[2].length() <= 1))
+		code = ERR_NEEDMOREPARAMS;
+
+	if (!code)
+		code = channel->topicHandle(split_msg); // where separation of intent is made
+
+	if (code == RPL_NOTOPIC)
+		this->sendNumeric(*client, code, channel->getName() + " :No topic is set");
+	else if (code == RPL_TOPIC)
+		this->sendNumeric(*client, code, channel->getName() + " :" + channel->getTopic());
+	else if (code)
+		this->sendNumeric(client, code);
+	else
+		this->broadcast(client, channel, split_msg[0], channel->getTopic());
+}
+
+void Server::inviteCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg)
+{}
+
+void Server::privmsgCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg)
+{}
+
+void Server::kickCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg)
+{}
+
+void Server::modeCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg)
+{}

@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/27 12:11:32 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/27 20:38:02 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/28 11:46:04 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,6 +61,8 @@
 #define	ERR_NOTINCHAN		442 //PRIVMSG/LEAVE when ur not in
 #define	ERR_USERINCHAN		443 //INVITE someone already in
 
+#define	ERR_NOTREGISTERED	451	// not authed
+
 #define	ERR_NEEDMOREPARAMS	461	//not enough params with cmd
 #define	ERR_ALREADYAUTHED	462 //PASS/NICK/USER once already ACTIVE
 #define	ERR_WRONGPASS		464	//wrong password
@@ -84,6 +86,7 @@ static const std::map<int, std::string> ErrMsg
 	{441, ":They aren't on that channel"},
 	{442, ":You're not on that channel"},
 	{443, ":is already on channel"},
+	{451, ":You have not registered"},
 	{461, ":Not enough parameters"},
 	{462, ":You may not reregister"},
 	{464, ":Password incorrect"},
