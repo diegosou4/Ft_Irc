@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 13:00:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/28 16:29:15 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/28 17:39:57 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -151,6 +151,14 @@ void	Server::broadcast(Client &client, Channel &channel, std::string &cmd, std::
 	for (; it != channel.getMembers().end(); ++it)
 		if (*it != &client && (*it)->getState() == ACTIVE)
 			this->sendClient(**it, output);
+}
+
+void	Server::broadcast(Client &client, std::string &cmd, std::string const &msg)
+{
+	channels_iter it = this->_channels.begin();
+	for (; it != this->_channels.end(); ++it)
+		if (it->second->isMember(client))
+			broadcast(client, *it->second, cmd, msg);
 }
 
 bool	Server::authCheck(Client &client)

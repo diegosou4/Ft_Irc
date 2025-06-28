@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:48:21 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/28 16:33:59 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/28 17:47:24 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,9 +46,7 @@ void Server::cmdNick(Client *client, Channel *channel, std::vector<std::string> 
 	(void)channel;
 	int code = 0;
 
-	if (client->getState() == ACTIVE)
-		code = ERR_ALREADYAUTHED;
-	else if (msg.size() != 2)
+	if (msg.size() != 2)
 		code = ERR_NEEDMOREPARAMS;
 	else if (this->_clients.find(msg[1]) != this->_clients.end() || \
 	client->getNickname() == msg[1])
@@ -57,9 +55,12 @@ void Server::cmdNick(Client *client, Channel *channel, std::vector<std::string> 
 		code = ERR_INVALIDNICK;
 
 	if (code)
-		this->sendNumeric(*client, code);
-	else
-		client->setNickname(msg[1]);
+		return (this->sendNumeric(*client, code));
+
+	if (client->getState() == ACTIVE)
+		this->broadcast(*client, msg[0], msg[1]);
+
+	client->setNickname(msg[1]);
 
 	this->authCheck(*client);
 }
@@ -77,7 +78,7 @@ void Server::cmdUser(Client *client, Channel *channel, std::vector<std::string> 
 		code = ERR_ALREADYAUTHED;
 	else if (msg.size() < 5)
 		code = ERR_NEEDMOREPARAMS;
-	else if (msg.size() > 5 && (msg[4][0] != ':' || msg[24].length() <= 1))
+	else if (msg.size() > 5 && (msg[4][0] != ':' || msg[4].length() <= 1))
 		code = ERR_UNKNOWNCOMMAND;
 
 	if (code)
@@ -94,25 +95,48 @@ void Server::cmdUser(Client *client, Channel *channel, std::vector<std::string> 
 }
 
 // Checks client existence, state, command format & channel name format
-void Server::joinCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg)
+void Server::cmdJoin(Client *client, Channel *channel, std::vector<std::string> &msg)
 {
+	int code = 0;
+
 	if (!client)
 		throw (std::runtime_error("Fatal: client not found"));
 
-	if (client->getState() <= AT_DOOR)
-		return (RED "Error - Please enter the server using PASS" R);
-	else if (client->getState() == PASS_OK)
-		return (RED "Error - Please create a nickname using NICK" R);
-	else if (client->getState() == NICK_OK)
-		return (RED "Error - Please finalize user data using USER" R);
+	if (client->getState() != ACTIVE)
+		code = ERR_NOTAUTHED;
+	else if (msg.size() != 2)
+		code = ERR_NEEDMOREPARAMS;
+	else if (msg[1][0] != '#' || msg[1].length() < 2)
+		code = ERR_UNKNOWNCOMMAND;
 
-	if (split_msg.size() != 2)
-		return (RED "JOIN: invalid command format\n" JOIN_EXPECT);
+	if (!channel)
+	{
+		channel = new Channel(msg[1]);
+		this->_channels[msg[1]] = channel;
+	}
 
-	if (split_msg[1][0] != '#' || split_msg[1].length() < 2)
-		return (RED "Invalid channel name format\n" JOIN_EXPECT);
+	if (!code)
+		code = channel->addClient(*client);
 
-	return (this->joinCmd(*client, channel, split_msg[1]));
+	if (code)
+		return (this->sendNumeric(*client, code));
+
+	std::vector<std::string> topic_cmd = {{"TOPIC"}, {channel->getName()}};
+	this->cmdTopic(client, channel, topic_cmd);
+
+	std::string namelist = "= " + channel->getName() + " :";
+	Channel::member_iter it = channel->getMembers().begin();
+	for (; it != channel->getMembers().end(); ++it)
+	{
+		if (channel->isOperator((*it)->getNickname()))
+			namelist += " @" + (*it)->getNickname();
+		else
+			namelist += " " + (*it)->getNickname();
+	}
+
+	this->sendNumeric(*client, RPL_NAMREPLY, namelist);
+	this->sendNumeric(*client, RPL_ENDOFNAMES, ":End of /NAMES list.");
+	this->broadcast(*client, *channel, msg[0], channel->getName());
 }
 
 // Creates channel if non-existing + adds client to channel
@@ -133,13 +157,13 @@ void Server::privMsgCmd(Client *client, Channel *channel, std::vector<std::strin
 	return (SUCCESS);
 }
 
-void Server::topicCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg)
+void Server::cmdTopic(Client *client, Channel *channel, std::vector<std::string> &msg)
 {
-	//See if can use ref instead
+	int code = 0;
+
+	// Could I create a helper function that would centralize all checks?
 	if (!client)
 		throw (std::runtime_error("Fatal: client lost"));
-
-	int code = 0; // Could I create a helper function that would centralize all checks?
 
 	if (client->getState() != ACTIVE)
 		code = ERR_NOTAUTHED;

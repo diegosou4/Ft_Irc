@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/28 16:26:18 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/28 17:39:54 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,9 +93,9 @@ class Server
 		void cmdPass(Client *client, Channel *channel, std::vector<std::string> &msg);
 		void cmdNick(Client *client, Channel *channel, std::vector<std::string> &msg);
 		void cmdUser(Client *client, Channel *channel, std::vector<std::string> &msg);
-		void joinCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg);
+		void cmdJoin(Client *client, Channel *channel, std::vector<std::string> &msg);
 		void modeCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
-		void topicCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
+		void cmdTopic(Client *client, Channel *channel, std::vector<std::string> &msg);
 		void inviteCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
 		void privmsgCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
 		void kickCmd(Client *client, Channel *channel, std::vector<std::string> &split_msg);
@@ -114,6 +114,7 @@ class Server
 		void	sendClient(Client &client, std::string const &msg);
 		void	sendNumeric(Client &client, int code);
 		void	sendNumeric(Client &client, int code, std::string const &msg);
+		void	broadcast(Client &client, std::string &cmd, std::string const &msg);
 		void	broadcast(Client &client, Channel &channel, std::string &cmd, std::string const &msg);
 		bool	authCheck(Client &client);
 };

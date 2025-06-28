@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:27 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/28 14:55:52 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/28 17:10:01 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -188,10 +188,20 @@ Client *Channel::findMember(std::string name)
 	return (NULL);
 }
 
-std::string	Channel::addClient(Client &client)
+int	Channel::addClient(Client &client)
 {
-	(void)client;
-	return ("addclient function to be made");
+	/* Perform checks
+		if channel is at capacity
+			return ERR_CHANISFULL
+		if channel is invite only
+			return ERR_INVITEONLYCHAN
+		if user already in
+			return ERR_USERINCHAN
+	add user to channel member
+	return SUCCESS*/
+
+	std::cout << "TOPIC Channel method WIP" << std::endl;
+	return (SUCCESS);
 }
 
 // Need to workout +/- differences for flags
