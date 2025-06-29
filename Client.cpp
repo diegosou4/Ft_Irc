@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 17:06:16 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/28 15:15:48 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 16:52:16 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,17 +35,6 @@ Client::Client(int fd): _client_fd(fd), _state(OFFLINE), _username(), _nickname(
 Client::Client(Client const &src) // We might not need - check if should delete
 {
 	*this = src; // does this use the assignment operator or is it setting this to point to src?
-}
-
-Client &Client::operator=(Client const &src)  // We have oparator= in the class, so we can use it here
-{
-	if (this != &src) {
-		_realname = src._realname;
-		_username = src._username;
-		_hostname = src._hostname;
-		_state = src._state;
-	}
-	return *this;
 }
 
 Client::~Client()
@@ -78,6 +67,9 @@ void	Client::setState(clientState state)
 
 void	Client::setRealname(std::string realname)
 {
+	if (realname[0] == ':')
+		realname = &realname[1];
+
 	this->_realname = realname;
 }
 
@@ -154,3 +146,4 @@ bool	Client::passedUser()const
 		return (false);
 	return (true);
 }
+

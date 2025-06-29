@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 11:41:20 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 17:19:29 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,10 +38,11 @@ class Server
 {
 	private:
 		// Typedefs:
+		typedef std::vector<std::string> str_vector;
 		typedef std::vector<struct pollfd>::iterator pollfd_iter;
 		typedef std::map<std::string, Client *>::iterator clients_iter;
 		typedef std::map<std::string, Channel *>::iterator channels_iter;
-		typedef void (Server::*AuthCmds)(Client*, Channel *, std::vector<std::string>&);
+		typedef void (Server::*AuthCmds)(Client*, Channel *, str_vector const&);
 
 		// Regular attributes:
 		int	_fd;
@@ -91,32 +92,38 @@ class Server
 		void	pollNVal(Client &client);
 
 		// Commands - Commands.cpp
-		void cmdPass(Client *client, Channel *channel, std::vector<std::string> &msg);
-		void cmdNick(Client *client, Channel *channel, std::vector<std::string> &msg);
-		void cmdUser(Client *client, Channel *channel, std::vector<std::string> &msg);
-		void cmdJoin(Client *client, Channel *channel, std::vector<std::string> &msg);
-		void cmdTopic(Client *client, Channel *channel, std::vector<std::string> &msg);
-		void cmdInvite(Client *client, Channel *channel, std::vector<std::string> &msg);
-		void cmdKick(Client *client, Channel *channel, std::vector<std::string> &msg);
-		void cmdPrivmsg(Client *client, Channel *channel, std::vector<std::string> &msg);
-		void cmdTopic(Client *client, Channel *channel, std::vector<std::string> &msg);
-		void cmdMode(Client *client, Channel *channel, std::vector<std::string> &msg);
+		void cmdPass(Client *client, Channel *channel, str_vector const &msg);
+		void cmdNick(Client *client, Channel *channel, str_vector const &msg);
+		void cmdUser(Client *client, Channel *channel, str_vector const &msg);
+		void cmdJoin(Client *client, Channel *channel, str_vector const &msg);
+		void cmdInvite(Client *client, Channel *channel, str_vector const &msg);
+		void cmdKick(Client *client, Channel *channel, str_vector const &msg);
+		void cmdPart(Client *client, Channel *channel, str_vector const &msg);
+		void cmdQuit(Client *client, Channel *channel, str_vector const &msg);
+		void cmdNames(Client *client, Channel *channel, str_vector const &msg);
+		void cmdPrivmsg(Client *client, Channel *channel, str_vector const &msg);
+		void cmdTopic(Client *client, Channel *channel, str_vector const &msg);
+		void cmdMode(Client *client, Channel *channel, str_vector const &msg);
 
 		// Utils - Utils.cpp
 		void	setCmdMaps();
 		std::string getMsg(Client &client);
-		std::vector<std::string> splitMsg(std::string &msg);
-		Channel	*findChannel(std::vector<std::string> &split_msg);
+		str_vector splitMsg(std::string &msg);
+		Channel	*findChannel(str_vector &split_msg);
 
 		void	printServer(Client *client, std::string const &msg);
 		void	sendClient(Client &client, std::string const &msg);
 		void	sendNumeric(Client &client, int code);
 		void	sendNumeric(Client &client, int code, std::string const &msg);
-		void	broadcast(Client &client, std::string &cmd, std::string const &msg);
-		void	broadcast(Client &client, Channel &channel, std::string &cmd, std::string const &msg);
-		void	broadcast(Client &client, Client &target, std::string &cmd, std::string const &msg);
+		void	broadcast(Client &client, std::string const &cmd, std::string const &msg);
+		void	broadcast(Client &client, Channel &channel, std::string const &cmd, std::string const &msg);
+		void	broadcast(Client &client, Client &target, std::string const &cmd, std::string const &msg);
 		bool	authCheck(Client &client);
 		int		cmdCheck(Client *client, Channel *channel, std::string target);
-		int		checkModeFormat(std::vector<std::string> &msg);
-};
+		int		checkModeFormat(str_vector const &msg);
+		void	sendMode(Client &client, Channel &channel, int stop, str_vector const &msg);
+		std::string nameList(Channel &channel);
+		str_vector newVector(std::string const &arg1, std::string const &arg2, std::string *arg3);
+		std::string	unSplit(str_vector const &msg, int index);
+	};
 

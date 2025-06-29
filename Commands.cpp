@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:48:21 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 11:47:09 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 17:22:08 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 #include "Server.hpp"
 
 // Checks client existence, state & command format
-void Server::cmdPass(Client *client, Channel *channel, std::vector<std::string> &msg)
+void Server::cmdPass(Client *client, Channel *channel, str_vector const &msg)
 {
 	(void)channel;
 	int code = 0;
@@ -30,15 +30,15 @@ void Server::cmdPass(Client *client, Channel *channel, std::vector<std::string> 
 		code = ERR_WRONGPASS;
 
 	if (code)
-		this->sendNumeric(*client, code);
-	else
-		client->setState(PASS_OK);
+		return (this->sendNumeric(*client, code));
+
+	client->setState(PASS_OK);
 
 	this->authCheck(*client);
 }
 
 // Checks client existence, state & command format
-void Server::cmdNick(Client *client, Channel *channel, std::vector<std::string> &msg)
+void Server::cmdNick(Client *client, Channel *channel, str_vector const &msg)
 {
 	if (!client)
 		throw (std::runtime_error("Fatal: client not found"));
@@ -66,7 +66,7 @@ void Server::cmdNick(Client *client, Channel *channel, std::vector<std::string> 
 }
 
 // Checks client existence, state & command format
-void Server::cmdUser(Client *client, Channel *channel, std::vector<std::string> &msg)
+void Server::cmdUser(Client *client, Channel *channel, str_vector const &msg)
 {
 	(void)channel;
 	int code = 0;
@@ -82,20 +82,16 @@ void Server::cmdUser(Client *client, Channel *channel, std::vector<std::string> 
 		code = ERR_UNKNOWNCOMMAND;
 
 	if (code)
-		this->sendNumeric(*client, code);
-	else
-	{
-		client->setUsername(msg[1]);
-		client->setRealname(&msg[4][1]);
-		for (size_t i = 5; i < msg.size(); i++)
-			client->setRealname(client->getRealname() + " " + msg[i]);
-	}
+		return (this->sendNumeric(*client, code));
+
+	client->setUsername(msg[1]);
+	client->setRealname(this->unSplit(msg, 4));
 
 	this->authCheck(*client);
 }
 
 // Checks client existence, state, command format & channel name format
-void Server::cmdJoin(Client *client, Channel *channel, std::vector<std::string> &msg)
+void Server::cmdJoin(Client *client, Channel *channel, str_vector const &msg)
 {
 	int code = 0;
 
@@ -116,30 +112,18 @@ void Server::cmdJoin(Client *client, Channel *channel, std::vector<std::string> 
 	}
 
 	if (!code)
-		code = channel->addClient(*client);
+		code = channel->addMember(*client);
 
 	if (code)
 		return (this->sendNumeric(*client, code));
 
-	std::vector<std::string> topic_cmd = {{"TOPIC"}, {channel->getName()}};
-	this->cmdTopic(client, channel, topic_cmd);
+	this->cmdTopic(client, channel, this->newVector("TOPIC", channel->getName(), 0));
+	this->cmdNames(client, channel, this->newVector("NAMES", channel->getName(), 0));
 
-	std::string namelist = "= " + channel->getName() + " :";
-	Channel::member_iter it = channel->getMembers().begin();
-	for (; it != channel->getMembers().end(); ++it)
-	{
-		if (channel->isOperator((*it)->getNickname()))
-			namelist += " @" + (*it)->getNickname();
-		else
-			namelist += " " + (*it)->getNickname();
-	}
-
-	this->sendNumeric(*client, RPL_NAMREPLY, namelist);
-	this->sendNumeric(*client, RPL_ENDOFNAMES, ":End of /NAMES list.");
 	this->broadcast(*client, *channel, msg[0], channel->getName());
 }
 
-void Server::cmdInvite(Client *client, Channel *channel, std::vector<std::string> &msg)
+void Server::cmdInvite(Client *client, Channel *channel, str_vector const &msg)
 {
 	int code = 0;
 	Client target = NULL;
@@ -161,10 +145,10 @@ void Server::cmdInvite(Client *client, Channel *channel, std::vector<std::string
 	this->broadcast(*client, target, msg[0], target.getNickname() + " :" + channel->getName());
 }
 
-void Server::cmdKick(Client *client, Channel *channel, std::vector<std::string> &msg)
+void Server::cmdKick(Client *client, Channel *channel, str_vector const &msg)
 {
-	std::string reason;
 	int code = 0;
+	std::string reason;
 
 	if (msg.size() < 3)
 		code = ERR_NEEDMOREPARAMS;
@@ -180,18 +164,78 @@ void Server::cmdKick(Client *client, Channel *channel, std::vector<std::string> 
 		return (this->sendNumeric(*client, code));
 
 	if (msg.size() > 3)
-	{
-		reason = " " + msg[3];
-		for (size_t i = 4; i < msg.size(); i++)
-			reason += " " + msg[i];
-	}
+		reason = this->unSplit(msg, 3);
 
 	this->broadcast(*client, *channel, msg[0], msg[1] + reason);
 }
 
-void Server::cmdPrivmsg(Client *client, Channel *channel, std::vector<std::string> &msg)
+void Server::cmdPart(Client *client, Channel *channel, str_vector const &msg)
 {
-	std::string output;
+	int code = 0;
+	std::string goodbye_msg;
+
+	if (msg.size() < 2)
+		code = ERR_NEEDMOREPARAMS;
+	else if (msg.size() > 2 && (msg[2][0] != ':' || msg[2].length() < 2))
+		code = ERR_NEEDMOREPARAMS;
+	else
+		code = cmdCheck(client, channel, "");
+
+	if (!code)
+		code = channel->removeMember(*client);
+
+	if (code)
+		return (this->sendNumeric(*client, code));
+
+	if (msg.size() > 2)
+		goodbye_msg = this->unSplit(msg, 2);
+
+	this->broadcast(*client, *channel, msg[0], goodbye_msg);
+}
+
+void Server::cmdQuit(Client *client, Channel *channel, str_vector const &msg)
+{
+	int code = 0;
+
+	if (msg.size() > 1 && (msg[1][0] != ':' || msg[1].length() < 2))
+		return (this->sendNumeric(*client, ERR_NEEDMOREPARAMS));
+
+	channels_iter it = this->_channels.begin();
+	for (; it != this->_channels.end(); ++it)
+		if (it->second->isMember(*client))
+			this->cmdPart(client, it->second, this->newVector(msg[0], it->first, &this->unSplit(msg, 1)));
+
+	this->removeClient(*client);
+}
+
+void Server::cmdNames(Client *client, Channel *channel, str_vector const &msg)
+{
+	int code = 0;
+
+	if (msg.size() == 1)
+	{
+		channels_iter it = this->_channels.begin();
+		for (; it != this->_channels.end(); ++it)
+			this->cmdNames(client, it->second, this->newVector("NAMES", it->first, 0));
+		return ;
+	}
+	else if (msg.size() != 2)
+		code = ERR_NEEDMOREPARAMS;
+	else
+		code = cmdCheck(client, channel, "");
+
+	if (code == ERR_NOTINCHAN)
+		code = 0;
+
+	if (code)
+		return (this->sendNumeric(*client, code));
+
+	this->sendNumeric(*client, RPL_NAMREPLY, this->nameList(*channel));
+	this->sendNumeric(*client, RPL_ENDOFNAMES, ":End of /NAMES list.");
+}
+
+void Server::cmdPrivmsg(Client *client, Channel *channel, str_vector const &msg)
+{
 	int code = 0;
 
 	if (msg.size() < 3 || (msg[2][0] != ':' || msg[2].size() < 2))
@@ -208,9 +252,7 @@ void Server::cmdPrivmsg(Client *client, Channel *channel, std::vector<std::strin
 	if (code)
 		return (this->sendNumeric(*client, code));
 
-	output = msg[2];
-	for (size_t i = 3; i < msg.size(); i++)
-		output += " " + msg[i];
+	std::string output = this->unSplit(msg, 2);
 
 	if (channel)
 		this->broadcast(*client, *channel, msg[0], output);
@@ -218,7 +260,7 @@ void Server::cmdPrivmsg(Client *client, Channel *channel, std::vector<std::strin
 		this->broadcast(*client, *this->_clients[msg[1]], msg[0], output);
 }
 
-void Server::cmdTopic(Client *client, Channel *channel, std::vector<std::string> &msg)
+void Server::cmdTopic(Client *client, Channel *channel, str_vector const &msg)
 {
 	int code = 0;
 
@@ -243,7 +285,7 @@ void Server::cmdTopic(Client *client, Channel *channel, std::vector<std::string>
 }
 
 
-void Server::cmdMode(Client *client, Channel *channel, std::vector<std::string> &msg)
+void Server::cmdMode(Client *client, Channel *channel, str_vector const &msg)
 {
 	int i = 0;
 	int code = 0;
@@ -257,38 +299,10 @@ void Server::cmdMode(Client *client, Channel *channel, std::vector<std::string> 
 	if (code)
 		return (this->sendNumeric(*client, code));
 
-	if (!code && msg.size() == 2)
-	{
-		this->sendNumeric(*client, RPL_CHANMODE, channel->getName() + " " + channel->getModes());
-		this->sendNumeric(*client, RPL_CREATTIME, channel->getName() + " " + channel->getCreat());
-	}
+	if (msg.size() > 2)
+		return (this->sendMode(*client, *channel, stop, msg));
 
-	int sign = msg[1][0];
-	for (int i = 1; i < stop; i++)
-	{
-		for (int j = 0; msg[i][j]; j++)
-		{
-			std::string arg = "";
-			if (msg[i][j] == '-' || msg[i][j] == '+')
-			{
-				if (!msg[i][j +1] || msg[i][j+1] == '+' || msg[i][j+1] == '-')
-					code = ERR_UNKNOWNCOMMAND; // this check should be done before!!
- 				sign = msg[i][j];
-			}
-			else
-			{
-				if (stop < msg.size() && this->needsArg(sign, msg[i][j]))
-					arg = msg[stop++];
-				code = channel->modeFlags(client, sign, msg[i][j], arg); // contains switch to send to correct functions
-				if (code)
-					this->sendNumeric(*client, code);
-				else
-				{
-					if (!arg.empty())
-						arg = " " + arg;
-					this->broadcast(*client, *channel, msg[0], std::string(1, sign) + msg[i][j] + arg);
-				}
-			}
-		}
-	}
+	this->sendNumeric(*client, RPL_CHANMODE, channel->getName() + " " + channel->getModes());
+	this->sendNumeric(*client, RPL_CREATTIME, channel->getName() + " " + channel->getCreat());
 }
+

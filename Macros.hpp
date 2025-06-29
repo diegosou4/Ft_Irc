@@ -88,11 +88,12 @@
 #define	ERR_INVITEONLYCHAN	473 // try to join invite only channel
 #define	ERR_BADCHANKEY		475	//invalid chan pass
 #define	ERR_NOTCHANOP		482	// MODE/KICK by a non-op
-#define ERR_NEEDMOREPARAMS 	461 // not enough params for command
-#define ERR_UNKNOWNMODE 501 // We can custom this error message
-#define ERR_USERALREADYOP 	483 // User is already an operator
-#define ERR_USERNOTOP 		484 // User is not an operator
 
+
+#define ERR_NOTCHANOP		482	// MODE/KICK by a non-op
+#define ERR_CHANOPRIVSNEEDED	481 // trying to set mode on channel without being op
+#define ERR_USERONCHANNEL 	485 // trying to invite a channel operator
+#define ERR_USERNOTINCHANNEL	486 // trying to invite yourself to a channel
 
 static const std::map<int, std::string> ErrMsg
 {
@@ -115,5 +116,12 @@ static const std::map<int, std::string> ErrMsg
 	{472, ":is unknown mode char to me"},
 	{473, ":Cannot join channel (+i)"},
 	{475, ":Cannot join channel (+k)"},
+	{481," :Permission Denied - You're not an IRC operator"},
+	{482, ":You're not channel operator"},
+	{483, ":You can't kill a channel operator"},
+	{484, ":You can't kick a channel operator"},
+	{485, ":You can't set mode on a channel you're not in"},
+	{486, ":You can't invite a channel operator"},
+	{487, ":You can't invite yourself to a channel"},
 	{482, ":You're not channel operator"}
 };
