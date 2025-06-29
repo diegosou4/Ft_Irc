@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:48:21 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 00:53:44 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 11:47:09 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -248,31 +248,20 @@ void Server::cmdMode(Client *client, Channel *channel, std::vector<std::string> 
 	int i = 0;
 	int code = 0;
 
-	if (msg.size() > 2 && msg[1][0] != '+' && msg[1][0] != '-')
+	code = cmdCheck(client, channel, "");
+	int stop = checkModeFormat(msg);
+
+	if (!code && stop == -1)
 		code = ERR_UNKNOWNCOMMAND;
-	else
-		code = cmdCheck(client, channel, "");
+
+	if (code)
+		return (this->sendNumeric(*client, code));
 
 	if (!code && msg.size() == 2)
 	{
 		this->sendNumeric(*client, RPL_CHANMODE, channel->getName() + " " + channel->getModes());
 		this->sendNumeric(*client, RPL_CREATTIME, channel->getName() + " " + channel->getCreat());
 	}
-
-	int stop ;
-	for (stop = 1; stop < msg.size(); i++)
-	{
-		if (stop != 1 && msg[stop][0] != '+' && msg[stop][0] != '-')
-			break;
-		else if (msg[stop].find_first_not_of("+-ilkot") != msg[stop].npos)
-		{
-			code = ERR_UNKNOWNCOMMAND;
-			break;
-		}
-	}
-
-	if (code)
-		return (this->sendNumeric(*client, code));
 
 	int sign = msg[1][0];
 	for (int i = 1; i < stop; i++)

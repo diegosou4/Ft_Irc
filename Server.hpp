@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 00:16:20 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 11:41:20 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@
 #include <iomanip>
 #include "Client.hpp"
 #include "Channel.hpp"
+#include "cstring>"
 
 // -CLASS-
 class Server
@@ -116,5 +117,6 @@ class Server
 		void	broadcast(Client &client, Client &target, std::string &cmd, std::string const &msg);
 		bool	authCheck(Client &client);
 		int		cmdCheck(Client *client, Channel *channel, std::string target);
+		int		checkModeFormat(std::vector<std::string> &msg);
 };
 
