@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:27 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 14:48:24 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 16:21:17 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,7 @@ bool	Channel::setOperator(std::string target)
 	Should we use a different type of container? */
 }
 
-int Channel::setInvited(std::string &name)
+int Channel::setInvited(std::string const &name)
 {
 	/* if already member
 		return ERR_USERINCHAN
@@ -124,7 +124,7 @@ int	Channel::addMember(Client &client)
 	return (SUCCESS);
 }
 
-int Channel::kickMember(Client &client, std::string &target)
+int Channel::kickMember(Client &client, std::string const &target)
 {
 	/*
 		if client not op
@@ -139,7 +139,7 @@ int Channel::kickMember(Client &client, std::string &target)
 	return (SUCCESS);
 }
 
-int Channel::topicHandle(Client &client, std::vector<std::string> &msg)
+int Channel::topicHandle(Client &client, std::vector<std::string> const &msg)
 {
 	/* differentiate between:
 		get topic

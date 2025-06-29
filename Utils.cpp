@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 13:00:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 14:25:26 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 16:35:46 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,16 +16,18 @@
 // Creates maps linking command to an function
 void	Server::setCmdMaps()
 {
-	this->_authcmds["PASS"] = &Server::passCheck;
-	this->_authcmds["NICK"] = &Server::nickCheck;
-	this->_authcmds["USER"] = &Server::userCheck;
-	this->_authcmds["JOIN"] = &Server::joinCheck;
-	this->_authcmds["PRIVMSG"] = &Server::privMsgCheck;
-
-	this->_chancmds["MODE"] = &Channel::modeCmd;
-	this->_chancmds["TOPIC"] = &Channel::topicCmd;
-	this->_chancmds["INVITE"] = &Channel::inviteCmd;
-	this->_chancmds["KICK"] = &Channel::kickCmd;
+	this->_authcmds["PASS"] = &Server::cmdPass;
+	this->_authcmds["NICK"] = &Server::cmdNick;
+	this->_authcmds["USER"] = &Server::cmdUser;
+	this->_authcmds["JOIN"] = &Server::cmdJoin;
+	this->_authcmds["INVITE"] = &Server::cmdInvite;
+	this->_authcmds["KICK"] = &Server::cmdKick;
+	this->_authcmds["PART"] = &Server::cmdPart;
+	this->_authcmds["QUIT"] = &Server::cmdQuit;
+	this->_authcmds["NAME"] = &Server::cmdName;
+	this->_authcmds["PRIVMSG"] = &Server::cmdPrivmsg;
+	this->_authcmds["TOPIC"] = &Server::cmdTopic;
+	this->_authcmds["MODE"] = &Server::cmdMode;
 }
 
 // Retrieves message from user + perform checks - removes client if errors
@@ -48,9 +50,9 @@ std::string Server::getMsg(Client &client)
 }
 
 // Splits user command into vector string items
-std::vector<std::string> Server::splitMsg(std::string &msg)
+Server::str_vector Server::splitMsg(std::string &msg)
 {
-	std::vector<std::string> split_msg;
+	str_vector split_msg;
 	size_t pos = 0;
 
 	while (pos <= msg.size())
@@ -65,7 +67,7 @@ std::vector<std::string> Server::splitMsg(std::string &msg)
 	return (split_msg);
 }
 
-Channel	*Server::findChannel(std::vector<std::string> &split_msg)
+Channel	*Server::findChannel(str_vector &split_msg)
 {
 	//add looking for user if privmsg
 	Channel *channel = NULL;
@@ -91,7 +93,7 @@ void	Server::removeClient(Client &client)
 
 	for (channels_iter it = this->_channels.begin(); it != this->_channels.end(); ++it)
 		if (std::find(it->second->getMembers().begin(), it->second->getMembers().end(), &client) != it->second->getMembers().end())
-			this->broadcast(client, it->second, " has left");
+			std::cout << "REMOVECLIENT TO BE RETHOUTGHT" << std::endl;
 
 	this->printServer(&client, "has left");
 
@@ -143,7 +145,7 @@ void	Server::sendNumeric(Client &client, int code, std::string const &msg)
 	this->sendClient(client, ss.str());
 }
 
-void	Server::broadcast(Client &client, Channel &channel, std::string &cmd, std::string const &msg)
+void	Server::broadcast(Client &client, Channel &channel, std::string const &cmd, std::string const &msg)
 {
 	std::string output = client.getPrefix() + " " + cmd + " " + msg + "\r\n";
 
@@ -153,7 +155,7 @@ void	Server::broadcast(Client &client, Channel &channel, std::string &cmd, std::
 			this->sendClient(**it, output);
 }
 
-void	Server::broadcast(Client &client, std::string &cmd, std::string const &msg)
+void	Server::broadcast(Client &client, std::string const &cmd, std::string const &msg)
 {
 	channels_iter it = this->_channels.begin();
 	for (; it != this->_channels.end(); ++it)
@@ -161,7 +163,7 @@ void	Server::broadcast(Client &client, std::string &cmd, std::string const &msg)
 			broadcast(client, *it->second, cmd, msg);
 }
 
-void	Server::broadcast(Client &client, Client &target, std::string &cmd, std::string const &msg)
+void	Server::broadcast(Client &client, Client &target, std::string const &cmd, std::string const &msg)
 {
 	std::string output = client.getPrefix() + " " + cmd + " " + msg + "\r\n";
 	this->sendClient(target, output);
@@ -202,7 +204,7 @@ int		Server::cmdCheck(Client *client, Channel *channel, std::string target)
 	return (SUCCESS);
 }
 
-int		Server::checkModeFormat(std::vector<std::string> &msg)
+int		Server::checkModeFormat(str_vector const &msg)
 {
 	std::string flags = "ilkot";
 	std::string valid_signs = "+-";
@@ -224,7 +226,7 @@ int		Server::checkModeFormat(std::vector<std::string> &msg)
 	return (msg.size());
 }
 
-void	Server::sendMode(Client &client, Channel &channel, int stop, std::vector<std::string> &msg)
+void	Server::sendMode(Client &client, Channel &channel, int stop, str_vector const &msg)
 {
 	char sign = msg[2][0];
 	std::string valid_signs = "+-";
@@ -246,6 +248,31 @@ void	Server::sendMode(Client &client, Channel &channel, int stop, std::vector<st
 				this->broadcast(client, channel, msg[0], std::string(1, sign) + msg[i][j] + arg);
 		}
 	}
+}
+
+std::string Server::nameList(Channel &channel)
+{
+	std::string namelist = "= " + channel.getName() + " :";
+	Channel::member_iter it = channel.getMembers().begin();
+	for (; it != channel.getMembers().end(); ++it)
+	{
+		if (channel.isOperator((*it)->getNickname()))
+			namelist += " @" + (*it)->getNickname();
+		else
+			namelist += " " + (*it)->getNickname();
+	}
+
+	return (namelist);
+}
+
+Server::str_vector Server::newVector(std::string const &arg1, std::string const &arg2)
+{
+	str_vector new_vector;
+
+	new_vector.push_back(arg1);
+	new_vector.push_back(arg2);
+
+	return (new_vector);
 }
 
 

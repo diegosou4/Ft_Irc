@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:22 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 14:45:35 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 16:21:23 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,7 @@ class Channel
 		void	setLimit(int const &limit);
 		void	setModes(char sign, char flag);
 		bool	setOperator(std::string target);
-		int 	setInvited(std::string &name);
+		int 	setInvited(std::string const &name);
 
 		//Getters:
 		std::string	getName() const;
@@ -61,8 +61,8 @@ class Channel
 
 		//Command-related methods:
 		int	addMember(Client &client);
-		int kickMember(Client &client, std::string &target);
-		int topicHandle(Client &client, std::vector<std::string> &msg);
+		int kickMember(Client &client, std::string const &target);
+		int topicHandle(Client &client, std::vector<std::string> const &msg);
 		int	modeFlags(Client &client, char sign, char flag, std::string arg);
 
 		//Utils:

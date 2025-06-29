@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:41:33 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/28 14:22:40 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 16:28:04 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,7 @@ void Server::pollIn(Client &client)
 	if (msg.empty())
 		return;
 
-	std::vector<std::string> split_msg = this->splitMsg(msg);
+	str_vector split_msg = this->splitMsg(msg);
 	Channel *channel = findChannel(split_msg);
 
 	if (this->_authcmds.find(split_msg[0]) != this->_authcmds.end())
