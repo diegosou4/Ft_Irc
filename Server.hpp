@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 17:19:29 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 18:47:12 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,7 +72,7 @@ class Server
 
 		// Init/setup - Server.cpp
 		void	handleClient(size_t max_fds, int timeout);
-		void	removeClient(Client &client);
+		void	removeClient(Client *client);
 
 	private:
 		// Forbidden methods - Server.cpp

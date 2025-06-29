@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 13:00:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 17:19:44 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 18:47:01 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ std::string Server::getMsg(Client &client)
 	{
 		if (bytes_read < 0)
 			this->printServer(&client, RED + std::string(strerror(errno)));
-		this->removeClient(client);
+		this->cmdQuit(&client, NULL, newVector("QUIT", ":Dropped unexpectedly", 0));
 		buff[0] = 0;
 	}
 
@@ -85,20 +85,17 @@ Channel	*Server::findChannel(str_vector &split_msg)
 }
 
 // Removes client from pollfd, sets client as OFFLINE, closes fd, broadcast departure
-void	Server::removeClient(Client &client)
+void	Server::removeClient(Client *client)
 {
 	for (pollfd_iter it = this->_fds.begin(); it != this->_fds.end(); ++it)
-		if (client.getFd() == it->fd)
+		if (client->getFd() == it->fd)
 			it->fd = REMOVAL;
 
-	for (channels_iter it = this->_channels.begin(); it != this->_channels.end(); ++it)
-		if (std::find(it->second->getMembers().begin(), it->second->getMembers().end(), &client) != it->second->getMembers().end())
-			std::cout << "REMOVECLIENT TO BE RETHOUTGHT" << std::endl;
+	this->printServer(client, "has left");
 
-	this->printServer(&client, "has left");
-
-	close(client.getFd());
-	client.setState(OFFLINE);
+	this->_clients.erase(client->getNickname());
+	close(client->getFd());
+	delete client;
 }
 
 void	Server::printServer(Client *client, std::string const &msg)

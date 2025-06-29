@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:48:21 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 18:39:08 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 18:47:11 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -213,7 +213,7 @@ void Server::cmdQuit(Client *client, Channel *channel, str_vector const &msg)
 			this->cmdPart(client, channel, this->newVector(msg[0], channel->getName(), &this->unSplit(msg, 1)));
 	}
 
-	this->removeClient(*client);
+	this->removeClient(client);
 }
 
 void Server::cmdNames(Client *client, Channel *channel, str_vector const &msg)

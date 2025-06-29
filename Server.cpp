@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/27 19:59:18 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 18:48:25 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,11 @@ Server::~Server()
 		if (it->second)
 			delete it->second;
 	this->_clients.clear();
+
+	for (channels_iter it = this->_channels.begin()l it != this->_channels.end(); ++it)
+		if (it->second)
+			delete it->second;
+	this->_channels.clear();
 }
 
 //-------------------------Operator overloads----------------------------------

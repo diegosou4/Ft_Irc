@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:41:33 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 16:28:04 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 18:46:52 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,10 +43,9 @@ void	Server::treatRevent()
 }
 
 // POLLUP = client left
-// Sends to client removal function
 void	Server::pollHup(Client &client)
 {
-	this->removeClient(client);
+	this->cmdQuit(&client, NULL, newVector("QUIT", ":Dropped unexpectedly", 0));
 }
 
 // POLLIN = message sent by client
@@ -92,7 +91,7 @@ void	Server::pollErr(Client &client)
 	}
 
 	this->printServer(NULL, RED "Unrecoverable - closing socket");
-	this->removeClient(client);
+	this->cmdQuit(&client, NULL, newVector("QUIT", ":Dropped unexpectedly", 0));
 }
 
 // POLLNVAL = file descriptor issue
@@ -100,6 +99,5 @@ void	Server::pollErr(Client &client)
 void	Server::pollNVal(Client &client)
 {
 	this->printServer(&client, RED "Invalid file descriptor\nUnrecoverable - closing socket");
-
-	this->removeClient(client);
+	this->cmdQuit(&client, NULL, newVector("QUIT", ":Dropped unexpectedly", 0));
 }
