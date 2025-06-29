@@ -108,9 +108,13 @@ int Channel::modeCmd(Client &client, std::vector<std::string> &msg)
 
 	if (!isOperator(client.getNickname()))
 		return (ERR_NOTCHANOP);
-
+	
+	if (msg.size() < 2)
+	{
+		client.sendMessage(client, ERR_NEEDMOREPARAMS + "MODE Not enough parameters");
+		return (ERR_NEEDMOREPARAMS);
+	}
 	//perform format checks
-	return (this->modeFlags(client, msg[1][0], msg[2]));
 	std::string modeStr = msg[1];
 	bool adding;
 
@@ -120,7 +124,7 @@ int Channel::modeCmd(Client &client, std::vector<std::string> &msg)
         adding = false;
     else
         return ERR_UNKNOWNMODE;
-
+	
     for (size_t i = 1; i < modeStr.length(); i++)
     {
         char flag = modeStr[i];
@@ -157,9 +161,21 @@ int Channel::topicHandle(Client &client, std::vector<std::string> &msg)
 
 int Channel::inviteCmd(Client &client, std::vector<std::string> &msg)
 {
-	(void)client;
-	(void)msg;
-	return ("invite function to be made");
+	
+	if(msg.size() < 2)
+	{
+		client.sendMessage(client, ERR_NEEDMOREPARAMS + "INVITE Not enough parameters");
+		return (ERR_NEEDMOREPARAMS);
+	}
+	std::string targetNick = msg[1];
+	std::string channelName = msg[2];
+	if(!this->isMember(client))
+	{
+		client.sendMessage(client, ERR_NOTINCHAN + "You are not a member of this channel");
+		return (ERR_NOTINCHAN);
+	}
+		
+	return (SUCCESS);
 }
 
 int Channel::kickCmd(Client &client, std::vector<std::string> &msg)
@@ -348,3 +364,4 @@ bool Channel::removeOperator(std::string target)
 	this->_operators.erase(target);
 	return (true);
 }
+
