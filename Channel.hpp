@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:22 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 20:31:35 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 21:18:59 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,6 +67,7 @@ class Channel
 		int kickMember(Client &client, std::string const &target);
 		int topicHandle(Client &client, std::vector<std::string> const &msg);
 		int	modeFlags(Client &client, char sign, char flag, std::string arg);
+		void updateNickname(std::string oldnick, std::string newnick);
 
 		//Utils:
 		bool	isEmpty() const;

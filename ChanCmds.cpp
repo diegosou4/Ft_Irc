@@ -1,103 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Commands.cpp                                       :+:      :+:    :+:   */
+/*   ChanCmds.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/06/20 12:48:21 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 20:29:24 by cbouvet          ###   ########.fr       */
+/*   Created: 2025/06/29 21:35:58 by cbouvet           #+#    #+#             */
+/*   Updated: 2025/06/29 21:44:02 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-//------------------------------Commands---------------------------------------
+//------------------------------ChanCmds---------------------------------------
 #include "Server.hpp"
 
-// Checks client existence, state & command format
-void Server::cmdPass(Client *client, Channel *channel, str_vector const &msg)
-{
-	(void)channel;
-	int code = 0;
-
-	if (!client)
-		throw (std::runtime_error("Fatal: client not found"));
-
-	if (client->getState() >= PASS_OK)
-		code = ERR_ALREADYAUTHED;
-	else if (msg.size() != 2)
-		code = ERR_NEEDMOREPARAMS;
-	else if (msg[1] != this->_password)
-		code = ERR_WRONGPASS;
-
-	if (code)
-		return (this->sendNumeric(*client, code));
-
-	client->setState(PASS_OK);
-
-	this->authCheck(*client);
-}
-
-// Checks client existence, state & command format
-void Server::cmdNick(Client *client, Channel *channel, str_vector const &msg)
-{
-	if (!client)
-		throw (std::runtime_error("Fatal: client not found"));
-
-	(void)channel;
-	int code = 0;
-
-	if (msg.size() != 2)
-		code = ERR_NEEDMOREPARAMS;
-	else if (this->_clients.find(msg[1]) != this->_clients.end() || \
-	client->getNickname() == msg[1])
-		code = ERR_NICKINUSE;
-	else if (msg[1].find_first_not_of(DIGIT_CHARS ALPHA_CHARS) != msg[1].npos)
-		code = ERR_INVALIDNICK;
-
-	if (code)
-		return (this->sendNumeric(*client, code));
-
-	if (client->getState() == ACTIVE)
-		this->broadcast(*client, msg[0], msg[1]);
-
-	client->setNickname(msg[1]);
-
-	this->authCheck(*client);
-}
-
-// Checks client existence, state & command format
-void Server::cmdUser(Client *client, Channel *channel, str_vector const &msg)
-{
-	(void)channel;
-	int code = 0;
-
-	if (!client)
-		throw (std::runtime_error("Fatal: client not found"));
-
-	if (client->getState() == ACTIVE || client->passedUser())
-		code = ERR_ALREADYAUTHED;
-	else if (msg.size() < 5)
-		code = ERR_NEEDMOREPARAMS;
-	else if (msg.size() > 5 && (msg[4][0] != ':' || msg[4].length() <= 1))
-		code = ERR_UNKNOWNCOMMAND;
-
-	if (code)
-		return (this->sendNumeric(*client, code));
-
-	client->setUsername(msg[1]);
-	client->setRealname(this->unSplit(msg, 4));
-
-	this->authCheck(*client);
-}
-
-// Checks client existence, state, command format & channel name format
+// Performs checks, adds channel didnt exist, adds user to channel, sends relevant messages
 void Server::cmdJoin(Client *client, Channel *channel, str_vector const &msg)
 {
 	int code = 0;
 
 	if (!client)
 		throw (std::runtime_error("Fatal: client not found"));
-
 	if (client->getState() != ACTIVE)
 		code = ERR_NOTAUTHED;
 	else if (msg.size() != 2)
@@ -105,14 +27,15 @@ void Server::cmdJoin(Client *client, Channel *channel, str_vector const &msg)
 	else if (msg[1][0] != '#' || msg[1].length() < 2)
 		code = ERR_UNKNOWNCOMMAND;
 
-	if (!channel)
-	{
-		channel = new Channel(msg[1]);
-		this->_channels[msg[1]] = channel;
-	}
-
 	if (!code)
+	{
+		if (!channel)
+		{
+			channel = new Channel(msg[1]);
+			this->_channels[msg[1]] = channel;
+		}
 		code = channel->addMember(*client);
+	}
 
 	if (code)
 		return (this->sendNumeric(*client, code));
@@ -123,6 +46,7 @@ void Server::cmdJoin(Client *client, Channel *channel, str_vector const &msg)
 	this->broadcast(*client, *channel, msg[0], channel->getName());
 }
 
+// Performs checks, sends to channel invite method, sends relevant messages
 void Server::cmdInvite(Client *client, Channel *channel, str_vector const &msg)
 {
 	int code = 0;
@@ -144,6 +68,7 @@ void Server::cmdInvite(Client *client, Channel *channel, str_vector const &msg)
 	this->broadcast(*client, target, msg[0], target.getNickname() + " :" + channel->getName());
 }
 
+// Performs checks, sends to channel kick method, sends relevant message
 void Server::cmdKick(Client *client, Channel *channel, str_vector const &msg)
 {
 	int code = 0;
@@ -164,10 +89,10 @@ void Server::cmdKick(Client *client, Channel *channel, str_vector const &msg)
 
 	if (msg.size() > 3)
 		reason = this->unSplit(msg, 3);
-
 	this->broadcast(*client, *channel, msg[0], msg[1] + reason);
 }
 
+// Performs checks, sends to channel remove method, deletes channel if empty, sends relevant message
 void Server::cmdPart(Client *client, Channel *channel, str_vector const &msg)
 {
 	int code = 0;
@@ -193,29 +118,7 @@ void Server::cmdPart(Client *client, Channel *channel, str_vector const &msg)
 	delete channel;
 }
 
-void Server::cmdQuit(Client *client, Channel *channel, str_vector const &msg)
-{
-	if (!client)
-		throw std::runtime_error("Fatal: client not found");
-
-	if (msg.size() > 1 && (msg[1][0] != ':' || msg[1].length() < 2))
-		return (this->sendNumeric(*client, ERR_NEEDMOREPARAMS));
-
-	channels_iter it = this->_channels.begin();
-	while (it != this->_channels.end())
-	{
-		channel = it->second;
-		it++;
-		if (channel->isMember(*client))
-		{
-			std::string goodbye_msg = this->unSplit(msg, 1);
-			this->cmdPart(client, channel, this->newVector(msg[0], channel->getName(), &goodbye_msg));
-		}
-	}
-
-	this->removeClient(client);
-}
-
+// Performs checks, sends name list & appropriate codes
 void Server::cmdNames(Client *client, Channel *channel, str_vector const &msg)
 {
 	int code = 0;
@@ -242,6 +145,7 @@ void Server::cmdNames(Client *client, Channel *channel, str_vector const &msg)
 	this->sendNumeric(*client, RPL_ENDOFNAMES, ":End of /NAMES list.");
 }
 
+// Performs checks, sends message to relevant client/channel
 void Server::cmdPrivmsg(Client *client, Channel *channel, str_vector const &msg)
 {
 	int code = 0;
@@ -268,6 +172,7 @@ void Server::cmdPrivmsg(Client *client, Channel *channel, str_vector const &msg)
 		this->broadcast(*client, *this->_clients[msg[1]], msg[0], output);
 }
 
+// Performs checks, sends to channel topic method, sends relevant messages & codes
 void Server::cmdTopic(Client *client, Channel *channel, str_vector const &msg)
 {
 	int code = 0;
@@ -292,7 +197,7 @@ void Server::cmdTopic(Client *client, Channel *channel, str_vector const &msg)
 		this->broadcast(*client, *channel, msg[0], channel->getTopic());
 }
 
-
+// Performs checks, sends to flag dispatch function or sends back relevant messages & codes
 void Server::cmdMode(Client *client, Channel *channel, str_vector const &msg)
 {
 	int code = 0;
@@ -312,4 +217,3 @@ void Server::cmdMode(Client *client, Channel *channel, str_vector const &msg)
 	this->sendNumeric(*client, RPL_CHANMODE, channel->getName() + " " + channel->getModes());
 	this->sendNumeric(*client, RPL_CREATTIME, channel->getName() + " " + channel->getCreat());
 }
-

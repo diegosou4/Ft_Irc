@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:27 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 20:35:19 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 21:18:48 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -199,6 +199,16 @@ int	Channel::modeFlags(Client &client, char sign, char flag, std::string arg)
 
 	std::cout << "modeFlags method WIP" << std::endl;
 	return (SUCCESS);
+}
+
+void Channel::updateNickname(std::string oldnick, std::string newnick)
+{
+	(void)oldnick;
+	(void)newnick;
+	/* triggered when a user changes nickname
+		remove oldname from channel containers
+		add newname to channel containers
+		no need to do anything about Client * -> the pointer is still valid */
 }
 
 //------------------------- Utils----------------------------
