@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 13:00:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 22:08:22 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/30 00:01:14 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,7 @@ Server::str_vector Server::splitMsg(std::string &msg)
 
 	while (pos <= msg.size())
 	{
-		pos = msg.find_first_of(" \t\0");
+		pos = msg.find_first_of(" \t\0"); // while those chars are to be found CAMILLE
 		split_msg.push_back(msg.substr(0, pos));
 		if (pos == msg.size())
 			break;
@@ -91,7 +91,6 @@ bool	Server::authCheck(Client &client)
 		return (false);
 
 	client.setState(ACTIVE);
-	this->_clients[client.getNickname()] = &client;
 
 	this->sendNumeric(client, RPL_WELCOME, WELCOME);
 	this->printServer(&client, "has successfully logged in");

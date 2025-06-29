@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/27 12:11:32 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 20:21:11 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 23:43:59 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,28 +117,3 @@ static std::map<int, std::string> create_errmsg()
 }
 
 static const std::map<int, std::string> ErrMsg = create_errmsg();
-
-/*
-static const std::map<int, std::string> ErrMsg
-{
-	{401, ":No such nick/channel"},
-	{403, ":No such channel"},
-	{404, ":Cannot send to channel"},
-	{421, ":Unknown command"},
-	{431, ":No nickname given"},
-	{432, ":Erroneous nickname"},
-	{433, ":Nickname is already in use"},
-	{441, ":They aren't on that channel"},
-	{442, ":You're not on that channel"},
-	{443, ":is already on channel"},
-	{451, ":You have not registered"},
-	{461, ":Not enough parameters"},
-	{462, ":You may not reregister"},
-	{464, ":Password incorrect"},
-	{467, ":Channel key already set"},
-	{471, ":Cannot join channel (+l)"},
-	{472, ":is unknown mode char to me"},
-	{473, ":Cannot join channel (+i)"},
-	{475, ":Cannot join channel (+k)"},
-	{482, ":You're not channel operator"}
-}; */

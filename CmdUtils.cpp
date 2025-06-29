@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 22:00:13 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 22:05:33 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/30 00:29:49 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,8 @@ Channel	*Server::findChannel(str_vector &split_msg)
 {
 	Channel *channel = NULL;
 	std::string channel_name;
+
+	//CAMILLE to add remaining command channel formatting
 
 	if (split_msg.size() >= 2 && split_msg[1][0] == '#')
 		channel_name = split_msg[1];
@@ -67,6 +69,7 @@ int	Server::cmdCheck(Client *client, Channel *channel, std::string target)
 // Checks if MODE and flag command was sent in correct formatting
 int		Server::checkModeFormat(str_vector const &msg)
 {
+	// check if mixed signs are handled well CAMILLE
 	std::string flags = "ilkot";
 	std::string valid_signs = "+-";
 

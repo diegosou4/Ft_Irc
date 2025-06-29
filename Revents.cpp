@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:41:33 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 21:23:45 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 23:37:37 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ void	Server::pollHup(Client &client)
 // Retrieves message, splits it into vector, sends it to command managers
 void Server::pollIn(Client &client)
 {
-	// Need to modify function to handle newlines
+	// Need to modify function to handle newlines DIEGO
 	std::string msg = getMsg(client);
 	if (msg.empty())
 		return;
