@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:48:21 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 17:22:08 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 18:39:08 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -187,23 +187,31 @@ void Server::cmdPart(Client *client, Channel *channel, str_vector const &msg)
 	if (code)
 		return (this->sendNumeric(*client, code));
 
-	if (msg.size() > 2)
-		goodbye_msg = this->unSplit(msg, 2);
+	if (!channel->isEmpty())
+		return (this->broadcast(*client, *channel, msg[0], this->unSplit(msg, 2)));
 
-	this->broadcast(*client, *channel, msg[0], goodbye_msg);
+	this->_channels.erase(channel->getName());
+	delete channel;
 }
 
 void Server::cmdQuit(Client *client, Channel *channel, str_vector const &msg)
 {
 	int code = 0;
 
+	if (!client)
+		throw std::runtime_error("Fatal: client not found");
+
 	if (msg.size() > 1 && (msg[1][0] != ':' || msg[1].length() < 2))
 		return (this->sendNumeric(*client, ERR_NEEDMOREPARAMS));
 
 	channels_iter it = this->_channels.begin();
-	for (; it != this->_channels.end(); ++it)
-		if (it->second->isMember(*client))
-			this->cmdPart(client, it->second, this->newVector(msg[0], it->first, &this->unSplit(msg, 1)));
+	while (it != this->_channels.end())
+	{
+		channel = it->second;
+		it++;
+		if (channel->isMember(*client))
+			this->cmdPart(client, channel, this->newVector(msg[0], channel->getName(), &this->unSplit(msg, 1)));
+	}
 
 	this->removeClient(*client);
 }
