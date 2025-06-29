@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 13:00:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 16:55:15 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 17:19:44 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -265,12 +265,14 @@ std::string Server::nameList(Channel &channel)
 	return (namelist);
 }
 
-Server::str_vector Server::newVector(std::string const &arg1, std::string const &arg2)
+Server::str_vector Server::newVector(std::string const &arg1, std::string const &arg2, std::string *arg3)
 {
 	str_vector new_vector;
 
 	new_vector.push_back(arg1);
 	new_vector.push_back(arg2);
+	if (arg3)
+		new_vector.push_back(*arg3);
 
 	return (new_vector);
 }

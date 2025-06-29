@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 16:44:38 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 17:19:29 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,7 +123,7 @@ class Server
 		int		checkModeFormat(str_vector const &msg);
 		void	sendMode(Client &client, Channel &channel, int stop, str_vector const &msg);
 		std::string nameList(Channel &channel);
-		str_vector newVector(std::string const &arg1, std::string const &arg2);
+		str_vector newVector(std::string const &arg1, std::string const &arg2, std::string *arg3);
 		std::string	unSplit(str_vector const &msg, int index);
 	};
 

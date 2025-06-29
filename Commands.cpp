@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:48:21 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 16:55:47 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 17:22:08 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,8 +117,8 @@ void Server::cmdJoin(Client *client, Channel *channel, str_vector const &msg)
 	if (code)
 		return (this->sendNumeric(*client, code));
 
-	this->cmdTopic(client, channel, this->newVector("TOPIC", channel->getName()));
-	this->cmdNames(client, channel, this->newVector("NAMES", channel->getName()));
+	this->cmdTopic(client, channel, this->newVector("TOPIC", channel->getName(), 0));
+	this->cmdNames(client, channel, this->newVector("NAMES", channel->getName(), 0));
 
 	this->broadcast(*client, *channel, msg[0], channel->getName());
 }
@@ -147,8 +147,8 @@ void Server::cmdInvite(Client *client, Channel *channel, str_vector const &msg)
 
 void Server::cmdKick(Client *client, Channel *channel, str_vector const &msg)
 {
-	std::string reason;
 	int code = 0;
+	std::string reason;
 
 	if (msg.size() < 3)
 		code = ERR_NEEDMOREPARAMS;
@@ -171,12 +171,41 @@ void Server::cmdKick(Client *client, Channel *channel, str_vector const &msg)
 
 void Server::cmdPart(Client *client, Channel *channel, str_vector const &msg)
 {
+	int code = 0;
+	std::string goodbye_msg;
 
+	if (msg.size() < 2)
+		code = ERR_NEEDMOREPARAMS;
+	else if (msg.size() > 2 && (msg[2][0] != ':' || msg[2].length() < 2))
+		code = ERR_NEEDMOREPARAMS;
+	else
+		code = cmdCheck(client, channel, "");
+
+	if (!code)
+		code = channel->removeMember(*client);
+
+	if (code)
+		return (this->sendNumeric(*client, code));
+
+	if (msg.size() > 2)
+		goodbye_msg = this->unSplit(msg, 2);
+
+	this->broadcast(*client, *channel, msg[0], goodbye_msg);
 }
 
 void Server::cmdQuit(Client *client, Channel *channel, str_vector const &msg)
 {
+	int code = 0;
 
+	if (msg.size() > 1 && (msg[1][0] != ':' || msg[1].length() < 2))
+		return (this->sendNumeric(*client, ERR_NEEDMOREPARAMS));
+
+	channels_iter it = this->_channels.begin();
+	for (; it != this->_channels.end(); ++it)
+		if (it->second->isMember(*client))
+			this->cmdPart(client, it->second, this->newVector(msg[0], it->first, &this->unSplit(msg, 1)));
+
+	this->removeClient(*client);
 }
 
 void Server::cmdNames(Client *client, Channel *channel, str_vector const &msg)
@@ -187,7 +216,7 @@ void Server::cmdNames(Client *client, Channel *channel, str_vector const &msg)
 	{
 		channels_iter it = this->_channels.begin();
 		for (; it != this->_channels.end(); ++it)
-			this->cmdNames(client, it->second, this->newVector("NAMES", it->first));
+			this->cmdNames(client, it->second, this->newVector("NAMES", it->first, 0));
 		return ;
 	}
 	else if (msg.size() != 2)

@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:27 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 16:21:17 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 17:01:56 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -131,11 +131,21 @@ int Channel::kickMember(Client &client, std::string const &target)
 			return ERR_NOTCHANOP
 	if target not a member
 		 return ERR_USERNOTINCHAN
+	call rmMember
 	remove user from all relevant containers
 	return SUCCESS
 		 */
 
 	std::cout << "KICK Channel method WIP" << std::endl;
+	return (SUCCESS);
+}
+
+int	Channel::removeMember(Client &client)
+{
+	/* remove user from all relevant containers
+	return SUCCESS */
+
+	std::cout << "REMOVE Channel method WIP" << std::endl;
 	return (SUCCESS);
 }
 
