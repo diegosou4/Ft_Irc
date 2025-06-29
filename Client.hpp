@@ -5,74 +5,72 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/06/05 13:15:34 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/25 13:53:01 by feden-pe         ###   ########.fr       */
+/*   Created: 2025/06/25 16:47:09 by cbouvet           #+#    #+#             */
+/*   Updated: 2025/06/28 15:16:40 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-// TO BE DONE BY DIEGO
-
 #pragma once
 
-#include <unistd.h>
-#include <sstream>
+// -LIBRARIES-
 #include <iostream>
-#include <netinet/in.h>
+#include <unistd.h>
 #include <arpa/inet.h>
+#include <netinet/in.h>
 
-class Channel;
-
+// -STRUCTS-
 enum clientState
 {
 	OFFLINE,
 	AT_DOOR,
 	PASS_OK,
-	NICK_OK,
-	AUTH_OK,
 	ACTIVE
 };
 
-enum authState{
-	NO_ERROR,
-	NICK_IN_USE,
-	INVALID_NICK,
-	USERNAME_IN_USE,
-	INVALID_USERNAME,
-};
+class Channel;
 
+// -CLASS-
 class Client
 {
-	private : 
-        int _client_fd;
-		std::string _real_name;
+	private:
+		int	_client_fd;
+		clientState _state;
+
+		std::string _realname;
 		std::string _username;
 		std::string _nickname;
-		std::string _Ip_address;
-		clientState _state;
-		authState _auth_state;
-		std::string	_in_channel;
+		std::string _hostname; // more useful than IP - we can get IP from hostname anyways
+		std::string _prefix; // needed for compliance with RFC 2812 output responses
+
 	public:
-		Client();
+		//Constructor/Destructor:
+		Client(); // check if we actually use it?
 		Client(int fd);
 		Client(Client const &src);
+		Client &operator=(Client const &src); 
 		~Client();
 
-		Client	&operator=(Client const &src);
-		void setClientFd(int fd);
-		void setAuthState(authState auth_state);
-		void setRealname(std::string realname);
-		void setUsername(std::string username);
-		void setInChannel(std::string in_channel);
-		void setIpAddress(std::string ip_address);
-		void setNickname(std::string nickname);
-		void setState(clientState state);
-		std::string getIpAddress() const;
-		int getClientFd() const;
-		clientState getState() const;
-		authState getAuthState() const;
+		//Assignement operator:
+		Client &operator=(Client const &src);
+
+		//Setters:
+		void	setFd(int fd); // shorter to use in Server
+		void	setState(clientState state);
+		void	setRealname(std::string realname);
+		void	setUsername(std::string username);
+		void	setNickname(std::string nickname);
+		void	setHostname(std::string hostname);
+		void	setPrefix();
+
+		//Getters:
+		int	getFd() const; // shorter to use in Server
+		clientState	getState() const;
 		std::string getRealname() const;
 		std::string getUsername() const;
-		std::string getInChannel() const;
 		std::string getNickname() const;
-		
+		std::string getHostname() const;
+		std::string getPrefix() const;
+
+		bool	passedNick()const;
+		bool	passedUser()const;
 };

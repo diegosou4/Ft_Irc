@@ -1,152 +1,350 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Channel.cpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/06/25 20:54:27 by cbouvet           #+#    #+#             */
+/*   Updated: 2025/06/28 22:13:08 by cbouvet          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "Channel.hpp"
 
-Channel::Channel(const std::string &name) : _name(name), _limit(50)  {
-	// Default constructor initializes the channel with a name and default limit
-	// and sets invite-only to false.
-	this->_topic = "";
-	this->_password = "";
-	_members.reserve(_limit); // Reserve space for members to avoid reallocations
-	_operators.clear();
-	_invited.clear();
+//----------------- Constructor/Destructor ------------------
+Channel::Channel(std::string const &name): _name(name), _limit(50)
+{}
+
+Channel::Channel(std::string const &name, int const limit): _name(name), _limit(limit), _topic_op_only(false), _invite_only(false)  // default values
+{}
+
+Channel::~Channel()
+{
+	// Possibly clear memory of containers here?
 }
 
-Channel::Channel(const std::string &name, const int limit) : _name(name), _limit(limit) {
-}
-
-Channel::~Channel() { }
-
-std::vector<Client *>	Channel::getMembers(void) const {
-	return (_members);
-}
-
-void	Channel::setName(const std::string &name) {
+//------------------------ Setters --------------------------
+void	Channel::setName(std::string const &name)
+{
 	this->_name = name;
 }
 
-std::string	Channel::getName(void) const {
-	return (this->_name);
+void	Channel::setTopic(std::string const &topic) // checks to be handled in topicCmd
+{
+	this->_topic = topic;
 }
 
-std::string	Channel::setTopic(Client &op, const std::vector<std::string> &msg) {
-	if (!isOperator(op.getNickname()))
-		return ("");
-	this->_topic = &msg[2][1];
-	return (PURPLE + op.getUsername() + R " changed " + this->_name + " topic to " + &msg[2][1]);
-}
-
-std::string	Channel::getTopic(void) const {
-	return (this->_topic);
-}
-
-void		Channel::setPassword(const std::string &password) {
+void	Channel::setPassword(std::string const &password) // checks to be handled in modeCmd
+{
 	this->_password = password;
 }
 
-void		Channel::setLimit(const int &limit) {
+void	Channel::setLimit(int const &limit)
+{
 	this->_limit = limit;
 }
 
-std::string		Channel::addClient(Client &client, std::vector<std::string> msg) {
-	(void) msg;
-	// int	fd = client->getFd();
-	std::cout << "Adding client to channel: " << client.getNickname() << std::endl;
-	std::string nick = client.getNickname();
-	if (_banned.find(nick) != _banned.end()) {
-		// send message to client saying that they're banned from this channel
-		return ("");
-	}
-	std::cout << "debug2: " << nick << std::endl;
-	if (_members.size() > _limit) {
-		// send message to client saying that the channel is full
-		return ("");
-	}
-	std::cout << "debug3: " << nick << std::endl;
-	if (std::find(_members.begin(), _members.end(), &client) != _members.end()) {
-		return (RED + client.getUsername() + R " is already in channel " + this->_name);
-	}
-	if (_inviteOnly && _invited.find(nick) == _invited.end()) {
-		// send message to client saying that the channel is invite only (+i)
-		return ("");
-	}
-	// if (!_password.empty() && password != _password) {
-	// 	// send message to client saying that password is incorrect (+k)
-	// 	return ;
-	// }
+bool	Channel::setOperator(std::string target)
+{
+	if (this->isOperator(target))
+		return (false);
 
-	_members.push_back(&client);
-	if (_members.size() == 1)
-		_operators.insert(nick);
-	//broadcast JOIN to channel
-	return (PURPLE + client.getUsername() + R " joined " + _name);
-	// if (!_topic.empty())
-		// broadcast topic message to new client
+	this->_operators.insert(target);
+	return (true);
+	/* previous notation:
+	 _operators.insert(_operators.end(), client->getNickname());
+	doesn't work:
+	Even if trying to add at end of container (which doesn't work here),
+	sets always store elements in ascii order.
+	Is order really important here?
+	Should we use a different type of container? */
 }
 
-// void		Channel::broadcast(const std::string &message, Client *exclude) {
-// 	for (std::map<int, Client *>::iterator it = _members.begin(); it != _members.end(); ++it) {
-// 		if (exclude && it->second == exclude)
-// 			continue;
-// 		// it->second->sendMessage(message);
-// 	}
+// bool	Channel::setBanned(std::string target) //Ban is not compulsory in subject
+// {
+// 	if (this->_banned.find(target) != this->_banned.end())
+// 		return (false);
+
+// 	member_iter it = this->_members.begin();
+// 	for (; it != this->_members.end(); ++it)
+// 		if ((*it)->getNickname() == target)
+// 			break;
+
+// 	if (it != this->_members.end())
+// 		this->_members.erase(it);
+
+// 	if (this->isOperator(target))
+// 		this->_operators.erase(target);
+
+// 	this->_banned.insert(target);
+
+// 	return (true);
 // }
 
-// PART
-void		Channel::removeClient(Client *client) {
-	// int fd = client->getFd();
-	std::string nick = client->getNickname();
 
-	for (std::vector<Client *>::iterator it = _members.begin(); it != _members.end(); ++it) {
-		if ((*it)->getNickname() == nick) {
-			_members.erase(it);
-			break;
+//------------------------ Getters---------------------------
+std::string	Channel::getName() const
+{
+	return (this->_name);
+}
+
+std::string	Channel::getTopic() const
+{
+	return (this->_topic);
+}
+
+std::vector<Client *> Channel::getMembers() const
+{
+	return (this->_members);
+}
+
+
+//-------------------- Command methods-----------------------
+int Channel::modeCmd(Client &client, std::vector<std::string> &msg)
+{
+	if (!this->isMember(client))
+		return (ERR_NOTINCHAN);
+
+	if (!isOperator(client.getNickname()))
+		return (ERR_NOTCHANOP);
+
+	//perform format checks
+	return (this->modeFlags(client, msg[1][0], msg[2]));
+	std::string modeStr = msg[1];
+	bool adding;
+
+	  if (modeStr[0] == '+')
+        adding = true;
+    else if (modeStr[0] == '-')
+        adding = false;
+    else
+        return ERR_UNKNOWNMODE;
+
+    for (size_t i = 1; i < modeStr.length(); i++)
+    {
+        char flag = modeStr[i];
+        std::string arg = (msg.size() > 2) ? msg[2] : "";
+
+        int ret = this->modeFlags(client, flag, arg, adding);
+        if (ret != SUCCESS)
+            return ret;
+
+        // Se a flag consome argumento (como 'o' ou 'k'), pular para próximo argumento em msg[]
+        // Para um tratamento completo, você precisa controlar o índice do argumento dinamicamente
+    }
+    return SUCCESS;
+}
+
+int Channel::topicHandle(Client &client, std::vector<std::string> &msg)
+{
+	/* differentiate between:
+		get topic
+			return RPL_NOTOPIC if none
+			return RPL_TOPIC if exists
+
+		set topic
+			here, legitimacy of client must be verified
+				return ERR_NOTCHANOP if client is not op
+			if change successful ->
+			recompose message
+			this->setTopic
+			return SUCCESS*/
+
+	std::cout << "TOPIC Channel method WIP" << std::endl;
+	return (SUCCESS);
+}
+
+int Channel::inviteCmd(Client &client, std::vector<std::string> &msg)
+{
+	(void)client;
+	(void)msg;
+	return ("invite function to be made");
+}
+
+int Channel::kickCmd(Client &client, std::vector<std::string> &msg)
+{
+	(void)client;
+	(void)msg;
+	return ("kick function to be made");
+}
+
+
+//------------------------- Utils----------------------------
+bool	Channel::isEmpty() const
+{
+	return (this->_members.empty());
+}
+
+bool	Channel::isMember(Client &client) const
+{
+	(void)client;
+	return (true);
+}
+
+bool	Channel::isOperator(std::string nick) const
+{
+	if (this->_operators.find(nick) != this->_operators.end())
+		return (true);
+
+	return (false);
+}
+
+void	Channel::unban(Client *op, Client *target)
+{
+	(void)op;
+	(void)target;
+}
+
+Client *Channel::findMember(std::string name)
+{
+	member_iter it = this->_members.begin();
+
+	for (; it != this->_members.end(); ++it)
+	{
+		if ((*it)->getNickname() == name)
+			return (*it);
+	}
+
+	return (NULL);
+}
+
+int	Channel::addClient(Client &client)
+{
+	/* Perform checks
+		if channel is at capacity
+			return ERR_CHANISFULL
+		if channel is invite only && !invited
+			return ERR_INVITEONLYCHAN
+		if user already in
+			return ERR_USERINCHAN
+	add user to channel member
+	return SUCCESS*/
+
+	std::cout << "TOPIC Channel method WIP" << std::endl;
+	return (SUCCESS);
+}
+
+// Need to workout +/- differences for flags
+int Channel::modeFlags(Client &client, char flag, std::string arg, bool adding)
+{
+    if (!this->isOperator(client.getNickname()))
+        return ERR_NOTCHANOP;
+
+    switch(flag)
+    {
+        case 'i':
+            if (!arg.empty())
+                return ERR_NEEDMOREPARAMS;
+            this->_invite_only = adding;
+            return SUCCESS;
+
+        case 't':
+            if (!arg.empty())
+                return ERR_NEEDMOREPARAMS;
+            this->_topic_op_only = adding;
+            return SUCCESS;
+
+        case 'k':
+            if (adding)
+            {
+                if (arg.empty())
+                    return ERR_NEEDMOREPARAMS;
+                this->setPassword(arg);
+            }
+            else
+            {
+                if (!arg.empty())
+                    return ERR_NEEDMOREPARAMS;
+                this->setPassword("");
+            }
+            return SUCCESS;
+
+        case 'l':
+            if (adding)
+            {
+                if (arg.empty())
+                    return ERR_NEEDMOREPARAMS;
+                if (arg.find_first_not_of(DIGIT_CHARS) != std::string::npos)
+                    return ERR_UNKNOWNMODE;
+                int limit = atoi(arg.c_str());
+                if (limit <= 0 || limit > 50)
+                    return ERR_UNKNOWNMODE;
+                this->setLimit(limit);
+            }
+            else
+            {
+                if (!arg.empty())
+                    return ERR_NEEDMOREPARAMS;
+                this->setLimit(0); // 0 = sem limite
+            }
+            return SUCCESS;
+
+        case 'o':
+            if (arg.empty())
+                return ERR_NEEDMOREPARAMS;
+            if (!this->findMember(arg))
+                return ERR_NOSUCHNICK;
+            if (adding)
+            {
+                if (!this->setOperator(arg))
+                    return ERR_USERALREADYOP; // Custom erro code            }
+            else
+            {
+                if (!this->removeOperator(arg))
+                    return ERR_USERNOTOP; // Custom erro code
+            }
+            return SUCCESS;
 		}
+        default:
+            return ERR_UNKNOWNMODE;
+    
 	}
-	_operators.erase(nick);
-	// _invited.erase(fd); unsure if needed or not
-	
-	std::string part = ":" + client->getNickname() + " PART " + _name;
-	// broadcast(part, client);
-
-	if (_members.empty()) {
-		//either destroy channel or have Server do something with it
-		return ;
-	}
-	
-	if (_operators.empty() && !_members.empty()) {
-		_operators.insert(_members.front()->getNickname());
-		// Warn user that they became operators
-		// _members.begin()->second->sendMessage();
-	}
-
 }
 
-void	Channel::setBanned(Client *op, Client *target) {	
-	// Check to see if op is an operator
-	if (!isOperator(op->getNickname()))
-		return ;
-	if (_banned.find(target->getNickname()) == _banned.end())
-		_banned.insert(target->getNickname());
+
+int Channel::setInvited(std::string &name)
+{
+	/* if already member
+		return ERR_USERINCHAN
+	else return SUCCESS*/
+
+	std::cout << "INVITED Channel method WIP" << std::endl;
+	return (SUCCESS);
 }
 
-void	Channel::unban(Client *op, Client *target) {
-	// Check to see if op is an operator
-	if (!isOperator(op->getNickname()))
-		return ;
-	if (_banned.find(target->getNickname()) != _banned.end())
-		_banned.erase(target->getNickname());
+int Channel::kickMember(Client &client, std::string &target)
+{
+	/*
+		if client not op
+			return ERR_NOTCHANOP
+	if target not a member
+		 return ERR_USERNOTINCHAN
+	remove user from all relevant containers
+	return SUCCESS
+		 */
+
+	std::cout << "KICK Channel method WIP" << std::endl;
+	return (SUCCESS);
 }
 
-void	Channel::setOperator(Client *op, Client *client) {
-	// Check to see if is op is an operator
-	if (!isOperator(op->getNickname()))
-		return ;
-	_operators.insert(_operators.end(), client->getNickname());
+std::string Channel::getModes() const
+{
+	//return (this->_modes);
+	return ("channel->_modes to be implemented");
 }
 
-bool	Channel::isOperator(std::string nick) const {
-	return (_operators.find(nick) != _operators.end());
+std::string Channel::getCreat() const
+{
+	//return (this->_modes);
+	return ("channel->_creat to be implemented");
 }
 
-bool	Channel::isEmpty(void) const {
-	return (_members.empty());
+bool Channel::removeOperator(std::string target)
+{
+	if (this->_operators.find(target) == this->_operators.end())
+		return (false);
+
+	this->_operators.erase(target);
+	return (true);
 }

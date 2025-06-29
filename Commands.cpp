@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:48:21 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/20 12:59:11 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 11:47:09 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,147 +14,281 @@
 #include "Server.hpp"
 
 // Checks client existence, state & command format
-std::string Server::passCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg)
+void Server::cmdPass(Client *client, Channel *channel, std::vector<std::string> &msg)
 {
 	(void)channel;
+	int code = 0;
 
 	if (!client)
 		throw (std::runtime_error("Fatal: client not found"));
 
-	if (client->state > AT_DOOR)
-		return (PURPLE "You are already logged into the server" R);
+	if (client->getState() >= PASS_OK)
+		code = ERR_ALREADYAUTHED;
+	else if (msg.size() != 2)
+		code = ERR_NEEDMOREPARAMS;
+	else if (msg[1] != this->_password)
+		code = ERR_WRONGPASS;
 
-	if (split_msg.size() != 2)
-		return (RED "PASS: invalid command format\n" GREY PASS_EXPECT R);
+	if (code)
+		this->sendNumeric(*client, code);
+	else
+		client->setState(PASS_OK);
 
-	return (this->passCmd(*client, split_msg[1]));
+	this->authCheck(*client);
 }
 
 // Checks client existence, state & command format
-std::string Server::nickCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg)
+void Server::cmdNick(Client *client, Channel *channel, std::vector<std::string> &msg)
 {
-	(void)channel;
-
 	if (!client)
 		throw (std::runtime_error("Fatal: client not found"));
 
-	if (client->state < PASS_OK)
-		return (RED "Error - " INSTRUCTIONS R);
-	else if (client->state > PASS_OK)
-		return (PURPLE "Your nickname has already been set" R);
+	(void)channel;
+	int code = 0;
 
-	if (split_msg.size() != 2)
-		return (RED "NICK: invalid command format\n" GREY NICK_EXPECT R);
+	if (msg.size() != 2)
+		code = ERR_NEEDMOREPARAMS;
+	else if (this->_clients.find(msg[1]) != this->_clients.end() || \
+	client->getNickname() == msg[1])
+		code = ERR_NICKINUSE;
+	else if (msg[1].find_first_not_of(DIGIT_CHARS ALPHA_CHARS) != msg[1].npos)
+		code = ERR_INVALIDNICK;
 
-	return (this->nickCmd(client, split_msg[1]));
+	if (code)
+		return (this->sendNumeric(*client, code));
+
+	if (client->getState() == ACTIVE)
+		this->broadcast(*client, msg[0], msg[1]);
+
+	client->setNickname(msg[1]);
+
+	this->authCheck(*client);
 }
 
 // Checks client existence, state & command format
-std::string Server::userCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg)
+void Server::cmdUser(Client *client, Channel *channel, std::vector<std::string> &msg)
 {
 	(void)channel;
+	int code = 0;
 
 	if (!client)
 		throw (std::runtime_error("Fatal: client not found"));
 
-	if (client->state <= AT_DOOR)
-		return (RED "Error - Please enter the server using PASS" R);
-	else if (client->state == PASS_OK)
-		return (RED "Error - Please create a nickname using NICK" R);
+	if (client->getState() == ACTIVE || client->passedUser())
+		code = ERR_ALREADYAUTHED;
+	else if (msg.size() < 5)
+		code = ERR_NEEDMOREPARAMS;
+	else if (msg.size() > 5 && (msg[4][0] != ':' || msg[4].length() <= 1))
+		code = ERR_UNKNOWNCOMMAND;
 
-	if (split_msg.size() < 5 || split_msg[4][0] != ':' || split_msg[4].size() <= 1)
-		return (RED "USER: invalid command format\n" GREY USER_EXPECT R);
+	if (code)
+		this->sendNumeric(*client, code);
+	else
+	{
+		client->setUsername(msg[1]);
+		client->setRealname(&msg[4][1]);
+		for (size_t i = 5; i < msg.size(); i++)
+			client->setRealname(client->getRealname() + " " + msg[i]);
+	}
 
-	return (this->userCmd(*client, split_msg));
+	this->authCheck(*client);
 }
 
 // Checks client existence, state, command format & channel name format
-std::string Server::joinCheck(Client *client, Channel *channel, std::vector<std::string> &split_msg)
+void Server::cmdJoin(Client *client, Channel *channel, std::vector<std::string> &msg)
 {
+	int code = 0;
+
 	if (!client)
 		throw (std::runtime_error("Fatal: client not found"));
 
-	if (client->state <= AT_DOOR)
-		return (RED "Error - Please enter the server using PASS" R);
-	else if (client->state == PASS_OK)
-		return (RED "Error - Please create a nickname using NICK" R);
-	else if (client->state == NICK_OK)
-		return (RED "Error - Please finalize user data using USER" R);
+	if (client->getState() != ACTIVE)
+		code = ERR_NOTAUTHED;
+	else if (msg.size() != 2)
+		code = ERR_NEEDMOREPARAMS;
+	else if (msg[1][0] != '#' || msg[1].length() < 2)
+		code = ERR_UNKNOWNCOMMAND;
 
-	if (split_msg.size() != 2)
-		return (RED "JOIN: invalid command format\n" GREY JOIN_EXPECT R);
-
-	if (split_msg[1][0] != '#' || split_msg[1].length() < 2)
-		return (RED "Invalid channel name format\n" GREY JOIN_EXPECT R);
-
-	return (this->joinCmd(*client, channel, split_msg[1]));
-}
-
-// Checks password + sets client to next state if correct
-std::string Server::passCmd(Client &client, std::string password)
-{
-	if (password != this->_password)
-	{
-		std::cout << PURPLE << client.nickname << R " access denied: invalid password" << std::endl;
-		return (RED "Invalid password - access denied" R);
-	}
-
-	client.state = PASS_OK;
-
-	std::cout << PURPLE << client.nickname << R " access granted" << std::endl;
-	return (GREY "Password is correct - access granted!\nPlease proceed with NICK" R);
-}
-
-// Sets existing client as active OR sets non-existing client to next state
-std::string Server::nickCmd(Client *client, std::string nickname)
-{
-	if (this->_clients.find(nickname) == this->_clients.end())
-	{
-		std::cout << PURPLE << client->nickname << R " set nickname to " GREY << nickname << R << std::endl;
-
-		client->nickname = nickname;
-		client->state = NICK_OK;
-
-		return (GREY "Nickname created - Please proceed with USER" R);
-	}
-
-	this->_clients.erase(client->nickname);
-	delete client;
-
-	client = this->_clients[nickname];
-	client->state = ACTIVE;
-
-	std::cout << PURPLE << client->nickname << R " logged in" << std::endl;
-	return (PURPLE "Welcome back, " + client->nickname + R);
-}
-
-// Updates username and realname + finalizes new client registration if applicable
-std::string Server::userCmd(Client &client, std::vector<std::string> &user_args)
-{
-	client.username = user_args[0];
-
-	client.realname = &user_args[4][1];
-	for (size_t i = 5; i < user_args.size(); i++)
-		client.realname += " " + user_args[i];
-
-	std::cout << PURPLE << client.nickname << R " changed user data to:\n"
-	<< GREY " > username: " R << client.username << GREY "	-	realname: " R << client.realname << std::endl;
-
-	if (!client.username.empty() && client.state == NICK_OK)
-		return (PURPLE "Your user data has been correctly updated" R);
-
-	client.state = ACTIVE;
-	return (PURPLE "Welcome, " + client.nickname + R);
-}
-
-// Creates channel if non-existing + adds client to channel
-std::string Server::joinCmd(Client &client, Channel *channel, std::string channelname)
-{
 	if (!channel)
 	{
-		channel = new Channel(channelname);
-		this->_channels[channelname] = channel;
+		channel = new Channel(msg[1]);
+		this->_channels[msg[1]] = channel;
 	}
 
-	return (channel->joinCmd(client));
+	if (!code)
+		code = channel->addClient(*client);
+
+	if (code)
+		return (this->sendNumeric(*client, code));
+
+	std::vector<std::string> topic_cmd = {{"TOPIC"}, {channel->getName()}};
+	this->cmdTopic(client, channel, topic_cmd);
+
+	std::string namelist = "= " + channel->getName() + " :";
+	Channel::member_iter it = channel->getMembers().begin();
+	for (; it != channel->getMembers().end(); ++it)
+	{
+		if (channel->isOperator((*it)->getNickname()))
+			namelist += " @" + (*it)->getNickname();
+		else
+			namelist += " " + (*it)->getNickname();
+	}
+
+	this->sendNumeric(*client, RPL_NAMREPLY, namelist);
+	this->sendNumeric(*client, RPL_ENDOFNAMES, ":End of /NAMES list.");
+	this->broadcast(*client, *channel, msg[0], channel->getName());
+}
+
+void Server::cmdInvite(Client *client, Channel *channel, std::vector<std::string> &msg)
+{
+	int code = 0;
+	Client target = NULL;
+
+	if (msg.size() != 3)
+		code = ERR_NEEDMOREPARAMS;
+	else
+		code = cmdCheck(client, channel, msg[1]);
+
+	if (!code)
+		code = channel->setInvited(msg[1]);
+
+	if (code)
+		return (this->sendNumeric(*client, code));
+
+	target = *this->_clients[msg[1]];
+
+	this->sendNumeric(*client, RPL_INVITING, target.getNickname() + " " + channel->getName());
+	this->broadcast(*client, target, msg[0], target.getNickname() + " :" + channel->getName());
+}
+
+void Server::cmdKick(Client *client, Channel *channel, std::vector<std::string> &msg)
+{
+	std::string reason;
+	int code = 0;
+
+	if (msg.size() < 3)
+		code = ERR_NEEDMOREPARAMS;
+	else if (msg.size() > 3 && (msg[3][0] != ':' || msg[3].length() < 2))
+		code = ERR_NEEDMOREPARAMS;
+	else
+		code = cmdCheck(client, channel, msg[2]);
+
+	if (!code)
+		code = channel->kickMember(*client, msg[2]);
+
+	if (code)
+		return (this->sendNumeric(*client, code));
+
+	if (msg.size() > 3)
+	{
+		reason = " " + msg[3];
+		for (size_t i = 4; i < msg.size(); i++)
+			reason += " " + msg[i];
+	}
+
+	this->broadcast(*client, *channel, msg[0], msg[1] + reason);
+}
+
+void Server::cmdPrivmsg(Client *client, Channel *channel, std::vector<std::string> &msg)
+{
+	std::string output;
+	int code = 0;
+
+	if (msg.size() < 3 || (msg[2][0] != ':' || msg[2].size() < 2))
+		code = ERR_NEEDMOREPARAMS;
+	else
+		code = cmdCheck(client, channel, msg[1]);
+
+	if ((code == ERR_NOSUCHNICK && channel) || (code == ERR_NOSUCHCHAN && msg[1][0] != '#'))
+		code = 0;
+
+	if (!code && channel && !channel->isMember(*client))
+		code == ERR_NOTINCHAN;
+
+	if (code)
+		return (this->sendNumeric(*client, code));
+
+	output = msg[2];
+	for (size_t i = 3; i < msg.size(); i++)
+		output += " " + msg[i];
+
+	if (channel)
+		this->broadcast(*client, *channel, msg[0], output);
+	else
+		this->broadcast(*client, *this->_clients[msg[1]], msg[0], output);
+}
+
+void Server::cmdTopic(Client *client, Channel *channel, std::vector<std::string> &msg)
+{
+	int code = 0;
+
+	if (!code && msg.size() < 5)
+		code = ERR_NEEDMOREPARAMS;
+	else if (!code && msg.size() > 2 && (msg[2][0] != ':' || msg[2].length() <= 1))
+		code = ERR_UNKNOWNCOMMAND;
+	else
+		code = cmdCheck(client, channel, "");
+
+	if (!code)
+		code = channel->topicHandle(*client, msg);
+
+	if (code == RPL_NOTOPIC)
+		this->sendNumeric(*client, code, channel->getName() + " :No topic is set");
+	else if (code == RPL_TOPIC)
+		this->sendNumeric(*client, code, channel->getName() + " :" + channel->getTopic());
+	else if (code)
+		this->sendNumeric(*client, code);
+	else
+		this->broadcast(*client, *channel, msg[0], channel->getTopic());
+}
+
+
+void Server::cmdMode(Client *client, Channel *channel, std::vector<std::string> &msg)
+{
+	int i = 0;
+	int code = 0;
+
+	code = cmdCheck(client, channel, "");
+	int stop = checkModeFormat(msg);
+
+	if (!code && stop == -1)
+		code = ERR_UNKNOWNCOMMAND;
+
+	if (code)
+		return (this->sendNumeric(*client, code));
+
+	if (!code && msg.size() == 2)
+	{
+		this->sendNumeric(*client, RPL_CHANMODE, channel->getName() + " " + channel->getModes());
+		this->sendNumeric(*client, RPL_CREATTIME, channel->getName() + " " + channel->getCreat());
+	}
+
+	int sign = msg[1][0];
+	for (int i = 1; i < stop; i++)
+	{
+		for (int j = 0; msg[i][j]; j++)
+		{
+			std::string arg = "";
+			if (msg[i][j] == '-' || msg[i][j] == '+')
+			{
+				if (!msg[i][j +1] || msg[i][j+1] == '+' || msg[i][j+1] == '-')
+					code = ERR_UNKNOWNCOMMAND; // this check should be done before!!
+ 				sign = msg[i][j];
+			}
+			else
+			{
+				if (stop < msg.size() && this->needsArg(sign, msg[i][j]))
+					arg = msg[stop++];
+				code = channel->modeFlags(client, sign, msg[i][j], arg); // contains switch to send to correct functions
+				if (code)
+					this->sendNumeric(*client, code);
+				else
+				{
+					if (!arg.empty())
+						arg = " " + arg;
+					this->broadcast(*client, *channel, msg[0], std::string(1, sign) + msg[i][j] + arg);
+				}
+			}
+		}
+	}
 }

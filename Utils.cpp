@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 13:00:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/20 13:15:47 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 11:47:58 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,20 +20,12 @@ void	Server::setCmdMaps()
 	this->_authcmds["NICK"] = &Server::nickCheck;
 	this->_authcmds["USER"] = &Server::userCheck;
 	this->_authcmds["JOIN"] = &Server::joinCheck;
+	this->_authcmds["PRIVMSG"] = &Server::privMsgCheck;
 
 	this->_chancmds["MODE"] = &Channel::modeCmd;
 	this->_chancmds["TOPIC"] = &Channel::topicCmd;
 	this->_chancmds["INVITE"] = &Channel::inviteCmd;
-	this->_chancmds["PRIVMSG"] = &Channel::privmsgCmd;
 	this->_chancmds["KICK"] = &Channel::kickCmd;
-}
-
-// Displays welcome screen to user + notifies server
-void	Server::welcomeScreen(Client &client)
-{
-	std::cout << PURPLE << client.nickname << R " is at the door" << std::endl;
-
-	this->broadcast(client, NULL, PURPLE WELCOME GREY INSTRUCTIONS R);
 }
 
 // Retrieves message from user + perform checks - removes client if errors
@@ -42,12 +34,12 @@ std::string Server::getMsg(Client &client)
 	char buff[BUFFSIZE];
 	memset(buff, 0, BUFFSIZE);
 
-	int bytes_read = recv(client.fd, buff, BUFFSIZE, 0);
+	int bytes_read = recv(client.getFd(), buff, BUFFSIZE, 0);
 
 	if (bytes_read <= 0)
 	{
 		if (bytes_read < 0)
-			broadcast(client, NULL, strerror(errno));
+			this->printServer(&client, RED + std::string(strerror(errno)));
 		this->removeClient(client);
 		buff[0] = 0;
 	}
@@ -75,13 +67,14 @@ std::vector<std::string> Server::splitMsg(std::string &msg)
 
 Channel	*Server::findChannel(std::vector<std::string> &split_msg)
 {
+	//add looking for user if privmsg
 	Channel *channel = NULL;
 	std::string channel_name;
 
 	if (split_msg.size() >= 2 && split_msg[1][0] == '#')
-		channel_name = split_msg[1][0];
+		channel_name = split_msg[1];
 	else if (split_msg.size() >= 3 && split_msg[2][0] == '#' && split_msg[0] == "INVITE")
-		channel_name = split_msg[2][0];
+		channel_name = split_msg[2];
 
 	if (this->_channels.find(channel_name) != this->_channels.end())
 		channel = this->_channels[channel_name];
@@ -89,37 +82,146 @@ Channel	*Server::findChannel(std::vector<std::string> &split_msg)
 	return (channel);
 }
 
-// Broadcasts message to server, client, & channel if applicable
-void	Server::broadcast(Client &client, Channel *channel, std::string const &msg)
-{
-	if (!channel)
-	{
-		if (send(client.fd, msg.c_str(), msg.length(), 0) < 0)
-			throw (std::runtime_error("Failed to send to " + client.nickname));
-		return;
-	}
-
-	std::string output = PURPLE + client.nickname + ": " R + msg;
-	std::cout << output << std::endl;
-
-	std::vector<Client *>::iterator it = channel->members.begin();
-	for (; it != channel->members.end(); ++it)
-		if (&client != *it && (*it)->state == ACTIVE)
-			if (send((*it)->fd, output.c_str(), output.length(), 0) < 0)
-				throw (std::runtime_error("Failed to send to " + (*it)->nickname));
-}
-
 // Removes client from pollfd, sets client as OFFLINE, closes fd, broadcast departure
 void	Server::removeClient(Client &client)
 {
 	for (pollfd_iter it = this->_fds.begin(); it != this->_fds.end(); ++it)
-		if (client.fd == it->fd)
+		if (client.getFd() == it->fd)
 			it->fd = REMOVAL;
 
 	for (channels_iter it = this->_channels.begin(); it != this->_channels.end(); ++it)
-		if (std::find(it->second->members.begin(), it->second->members.end(), &client) != it->second->members.end())
-			this->broadcast(client, it->second, "has left");
+		if (std::find(it->second->getMembers().begin(), it->second->getMembers().end(), &client) != it->second->getMembers().end())
+			this->broadcast(client, it->second, " has left");
 
-	close(client.fd);
-	client.state = OFFLINE;
+	this->printServer(&client, "has left");
+
+	close(client.getFd());
+	client.setState(OFFLINE);
 }
+
+void	Server::printServer(Client *client, std::string const &msg)
+{
+	if (client)
+		std::cout << PURPLE << client->getNickname()<< ": " R;
+
+	std::cout << msg << R << std::endl;
+}
+
+void	Server::sendClient(Client &client, std::string const &msg)
+{
+	if (send(client.getFd(), msg.c_str(), msg.length(), 0) < 0)
+		this->printServer(&client, RED "Failed to send message");
+}
+
+void	Server::sendNumeric(Client &client, int code)
+{
+	std::stringstream ss;
+	std::string msg;
+
+	if (ErrMsg.find(code) == ErrMsg.end())
+		throw (std::runtime_error("Invalid error code"));
+
+	msg = ErrMsg.find(code)->second;
+
+	ss 	<< ":" << this->_name << " " \
+		<< std::setw(3) << std::setfill('0') \
+		<< code << " " << client.getNickname() \
+		<< " " << msg << "\r\n";
+
+	this->sendClient(client, ss.str());
+}
+
+void	Server::sendNumeric(Client &client, int code, std::string const &msg)
+{
+	std::stringstream ss;
+
+	ss 	<< ":" << this->_name << " " \
+		<< std::setw(3) << std::setfill('0') \
+		<< code << " " << client.getNickname() \
+		<< " " << msg << "\r\n";
+
+	this->sendClient(client, ss.str());
+}
+
+void	Server::broadcast(Client &client, Channel &channel, std::string &cmd, std::string const &msg)
+{
+	std::string output = client.getPrefix() + " " + cmd + " " + msg + "\r\n";
+
+	Channel::member_iter it = channel.getMembers().begin();
+	for (; it != channel.getMembers().end(); ++it)
+		if (*it != &client && (*it)->getState() == ACTIVE)
+			this->sendClient(**it, output);
+}
+
+void	Server::broadcast(Client &client, std::string &cmd, std::string const &msg)
+{
+	channels_iter it = this->_channels.begin();
+	for (; it != this->_channels.end(); ++it)
+		if (it->second->isMember(client))
+			broadcast(client, *it->second, cmd, msg);
+}
+
+void	Server::broadcast(Client &client, Client &target, std::string &cmd, std::string const &msg)
+{
+	std::string output = client.getPrefix() + " " + cmd + " " + msg + "\r\n";
+	this->sendClient(target, output);
+}
+
+
+bool	Server::authCheck(Client &client)
+{
+	if (client.getState() == ACTIVE)
+		return (true);
+
+	if (client.getState() != PASS_OK || !client.passedNick() || !client.passedUser())
+		return (false);
+
+	client.setState(ACTIVE);
+	this->_clients[client.getNickname()] = &client;
+
+	this->sendNumeric(client, RPL_WELCOME, WELCOME);
+	this->printServer(&client, "has successfully logged in");
+
+	return (true);
+}
+
+int		Server::cmdCheck(Client *client, Channel *channel, std::string target)
+{
+	if (!client)
+		throw (std::runtime_error("Fatal: client not found"));
+
+	if (client->getState() != ACTIVE)
+		return (ERR_NOTAUTHED);
+	else if (!target.empty() && this->_clients.find(target) == this->_clients.end())
+		return (ERR_NOSUCHNICK);
+	else if (!channel)
+		return(ERR_NOSUCHCHAN);
+	else if (!channel->isMember(*client))
+		return (ERR_NOTINCHAN);
+
+	return (SUCCESS);
+}
+
+int		Server::checkModeFormat(std::vector<std::string> &msg)
+{
+	std::string flags = "ilkot";
+	std::string signs = "+-";
+
+	if (msg.size() > 2 && !strchr(sign, msg[2][0]))
+		return (-1);
+
+	for (int i = 2; i < msg.size(); i++)
+	{
+		if (i != 2 && !strchr(signs, msg[i][0]))
+			return (i);
+		if (msg[i].find_first_not_of(flags + signs) != msg[i].npos)
+			return (-1);
+		for (int j = 0; msg[i][j]; j++)
+			if (strchr(signs, msg[i][j]) && (!msg[i][j +1] || !strchr(flags, msg[i][j +1])))
+				return (-1);
+	}
+
+	return (msg.size());
+}
+
+

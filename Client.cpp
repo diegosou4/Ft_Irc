@@ -5,134 +5,152 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/06/05 13:15:41 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/25 13:52:39 by feden-pe         ###   ########.fr       */
+/*   Created: 2025/06/25 17:06:16 by cbouvet           #+#    #+#             */
+/*   Updated: 2025/06/28 15:15:48 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-
-// TO BE DONE BY DIEGO
 
 #include "Client.hpp"
 #include "Channel.hpp"
 
-Client::Client() : _client_fd(-1), _real_name("unregistered"), _username("unregistered"), _nickname("unregistered"), _Ip_address(""), _state(OFFLINE) , _auth_state(NO_ERROR), _in_channel("")
-{
 
+//----------------- Constructor/Destructor ------------------
+Client::Client(): _client_fd(-1), _state(OFFLINE), _username(), _nickname(), _hostname("unknown")
+{
+	char hostname[1000];
+
+	if (!gethostname(hostname, 1000))
+		this->_hostname = hostname;
 }
 
-Client::Client(int fd)
-	: _client_fd(fd),
-	  _real_name("unregistered"),
-	  _username("unregistered"),
-	  _nickname("unregistered"),
-	  _Ip_address(""),
-	  _state(AT_DOOR),
-	  _auth_state(NO_ERROR)
+Client::Client(int fd): _client_fd(fd), _state(OFFLINE), _username(), _nickname(), _hostname("unknown")
 {
+	struct sockaddr_in addr;
+	socklen_t addrlen = sizeof(addr);
 
+	if (!getpeername(fd, (struct sockaddr *)&addr, &addrlen))
+		this->_hostname = std::string(inet_ntoa(addr.sin_addr));
 }
 
-
-Client::Client(Client const &src) : _client_fd(src._client_fd), _real_name(src._real_name), _username(src._username), _Ip_address(src._Ip_address), _state(src._state) 
+Client::Client(Client const &src) // We might not need - check if should delete
 {
-	*this = src;
+	*this = src; // does this use the assignment operator or is it setting this to point to src?
 }
 
-Client::~Client() 
-{
-	
-}
-
-
-
-Client &Client::operator=(Client const &src) 
+Client &Client::operator=(Client const &src)  // We have oparator= in the class, so we can use it here
 {
 	if (this != &src) {
-		_real_name = src._real_name;
+		_realname = src._realname;
 		_username = src._username;
-		_Ip_address = src._Ip_address;
+		_hostname = src._hostname;
 		_state = src._state;
 	}
 	return *this;
 }
 
-void Client::setClientFd(int fd) 
+Client::~Client()
+{}
+
+//------------------ Assignement operator -------------------
+Client &Client::operator=(Client const &src)
 {
-	_client_fd = fd;
+	if (this != &src)
+	{
+		this->_state = src.getState();
+		this->_realname = src.getRealname();
+		this->_username = src.getUsername();
+		this->_nickname = src.getNickname();
+		this->_hostname = src.getHostname();
+	}
+	return (*this);
 }
 
-void Client::setRealname(std::string realname) 
+//------------------------ Setters --------------------------
+void	Client::setFd(int fd)
 {
-	_real_name = realname;
+	this->_client_fd = fd;
 }
 
-void Client::setUsername(std::string username) 
+void	Client::setState(clientState state)
 {
-	_username = username;
+	this->_state = state;
 }
 
-void Client::setIpAddress(std::string ip_address) 
+void	Client::setRealname(std::string realname)
 {
-	_Ip_address = ip_address;
+	this->_realname = realname;
 }
 
-void Client::setState(clientState state) 
+void	Client::setUsername(std::string username)
 {
-	_state = state;
+	this->_username = username;
 }
 
-
-
-std::string Client::getIpAddress() const 
+void	Client::setNickname(std::string nickname)
 {
-	return _Ip_address;
+	this->_nickname = nickname;
 }
 
-int Client::getClientFd() const 
+void	Client::setHostname(std::string hostname)
 {
-	return _client_fd;
+	this->_hostname = hostname;
 }
 
-std::string Client::getRealname() const 
+void	Client::setPrefix()
 {
-	 return _real_name;
+	this->_prefix = ":" + this->_nickname + \
+					"!" + this->_username + \
+					"@" + this->_hostname;
 }
 
-
-clientState Client::getState() const 
+//------------------------ Getters---------------------------
+int	Client::getFd() const
 {
-	return _state;
+	return (this->_client_fd);
 }
 
-std::string Client::getUsername() const 
+clientState	Client::getState() const
 {
-	return _username;
+	return (this->_state);
 }
 
-std::string Client::getInChannel() const 
+std::string Client::getRealname() const
 {
-	return _in_channel;
+	return (this->_realname);
 }
 
-authState Client::getAuthState() const 
+std::string Client::getUsername() const
 {
-	return _auth_state;
+	return (this->_username);
 }
 
-void Client::setInChannel(std::string in_channel) 
+std::string Client::getNickname() const
 {
-	_in_channel = in_channel;
-}
-std::string Client::getNickname() const 
-{
-	return _nickname;
-}
-void Client::setNickname(std::string nickname) 
-{
-	_nickname = nickname;
+	if (this->_nickname.empty())
+		return ("user@" + this->_hostname); //Only for server display
+	return (this->_nickname);
 }
 
-void Client::setAuthState(authState auth_state) 
+std::string Client::getHostname() const
 {
-	_auth_state = auth_state;
+	return (this->_hostname);
+}
+
+std::string Client::getPrefix() const
+{
+	return (this->_prefix);
+}
+
+bool	Client::passedNick()const
+{
+	if (this->_nickname.empty())
+		return (false);
+	return (true);
+}
+
+bool	Client::passedUser()const
+{
+	if (this->_username.empty() || this->_realname.empty())
+		return (false);
+	return (true);
 }
