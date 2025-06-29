@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:48:21 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 11:47:09 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 14:45:30 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,7 +116,7 @@ void Server::cmdJoin(Client *client, Channel *channel, std::vector<std::string> 
 	}
 
 	if (!code)
-		code = channel->addClient(*client);
+		code = channel->addMember(*client);
 
 	if (code)
 		return (this->sendNumeric(*client, code));
@@ -257,38 +257,10 @@ void Server::cmdMode(Client *client, Channel *channel, std::vector<std::string> 
 	if (code)
 		return (this->sendNumeric(*client, code));
 
-	if (!code && msg.size() == 2)
-	{
-		this->sendNumeric(*client, RPL_CHANMODE, channel->getName() + " " + channel->getModes());
-		this->sendNumeric(*client, RPL_CREATTIME, channel->getName() + " " + channel->getCreat());
-	}
+	if (msg.size() > 2)
+		return (this->sendMode(*client, *channel, stop, msg));
 
-	int sign = msg[1][0];
-	for (int i = 1; i < stop; i++)
-	{
-		for (int j = 0; msg[i][j]; j++)
-		{
-			std::string arg = "";
-			if (msg[i][j] == '-' || msg[i][j] == '+')
-			{
-				if (!msg[i][j +1] || msg[i][j+1] == '+' || msg[i][j+1] == '-')
-					code = ERR_UNKNOWNCOMMAND; // this check should be done before!!
- 				sign = msg[i][j];
-			}
-			else
-			{
-				if (stop < msg.size() && this->needsArg(sign, msg[i][j]))
-					arg = msg[stop++];
-				code = channel->modeFlags(client, sign, msg[i][j], arg); // contains switch to send to correct functions
-				if (code)
-					this->sendNumeric(*client, code);
-				else
-				{
-					if (!arg.empty())
-						arg = " " + arg;
-					this->broadcast(*client, *channel, msg[0], std::string(1, sign) + msg[i][j] + arg);
-				}
-			}
-		}
-	}
+	this->sendNumeric(*client, RPL_CHANMODE, channel->getName() + " " + channel->getModes());
+	this->sendNumeric(*client, RPL_CREATTIME, channel->getName() + " " + channel->getCreat());
 }
+

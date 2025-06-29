@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 13:00:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 11:47:58 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 14:25:26 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -205,23 +205,47 @@ int		Server::cmdCheck(Client *client, Channel *channel, std::string target)
 int		Server::checkModeFormat(std::vector<std::string> &msg)
 {
 	std::string flags = "ilkot";
-	std::string signs = "+-";
+	std::string valid_signs = "+-";
 
-	if (msg.size() > 2 && !strchr(sign, msg[2][0]))
+	if (msg.size() > 2 && !strchr(valid_signs.c_str(), msg[2][0]))
 		return (-1);
 
 	for (int i = 2; i < msg.size(); i++)
 	{
-		if (i != 2 && !strchr(signs, msg[i][0]))
+		if (i != 2 && !strchr(valid_signs.c_str(), msg[i][0]))
 			return (i);
-		if (msg[i].find_first_not_of(flags + signs) != msg[i].npos)
+		if (msg[i].find_first_not_of(flags + valid_signs) != msg[i].npos)
 			return (-1);
 		for (int j = 0; msg[i][j]; j++)
-			if (strchr(signs, msg[i][j]) && (!msg[i][j +1] || !strchr(flags, msg[i][j +1])))
+			if (strchr(valid_signs.c_str(), msg[i][j]) && (!msg[i][j +1] || !strchr(flags.c_str(), msg[i][j +1])))
 				return (-1);
 	}
 
 	return (msg.size());
+}
+
+void	Server::sendMode(Client &client, Channel &channel, int stop, std::vector<std::string> &msg)
+{
+	char sign = msg[2][0];
+	std::string valid_signs = "+-";
+
+	for (int i = 2; i < stop; i++)
+	{
+		for (size_t j = 0; msg[i][j]; j++)
+		{
+			if (strchr(valid_signs.c_str(), msg[i][j]))
+				sign = msg[i][j]; continue;
+
+			std::string arg;
+			if (stop < msg.size() && channel.needsArg(sign, msg[i][j]))
+				arg = " " + msg[stop++];
+			int code = channel.modeFlags(client, sign, msg[i][j], &arg[1]);
+			if (code)
+				this->sendNumeric(client, code);
+			else
+				this->broadcast(client, channel, msg[0], std::string(1, sign) + msg[i][j] + arg);
+		}
+	}
 }
 
 

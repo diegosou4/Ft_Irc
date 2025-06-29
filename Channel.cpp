@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:27 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/28 22:13:08 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 14:48:24 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,15 @@ void	Channel::setLimit(int const &limit)
 	this->_limit = limit;
 }
 
+void	Channel::setModes(char sign, char flag)
+{
+	/* this method must be called everytime a channel mode is altered
+	if char is +, check if flag already in modes
+		if not, adds it
+	if char is -, check if flag is already non-existing
+		if exists, removes it */
+}
+
 bool	Channel::setOperator(std::string target)
 {
 	if (this->isOperator(target))
@@ -61,27 +70,15 @@ bool	Channel::setOperator(std::string target)
 	Should we use a different type of container? */
 }
 
-bool	Channel::setBanned(std::string target) //Ban is not compulsory in subject
+int Channel::setInvited(std::string &name)
 {
-	if (this->_banned.find(target) != this->_banned.end())
-		return (false);
+	/* if already member
+		return ERR_USERINCHAN
+	else return SUCCESS*/
 
-	member_iter it = this->_members.begin();
-	for (; it != this->_members.end(); ++it)
-		if ((*it)->getNickname() == target)
-			break;
-
-	if (it != this->_members.end())
-		this->_members.erase(it);
-
-	if (this->isOperator(target))
-		this->_operators.erase(target);
-
-	this->_banned.insert(target);
-
-	return (true);
+	std::cout << "INVITED Channel method WIP" << std::endl;
+	return (SUCCESS);
 }
-
 
 //------------------------ Getters---------------------------
 std::string	Channel::getName() const
@@ -94,25 +91,52 @@ std::string	Channel::getTopic() const
 	return (this->_topic);
 }
 
+std::string Channel::getModes() const
+{
+	return (this->_modes);
+}
+
+std::string Channel::getCreat() const
+{
+	return (this->_creat);
+}
+
 std::vector<Client *> Channel::getMembers() const
 {
 	return (this->_members);
 }
 
 
-//-------------------- Command methods-----------------------
-int Channel::modeCmd(Client &client, std::vector<std::string> &msg)
+//-------------------- Command-related methods-----------------------
+int	Channel::addMember(Client &client)
 {
-	if (!this->isMember(client))
-		return (ERR_NOTINCHAN);
+	/* Perform checks
+		if channel is at capacity
+			return ERR_CHANISFULL
+		if channel is invite only && !invited
+			return ERR_INVITEONLYCHAN
+		if user already in
+			return ERR_USERINCHAN
+	add user to channel member
+	return SUCCESS*/
 
-	if (!isOperator(client.getNickname()))
-		return (ERR_NOTCHANOP);
+	std::cout << "TOPIC Channel method WIP" << std::endl;
+	return (SUCCESS);
+}
 
-	//perform format checks
+int Channel::kickMember(Client &client, std::string &target)
+{
+	/*
+		if client not op
+			return ERR_NOTCHANOP
+	if target not a member
+		 return ERR_USERNOTINCHAN
+	remove user from all relevant containers
+	return SUCCESS
+		 */
 
-	return (this->modeFlags(client, msg[1][0], msg[2]));
-	// COULD DO A HELPER WITH NOTHING + ANOTHER WITH INT + ANOTHER WITH STR +ANOTHER W CLIENT
+	std::cout << "KICK Channel method WIP" << std::endl;
+	return (SUCCESS);
 }
 
 int Channel::topicHandle(Client &client, std::vector<std::string> &msg)
@@ -134,20 +158,25 @@ int Channel::topicHandle(Client &client, std::vector<std::string> &msg)
 	return (SUCCESS);
 }
 
-int Channel::inviteCmd(Client &client, std::vector<std::string> &msg)
+int	Channel::modeFlags(Client &client, char sign, char flag, std::string arg)
 {
-	(void)client;
-	(void)msg;
-	return ("invite function to be made");
-}
+	/* check if needsArg(sign, flag) == true && arg.empty()
+			return ERR_NEEDMOREPARAMS
+		else if !(needsArg(sign, flag) && !arg.empty()
+			return ERR_UNKNOWNCOMMAND
 
-int Channel::kickCmd(Client &client, std::vector<std::string> &msg)
-{
-	(void)client;
-	(void)msg;
-	return ("kick function to be made");
-}
+		dispatch to appropriate functions according to sign + flag
+		eg.
+		switch or if else
+			flag == i && sign == +
+				send to channel function handling +i
+					return appropriate error code if any
 
+	if all goes well, return SUCCCESS*/
+
+	std::cout << "modeFlags method WIP" << std::endl;
+	return (SUCCESS);
+}
 
 //------------------------- Utils----------------------------
 bool	Channel::isEmpty() const
@@ -157,7 +186,8 @@ bool	Channel::isEmpty() const
 
 bool	Channel::isMember(Client &client) const
 {
-	(void)client;
+	/* check if client is a member */
+	std::cout << "isMember method WIP" << std::endl;
 	return (true);
 }
 
@@ -169,10 +199,15 @@ bool	Channel::isOperator(std::string nick) const
 	return (false);
 }
 
-void	Channel::unban(Client *op, Client *target)
+bool	Channel::needsArg(char sign, char flag)
 {
-	(void)op;
-	(void)target;
+	/* check which sign + flag require arg
+		if do
+			return true
+		return false */
+
+	std::cout << "NeedsArg method WIP" << std::endl;
+	return (false);
 }
 
 Client *Channel::findMember(std::string name)
@@ -186,113 +221,5 @@ Client *Channel::findMember(std::string name)
 	}
 
 	return (NULL);
-}
-
-int	Channel::addClient(Client &client)
-{
-	/* Perform checks
-		if channel is at capacity
-			return ERR_CHANISFULL
-		if channel is invite only && !invited
-			return ERR_INVITEONLYCHAN
-		if user already in
-			return ERR_USERINCHAN
-	add user to channel member
-	return SUCCESS*/
-
-	std::cout << "TOPIC Channel method WIP" << std::endl;
-	return (SUCCESS);
-}
-
-// Need to workout +/- differences for flags
-int Channel::modeFlags(Client &client, char flag, std::string arg)
-{
-	/* check if client is op
-		if not return ERR_NOTCHANOP*/
-
-	if (flag == 'i' || flag == 't')
-	{
-		if (!arg.empty())
-			return ("Invalid use of flag " + flag);
-		if (flag == 'i')
-			std::cout << "invite function to be made";
-		else if (flag == 't')
-			std::cout << "topic function to be made";
-	}
-
-	if (arg.empty())
-			return ("Invalid use of flag " + flag);
-
-	if (flag == 'k')
-	{
-		this->setPassword(arg);
-		return (" has set password to " + arg);
-	}
-	else if (flag == 'l')
-	{
-		if (arg.find_first_not_of(DIGIT_CHARS))
-			return ("Invalid limit: has to be numerical");
-
-		int limit = atoi(arg.c_str());
-		if (arg.length() > 2 || limit > 50)
-			return ("Invalid limit: can't be higher than 50");
-
-		this->setLimit(limit);
-		return (" has set channel member limit to " + arg);
-	}
-
-	if (!this->findMember(arg))
-			return (arg + " is not a member of " + this->_name);
-
-	if (flag == 'o')
-	{
-		if (!this->setOperator(arg))
-			return (arg + "is already an operator of " + this->_name);
-		return (" has set " + arg + " as operator of " + this->_name);
-	}
-	else if (flag == 'b')
-	{
-		if (!this->setBanned(arg))
-			return (arg + " is already banned from " + this->_name);
-		return (" has banned " + arg + " from " + this->_name);
-	}
-	return ("unsure yet");
-}
-
-int Channel::setInvited(std::string &name)
-{
-	/* if already member
-		return ERR_USERINCHAN
-	else return SUCCESS*/
-
-	std::cout << "INVITED Channel method WIP" << std::endl;
-	return (SUCCESS);
-}
-
-int Channel::kickMember(Client &client, std::string &target)
-{
-	/*
-		if client not op
-			return ERR_NOTCHANOP
-	if target not a member
-		 return ERR_USERNOTINCHAN
-	remove user from all relevant containers
-	return SUCCESS
-		 */
-
-	std::cout << "KICK Channel method WIP" << std::endl;
-	return (SUCCESS);
-}
-
-std::string Channel::getModes() const
-{
-	//return (this->_modes);
-	return ("channel->_modes to be implemented");
-}
-
-std::string Channel::getCreat() const
-{
-	//return (this->_modes);
-	return ("channel->_creat to be implemented");
 }
 
