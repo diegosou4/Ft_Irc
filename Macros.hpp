@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/27 12:11:32 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/28 20:18:20 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 20:21:11 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,6 +89,36 @@
 #define	ERR_BADCHANKEY		475	//invalid chan pass
 #define	ERR_NOTCHANOP		482	// MODE/KICK by a non-op
 
+static std::map<int, std::string> create_errmsg()
+{
+	std::map<int, std::string> errmap;
+	errmap[401] = ":No such nick/channel";
+	errmap[403] = ":No such channel";
+	errmap[404] = ":Cannot send to channel";
+	errmap[421] = ":Unknown command";
+	errmap[431] = ":No nickname given";
+	errmap[432] = ":Erroneous nickname";
+	errmap[433] = ":Nickname is already in use";
+	errmap[441] = ":They aren't on that channel";
+	errmap[442] = ":You're not on that channel";
+	errmap[443] = ":is already on channel";
+	errmap[451] = ":You have not registered";
+	errmap[461] = ":Not enough parameters";
+	errmap[462] = ":You may not reregister";
+	errmap[464] = ":Password incorrect";
+	errmap[467] = ":Channel key already set";
+	errmap[471] = ":Cannot join channel (+l)";
+	errmap[472] = ":is unknown mode char to me";
+	errmap[473] = ":Cannot join channel (+i)";
+	errmap[475] = ":Cannot join channel (+k)";
+	errmap[482] = ":You're not channel operator";
+
+	return (errmap);
+}
+
+static const std::map<int, std::string> ErrMsg = create_errmsg();
+
+/*
 static const std::map<int, std::string> ErrMsg
 {
 	{401, ":No such nick/channel"},
@@ -111,4 +141,4 @@ static const std::map<int, std::string> ErrMsg
 	{473, ":Cannot join channel (+i)"},
 	{475, ":Cannot join channel (+k)"},
 	{482, ":You're not channel operator"}
-};
+}; */

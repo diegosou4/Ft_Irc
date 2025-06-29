@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 13:00:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 18:47:01 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 20:32:09 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -209,7 +209,7 @@ int		Server::checkModeFormat(str_vector const &msg)
 	if (msg.size() > 2 && !strchr(valid_signs.c_str(), msg[2][0]))
 		return (-1);
 
-	for (int i = 2; i < msg.size(); i++)
+	for (size_t i = 2; i < msg.size(); i++)
 	{
 		if (i != 2 && !strchr(valid_signs.c_str(), msg[i][0]))
 			return (i);
@@ -223,17 +223,20 @@ int		Server::checkModeFormat(str_vector const &msg)
 	return (msg.size());
 }
 
-void	Server::sendMode(Client &client, Channel &channel, int stop, str_vector const &msg)
+void	Server::sendMode(Client &client, Channel &channel, size_t stop, str_vector const &msg)
 {
 	char sign = msg[2][0];
 	std::string valid_signs = "+-";
 
-	for (int i = 2; i < stop; i++)
+	for (size_t i = 2; i < stop; i++)
 	{
 		for (size_t j = 0; msg[i][j]; j++)
 		{
 			if (strchr(valid_signs.c_str(), msg[i][j]))
-				sign = msg[i][j]; continue;
+			{
+				sign = msg[i][j];
+				continue;
+			}
 
 			std::string arg;
 			if (stop < msg.size() && channel.needsArg(sign, msg[i][j]))
@@ -274,7 +277,7 @@ Server::str_vector Server::newVector(std::string const &arg1, std::string const 
 	return (new_vector);
 }
 
-std::string	Server::unSplit(str_vector const &msg, int index)
+std::string	Server::unSplit(str_vector const &msg, size_t index)
 {
 	if (index >= msg.size())
 		return (NULL);

@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:27 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 17:01:56 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 20:35:19 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,8 @@ void	Channel::setLimit(int const &limit)
 
 void	Channel::setModes(char sign, char flag)
 {
+	(void)sign;
+	(void)flag;
 	/* this method must be called everytime a channel mode is altered
 	if char is +, check if flag already in modes
 		if not, adds it
@@ -72,6 +74,7 @@ bool	Channel::setOperator(std::string target)
 
 int Channel::setInvited(std::string const &name)
 {
+	(void)name;
 	/* if already member
 		return ERR_USERINCHAN
 	else return SUCCESS*/
@@ -110,6 +113,7 @@ std::vector<Client *> Channel::getMembers() const
 //-------------------- Command-related methods-----------------------
 int	Channel::addMember(Client &client)
 {
+	(void)client;
 	/* Perform checks
 		if channel is at capacity
 			return ERR_CHANISFULL
@@ -126,6 +130,8 @@ int	Channel::addMember(Client &client)
 
 int Channel::kickMember(Client &client, std::string const &target)
 {
+	(void)client;
+	(void)target;
 	/*
 		if client not op
 			return ERR_NOTCHANOP
@@ -142,6 +148,7 @@ int Channel::kickMember(Client &client, std::string const &target)
 
 int	Channel::removeMember(Client &client)
 {
+	(void)client;
 	/* remove user from all relevant containers
 	return SUCCESS */
 
@@ -151,6 +158,8 @@ int	Channel::removeMember(Client &client)
 
 int Channel::topicHandle(Client &client, std::vector<std::string> const &msg)
 {
+	(void)client;
+	(void)msg;
 	/* differentiate between:
 		get topic
 			return RPL_NOTOPIC if none
@@ -170,6 +179,10 @@ int Channel::topicHandle(Client &client, std::vector<std::string> const &msg)
 
 int	Channel::modeFlags(Client &client, char sign, char flag, std::string arg)
 {
+	(void)client;
+	(void)sign;
+	(void)flag;
+	(void)arg;
 	/* check if needsArg(sign, flag) == true && arg.empty()
 			return ERR_NEEDMOREPARAMS
 		else if !(needsArg(sign, flag) && !arg.empty()
@@ -196,6 +209,7 @@ bool	Channel::isEmpty() const
 
 bool	Channel::isMember(Client &client) const
 {
+	(void)client;
 	/* check if client is a member */
 	std::cout << "isMember method WIP" << std::endl;
 	return (true);
@@ -211,6 +225,8 @@ bool	Channel::isOperator(std::string nick) const
 
 bool	Channel::needsArg(char sign, char flag)
 {
+	(void)flag;
+	(void)sign;
 	/* check which sign + flag require arg
 		if do
 			return true

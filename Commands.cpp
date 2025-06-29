@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:48:21 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 18:47:11 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 20:29:24 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -126,7 +126,6 @@ void Server::cmdJoin(Client *client, Channel *channel, str_vector const &msg)
 void Server::cmdInvite(Client *client, Channel *channel, str_vector const &msg)
 {
 	int code = 0;
-	Client target = NULL;
 
 	if (msg.size() != 3)
 		code = ERR_NEEDMOREPARAMS;
@@ -139,7 +138,7 @@ void Server::cmdInvite(Client *client, Channel *channel, str_vector const &msg)
 	if (code)
 		return (this->sendNumeric(*client, code));
 
-	target = *this->_clients[msg[1]];
+	Client target = *this->_clients[msg[1]];
 
 	this->sendNumeric(*client, RPL_INVITING, target.getNickname() + " " + channel->getName());
 	this->broadcast(*client, target, msg[0], target.getNickname() + " :" + channel->getName());
@@ -196,8 +195,6 @@ void Server::cmdPart(Client *client, Channel *channel, str_vector const &msg)
 
 void Server::cmdQuit(Client *client, Channel *channel, str_vector const &msg)
 {
-	int code = 0;
-
 	if (!client)
 		throw std::runtime_error("Fatal: client not found");
 
@@ -210,7 +207,10 @@ void Server::cmdQuit(Client *client, Channel *channel, str_vector const &msg)
 		channel = it->second;
 		it++;
 		if (channel->isMember(*client))
-			this->cmdPart(client, channel, this->newVector(msg[0], channel->getName(), &this->unSplit(msg, 1)));
+		{
+			std::string goodbye_msg = this->unSplit(msg, 1);
+			this->cmdPart(client, channel, this->newVector(msg[0], channel->getName(), &goodbye_msg));
+		}
 	}
 
 	this->removeClient(client);
@@ -255,7 +255,7 @@ void Server::cmdPrivmsg(Client *client, Channel *channel, str_vector const &msg)
 		code = 0;
 
 	if (!code && channel && !channel->isMember(*client))
-		code == ERR_NOTINCHAN;
+		code = ERR_NOTINCHAN;
 
 	if (code)
 		return (this->sendNumeric(*client, code));
@@ -295,7 +295,6 @@ void Server::cmdTopic(Client *client, Channel *channel, str_vector const &msg)
 
 void Server::cmdMode(Client *client, Channel *channel, str_vector const &msg)
 {
-	int i = 0;
 	int code = 0;
 
 	code = cmdCheck(client, channel, "");

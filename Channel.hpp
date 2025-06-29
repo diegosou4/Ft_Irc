@@ -6,12 +6,13 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:22 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 17:02:57 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 20:31:35 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
+// -LIBRARIES-
 #include <set>
 #include <vector>
 #include <iostream>
@@ -19,6 +20,7 @@
 #include "Client.hpp"
 #include "Macros.hpp"
 
+// -CLASS-
 class Channel
 {
 	private:
