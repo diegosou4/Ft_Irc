@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 13:00:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 16:35:46 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 16:55:15 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ void	Server::setCmdMaps()
 	this->_authcmds["KICK"] = &Server::cmdKick;
 	this->_authcmds["PART"] = &Server::cmdPart;
 	this->_authcmds["QUIT"] = &Server::cmdQuit;
-	this->_authcmds["NAME"] = &Server::cmdName;
+	this->_authcmds["NAME"] = &Server::cmdNames;
 	this->_authcmds["PRIVMSG"] = &Server::cmdPrivmsg;
 	this->_authcmds["TOPIC"] = &Server::cmdTopic;
 	this->_authcmds["MODE"] = &Server::cmdMode;
@@ -275,4 +275,15 @@ Server::str_vector Server::newVector(std::string const &arg1, std::string const 
 	return (new_vector);
 }
 
+std::string	Server::unSplit(str_vector const &msg, int index)
+{
+	if (index >= msg.size())
+		return (NULL);
 
+	std::string str = msg[index++];
+
+	for (; index < msg.size(); index++)
+		str += " " + msg[index];
+
+	return (str);
+}

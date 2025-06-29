@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 17:06:16 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/28 15:15:48 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 16:52:16 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,6 +67,9 @@ void	Client::setState(clientState state)
 
 void	Client::setRealname(std::string realname)
 {
+	if (realname[0] == ':')
+		realname = &realname[1];
+
 	this->_realname = realname;
 }
 

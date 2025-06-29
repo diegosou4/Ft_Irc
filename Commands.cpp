@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:48:21 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 16:37:36 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 16:55:47 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,9 +30,9 @@ void Server::cmdPass(Client *client, Channel *channel, str_vector const &msg)
 		code = ERR_WRONGPASS;
 
 	if (code)
-		this->sendNumeric(*client, code);
-	else
-		client->setState(PASS_OK);
+		return (this->sendNumeric(*client, code));
+
+	client->setState(PASS_OK);
 
 	this->authCheck(*client);
 }
@@ -82,14 +82,10 @@ void Server::cmdUser(Client *client, Channel *channel, str_vector const &msg)
 		code = ERR_UNKNOWNCOMMAND;
 
 	if (code)
-		this->sendNumeric(*client, code);
-	else
-	{
-		client->setUsername(msg[1]);
-		client->setRealname(&msg[4][1]);
-		for (size_t i = 5; i < msg.size(); i++)
-			client->setRealname(client->getRealname() + " " + msg[i]);
-	}
+		return (this->sendNumeric(*client, code));
+
+	client->setUsername(msg[1]);
+	client->setRealname(this->unSplit(msg, 4));
 
 	this->authCheck(*client);
 }
@@ -122,7 +118,7 @@ void Server::cmdJoin(Client *client, Channel *channel, str_vector const &msg)
 		return (this->sendNumeric(*client, code));
 
 	this->cmdTopic(client, channel, this->newVector("TOPIC", channel->getName()));
-	this->cmdName(client, channel, this->newVector("NAME", channel->getName()));
+	this->cmdNames(client, channel, this->newVector("NAMES", channel->getName()));
 
 	this->broadcast(*client, *channel, msg[0], channel->getName());
 }
@@ -168,11 +164,7 @@ void Server::cmdKick(Client *client, Channel *channel, str_vector const &msg)
 		return (this->sendNumeric(*client, code));
 
 	if (msg.size() > 3)
-	{
-		reason = " " + msg[3];
-		for (size_t i = 4; i < msg.size(); i++)
-			reason += " " + msg[i];
-	}
+		reason = this->unSplit(msg, 3);
 
 	this->broadcast(*client, *channel, msg[0], msg[1] + reason);
 }
@@ -187,7 +179,7 @@ void Server::cmdQuit(Client *client, Channel *channel, str_vector const &msg)
 
 }
 
-void Server::cmdName(Client *client, Channel *channel, str_vector const &msg)
+void Server::cmdNames(Client *client, Channel *channel, str_vector const &msg)
 {
 	int code = 0;
 
@@ -195,7 +187,7 @@ void Server::cmdName(Client *client, Channel *channel, str_vector const &msg)
 	{
 		channels_iter it = this->_channels.begin();
 		for (; it != this->_channels.end(); ++it)
-			this->cmdName(client, it->second, this->newVector("NAME", it->first));
+			this->cmdNames(client, it->second, this->newVector("NAMES", it->first));
 		return ;
 	}
 	else if (msg.size() != 2)
@@ -209,15 +201,12 @@ void Server::cmdName(Client *client, Channel *channel, str_vector const &msg)
 	if (code)
 		return (this->sendNumeric(*client, code));
 
-	std::string namelist = this->nameList(*channel);
-
-	this->sendNumeric(*client, RPL_NAMREPLY, namelist);
+	this->sendNumeric(*client, RPL_NAMREPLY, this->nameList(*channel));
 	this->sendNumeric(*client, RPL_ENDOFNAMES, ":End of /NAMES list.");
 }
 
 void Server::cmdPrivmsg(Client *client, Channel *channel, str_vector const &msg)
 {
-	std::string output;
 	int code = 0;
 
 	if (msg.size() < 3 || (msg[2][0] != ':' || msg[2].size() < 2))
@@ -234,9 +223,7 @@ void Server::cmdPrivmsg(Client *client, Channel *channel, str_vector const &msg)
 	if (code)
 		return (this->sendNumeric(*client, code));
 
-	output = msg[2];
-	for (size_t i = 3; i < msg.size(); i++)
-		output += " " + msg[i];
+	std::string output = this->unSplit(msg, 2);
 
 	if (channel)
 		this->broadcast(*client, *channel, msg[0], output);

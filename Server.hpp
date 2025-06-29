@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 16:29:26 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 16:44:38 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,7 +100,7 @@ class Server
 		void cmdKick(Client *client, Channel *channel, str_vector const &msg);
 		void cmdPart(Client *client, Channel *channel, str_vector const &msg);
 		void cmdQuit(Client *client, Channel *channel, str_vector const &msg);
-		void cmdName(Client *client, Channel *channel, str_vector const &msg);
+		void cmdNames(Client *client, Channel *channel, str_vector const &msg);
 		void cmdPrivmsg(Client *client, Channel *channel, str_vector const &msg);
 		void cmdTopic(Client *client, Channel *channel, str_vector const &msg);
 		void cmdMode(Client *client, Channel *channel, str_vector const &msg);
@@ -124,5 +124,6 @@ class Server
 		void	sendMode(Client &client, Channel &channel, int stop, str_vector const &msg);
 		std::string nameList(Channel &channel);
 		str_vector newVector(std::string const &arg1, std::string const &arg2);
+		std::string	unSplit(str_vector const &msg, int index);
 	};
 
