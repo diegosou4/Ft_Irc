@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 22:00:13 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/30 16:15:57 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/30 17:44:07 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,7 +67,6 @@ int	Server::cmdCheck(Client *client, Channel *channel, std::string target)
 // Checks if MODE and flag command was sent in correct formatting
 int		Server::checkModeFormat(str_vector const &msg)
 {
-	// check if mixed signs are handled well CAMILLE
 	std::string flags = "ilkot";
 	std::string valid_signs = "+-";
 
@@ -91,10 +90,11 @@ int		Server::checkModeFormat(str_vector const &msg)
 // Retrieves sign, associated flag & associated arg to send to channel Mode method
 void	Server::sendMode(Client &client, Channel &channel, size_t stop, str_vector const &msg)
 {
+	size_t limit = stop;
 	char sign = msg[2][0];
 	std::string valid_signs = "+-";
 
-	for (size_t i = 2; i < stop; i++)
+	for (size_t i = 2; i < limit; i++)
 	{
 		for (size_t j = 0; msg[i][j]; j++)
 		{
@@ -107,7 +107,7 @@ void	Server::sendMode(Client &client, Channel &channel, size_t stop, str_vector 
 			std::string arg;
 			if (stop < msg.size() && channel.needsArg(sign, msg[i][j]))
 				arg = " " + msg[stop++];
-			int code = channel.modeFlags(client, sign, msg[i][j], &arg[1]);
+			int code = channel.modeFlags(client, sign, msg[i][j], this->argExists(msg, stop -1));
 			if (code)
 				this->sendNumeric(client, code);
 			else
