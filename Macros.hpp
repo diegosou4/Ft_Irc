@@ -38,9 +38,11 @@
 #define NICK_EXPECT		"Expected: NICK <nickname>"
 #define USER_EXPECT		"Expected: USER <username> <hostname> <servername> :<realname>"
 #define JOIN_EXPECT		"Expected: JOIN <#channelname>"
+#define MSG_PONG  "\nPONG received - server is alive\n"
+
 
 #define WELCOME \
-"\n          ▗▄▄▄▖▗▄▄▖  ▗▄▄▖           \n\
+"\n       ▗▄▄▄▖▗▄▄▖  ▗▄▄▖           \n\
             █  ▐▌ ▐▌▐▌              \n\
             █  ▐▛▀▚▖▐▌              \n\
           ▗▄█▄▖▐▌ ▐▌▝▚▄▄▖           \n\
@@ -51,9 +53,11 @@
 ▐▙█▟▌▐▙▄▄▖▐▙▄▄▖▝▚▄▄▖▝▚▄▞▘▐▌  ▐▌▐▙▄▄▖\n\
                                     \n"
 
-#define SUCCESS			000
-#define RPL_WELCOME		001
 
+#define SUCCESS			000
+
+#define RPL_WELCOME		001
+#define RPL_PONG		002
 #define	RPL_CHANMODE	324 //when MODE is required
 #define RPL_CREATTIME	329 // sent with MODE or INFO
 #define	RPL_NOTOPIC		331	//sent after JOIN if no topic
@@ -88,6 +92,8 @@
 #define	ERR_INVITEONLYCHAN	473 // try to join invite only channel
 #define	ERR_BADCHANKEY		475	//invalid chan pass
 #define	ERR_NOTCHANOP		482	// MODE/KICK by a non-op
+#define ERR_USERALREADYOP	491 // trying to set op on a user already op
+#define ERR_USERNOTOP		492 // trying to remove op from a user not op
 
 static std::map<int, std::string> create_errmsg()
 {
@@ -112,8 +118,11 @@ static std::map<int, std::string> create_errmsg()
 	errmap[473] = ":Cannot join channel (+i)";
 	errmap[475] = ":Cannot join channel (+k)";
 	errmap[482] = ":You're not channel operator";
+	errmap[491] = ":User already an operator";
+	errmap[492] = ":User is not an operator";
 
 	return (errmap);
 }
+
 
 static const std::map<int, std::string> ErrMsg = create_errmsg();

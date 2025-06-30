@@ -114,6 +114,7 @@ class Server
 		void cmdPrivmsg(Client *client, Channel *channel, str_vector const &msg);
 		void cmdTopic(Client *client, Channel *channel, str_vector const &msg);
 		void cmdMode(Client *client, Channel *channel, str_vector const &msg);
+		void cmdPing(Client *client, Channel *channel, str_vector const &msg);
 
 		// Command-related Utils = CmdUtils.cpp
 		Channel *findChannel(str_vector &split_msg);

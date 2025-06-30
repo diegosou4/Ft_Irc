@@ -29,7 +29,7 @@ class Channel
 		std::string _password;
 		std::string _modes; //add modes
 		std::string _creat; //add creation time
-
+		bool	_topic_op_only; // Top 
 		bool	_invite_only;
 		size_t	_limit;
 
@@ -62,7 +62,7 @@ class Channel
 		std::vector<Client *> getMembers() const;
 
 		//Command-related methods:
-		int	addMember(Client &client, std::string const &key);
+		int	addMember(Client &client);
 		int	removeMember(Client &client);
 		int kickMember(Client &client, std::string const &target);
 		int topicHandle(Client &client, std::vector<std::string> const &msg);
@@ -70,6 +70,7 @@ class Channel
 		void updateNickname(std::string oldnick, std::string newnick);
 
 		//Utils:
+		bool	removeOperator(std::string target);
 		bool	isEmpty() const;
 		bool	isMember(Client &client) const;
 		bool	isOperator(std::string nick) const;

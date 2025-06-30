@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "Channel.hpp"
+#include <algorithm>
 
 //----------------- Constructor/Destructor ------------------
 Channel::Channel(std::string const &name): _name(name), _limit(50)
@@ -111,7 +112,7 @@ std::vector<Client *> Channel::getMembers() const
 
 
 //-------------------- Command-related methods-----------------------
-int	Channel::addMember(Client &client, std::string const &key)
+int	Channel::addMember(Client &client)
 {
 	(void)client;
 	/* Perform checks
@@ -148,14 +149,20 @@ int Channel::kickMember(Client &client, std::string const &target)
 	return (SUCCESS);
 }
 
-int	Channel::removeMember(Client &client)
+int Channel::removeMember(Client &client)
 {
-	(void)client;
-	/* remove user from all relevant containers
-	return SUCCESS */
+	std::string nickname = client.getNickname(); 
 
-	std::cout << "REMOVE Channel method WIP" << std::endl;
-	return (SUCCESS);
+	member_iter it = std::find(_members.begin(), _members.end(), &client);
+	if (it != _members.end())
+		_members.erase(it);
+	else
+		return ERR_NOTINCHAN; 
+	_operators.erase(nickname);
+
+	_invited.erase(nickname);
+
+	return SUCCESS;
 }
 
 int Channel::topicHandle(Client &client, std::vector<std::string> const &msg)
@@ -181,26 +188,84 @@ int Channel::topicHandle(Client &client, std::vector<std::string> const &msg)
 
 int	Channel::modeFlags(Client &client, char sign, char flag, std::string arg)
 {
-	(void)client;
-	(void)sign;
-	(void)flag;
-	(void)arg;
-	/* check if needsArg(sign, flag) == true && arg.empty()
-			return ERR_NEEDMOREPARAMS
-		else if !(needsArg(sign, flag) && !arg.empty()
-			return ERR_UNKNOWNCOMMAND
+	bool adding;
+	if (!this->isOperator(client.getNickname()))
+        return ERR_NOTCHANOP;
+	if (sign == '+')
+		adding = true;
+	else if (sign == '-')
+		adding = false;
 
-		dispatch to appropriate functions according to sign + flag
-		eg.
-		switch or if else
-			flag == i && sign == +
-				send to channel function handling +i
-					return appropriate error code if any
+	switch(flag)
+	{
+		case 'i':
+			if (!arg.empty())
+				return ERR_NEEDMOREPARAMS;
+			this->_invite_only = adding;
+			break;
 
-	if all goes well, return SUCCCESS*/
+		case 't':
+			if (!arg.empty())
+				return ERR_NEEDMOREPARAMS;
+			this->_topic_op_only = adding;
+			break;
 
-	std::cout << "modeFlags method WIP" << std::endl;
-	return (SUCCESS);
+		case 'k':
+			if (adding)
+			{
+				if (arg.empty())
+					return ERR_NEEDMOREPARAMS;
+				this->setPassword(arg);
+			}
+			else
+			{
+				if (!arg.empty())
+					return ERR_NEEDMOREPARAMS;
+				this->setPassword("");
+			}
+			break;
+
+		case 'l':
+			if (adding)
+			{
+				if (arg.empty())
+					return ERR_NEEDMOREPARAMS;
+				if (arg.find_first_not_of(DIGIT_CHARS) != std::string::npos)
+					return ERR_UNKNOWNMODE;
+				int limit = atoi(arg.c_str());
+				if (limit <= 0 || limit > 50)
+					return ERR_UNKNOWNMODE;
+				this->setLimit(limit);
+			}
+			else
+			{
+				if (!arg.empty())
+					return ERR_NEEDMOREPARAMS;
+				this->setLimit(0); // 0 = no limit
+			}
+			break;
+
+		case 'o':
+			if (arg.empty())
+				return ERR_NEEDMOREPARAMS;
+			if (!this->findMember(arg))
+				return ERR_NOSUCHNICK;
+			if (adding)
+			{
+				if (!this->setOperator(arg))
+					return ERR_USERALREADYOP; // Custom error code
+			}
+			else
+			{
+				if (!this->removeOperator(arg))
+					return ERR_USERNOTOP; // Custom error code
+			}
+			break;
+
+		default:
+			return ERR_UNKNOWNMODE;
+	}
+	return SUCCESS;
 }
 
 void Channel::updateNickname(std::string oldnick, std::string newnick)
@@ -261,3 +326,12 @@ Client *Channel::findMember(std::string name)
 	return (NULL);
 }
 
+
+bool Channel::removeOperator(std::string target)
+{
+	if (this->_operators.find(target) == this->_operators.end())
+		return (false);
+
+	this->_operators.erase(target);
+	return (true);
+}

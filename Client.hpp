@@ -47,6 +47,7 @@ class Client
 		Client(); // check if we actually use it?
 		Client(int fd);
 		Client(Client const &src);
+		
 		~Client();
 
 		//Assignement operator:

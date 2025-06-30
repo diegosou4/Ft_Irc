@@ -11,10 +11,10 @@
 # **************************************************************************** #
 
 NAME = ircserv
-CXX = @c++
+CXX = c++
 CXX_FLAGS = -Werror -Wall -Wextra -std=c++98
 SRC = 	main.cpp \
-		Server.cpp		Revents.cpp		AuthCmds.cpp	ChanCmds.cpp \
+		Server.cpp		Revents.cpp		AuthCmds.cpp \
 		MsgSenders.cpp	CmdUtils.cpp	Utils.cpp \
 		Client.cpp		Channel.cpp
 OBJ = $(SRC:.cpp=.o)
