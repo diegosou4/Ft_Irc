@@ -6,12 +6,13 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:22 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 17:02:57 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/30 15:35:44 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
+// -LIBRARIES-
 #include <set>
 #include <vector>
 #include <iostream>
@@ -19,6 +20,7 @@
 #include "Client.hpp"
 #include "Macros.hpp"
 
+// -CLASS-
 class Channel
 {
 	private:
@@ -27,7 +29,7 @@ class Channel
 		std::string _password;
 		std::string _modes; //add modes
 		std::string _creat; //add creation time
-		bool	_topic_op_only;
+
 		bool	_invite_only;
 		size_t	_limit;
 
@@ -60,14 +62,14 @@ class Channel
 		std::vector<Client *> getMembers() const;
 
 		//Command-related methods:
-		int	addMember(Client &client);
+		int	addMember(Client &client, std::string const &key);
 		int	removeMember(Client &client);
 		int kickMember(Client &client, std::string const &target);
 		int topicHandle(Client &client, std::vector<std::string> const &msg);
 		int	modeFlags(Client &client, char sign, char flag, std::string arg);
+		void updateNickname(std::string oldnick, std::string newnick);
 
 		//Utils:
-		bool	removeOperator(std::string const &nick);
 		bool	isEmpty() const;
 		bool	isMember(Client &client) const;
 		bool	isOperator(std::string nick) const;

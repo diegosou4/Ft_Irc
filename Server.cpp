@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/27 19:59:18 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 23:34:13 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 //----------------------Constructors/Destructors-------------------------------
 
 // Constructs + sets up all server attributes
-Server::Server(int port, std::string password): _port(port), _password(password), _name("ircserv")
+Server::Server(int port, std::string password): _port(port), _name("ircserv"), _password(password)
 {
 	this->setCmdMaps();
 	this->_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -46,6 +46,11 @@ Server::~Server()
 		if (it->second)
 			delete it->second;
 	this->_clients.clear();
+
+	for (channels_iter it = this->_channels.begin(); it != this->_channels.end(); ++it)
+		if (it->second)
+			delete it->second;
+	this->_channels.clear();
 }
 
 //-------------------------Operator overloads----------------------------------
@@ -112,7 +117,7 @@ void	Server::handleClient(size_t max_fds, int timeout)
 
 		if (this->_fds[0].revents & POLLIN)
 		{
-			if (this->_fds.size() >= max_fds -1)
+			if (this->_fds.size() >= max_fds -1) // can be replaced by max client Macros //Diego to add function that checks how many fd are acceptable for given machine
 				throw (std::runtime_error("All client slots are taken!"));
 
 			this->addSocket(true);
@@ -152,7 +157,7 @@ void	Server::addSocket(bool isclient)
 
 		Client *newclient = new Client(newpoll.fd);
 		newclient->setState(AT_DOOR);
-		this->_clients[newclient->getNickname()]= newclient;
+		this->_clients[newclient->getNickname()]= newclient; //use fd (as string) as key OR UICIDSS
 
 		this->printServer(newclient, "is at the door");
 	}

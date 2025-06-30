@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/27 12:11:32 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/28 20:18:20 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/29 23:43:59 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,39 +89,31 @@
 #define	ERR_BADCHANKEY		475	//invalid chan pass
 #define	ERR_NOTCHANOP		482	// MODE/KICK by a non-op
 
-
-#define ERR_NOTCHANOP		482	// MODE/KICK by a non-op
-#define ERR_CHANOPRIVSNEEDED	481 // trying to set mode on channel without being op
-#define ERR_USERONCHANNEL 	485 // trying to invite a channel operator
-#define ERR_USERNOTINCHANNEL	486 // trying to invite yourself to a channel
-
-static const std::map<int, std::string> ErrMsg
+static std::map<int, std::string> create_errmsg()
 {
-	{401, ":No such nick/channel"},
-	{403, ":No such channel"},
-	{404, ":Cannot send to channel"},
-	{421, ":Unknown command"},
-	{431, ":No nickname given"},
-	{432, ":Erroneous nickname"},
-	{433, ":Nickname is already in use"},
-	{441, ":They aren't on that channel"},
-	{442, ":You're not on that channel"},
-	{443, ":is already on channel"},
-	{451, ":You have not registered"},
-	{461, ":Not enough parameters"},
-	{462, ":You may not reregister"},
-	{464, ":Password incorrect"},
-	{467, ":Channel key already set"},
-	{471, ":Cannot join channel (+l)"},
-	{472, ":is unknown mode char to me"},
-	{473, ":Cannot join channel (+i)"},
-	{475, ":Cannot join channel (+k)"},
-	{481," :Permission Denied - You're not an IRC operator"},
-	{482, ":You're not channel operator"},
-	{483, ":You can't kill a channel operator"},
-	{484, ":You can't kick a channel operator"},
-	{485, ":You can't set mode on a channel you're not in"},
-	{486, ":You can't invite a channel operator"},
-	{487, ":You can't invite yourself to a channel"},
-	{482, ":You're not channel operator"}
-};
+	std::map<int, std::string> errmap;
+	errmap[401] = ":No such nick/channel";
+	errmap[403] = ":No such channel";
+	errmap[404] = ":Cannot send to channel";
+	errmap[421] = ":Unknown command";
+	errmap[431] = ":No nickname given";
+	errmap[432] = ":Erroneous nickname";
+	errmap[433] = ":Nickname is already in use";
+	errmap[441] = ":They aren't on that channel";
+	errmap[442] = ":You're not on that channel";
+	errmap[443] = ":is already on channel";
+	errmap[451] = ":You have not registered";
+	errmap[461] = ":Not enough parameters";
+	errmap[462] = ":You may not reregister";
+	errmap[464] = ":Password incorrect";
+	errmap[467] = ":Channel key already set";
+	errmap[471] = ":Cannot join channel (+l)";
+	errmap[472] = ":is unknown mode char to me";
+	errmap[473] = ":Cannot join channel (+i)";
+	errmap[475] = ":Cannot join channel (+k)";
+	errmap[482] = ":You're not channel operator";
+
+	return (errmap);
+}
+
+static const std::map<int, std::string> ErrMsg = create_errmsg();

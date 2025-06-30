@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:27 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 17:01:56 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/30 15:35:55 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,17 +47,13 @@ void	Channel::setLimit(int const &limit)
 
 void	Channel::setModes(char sign, char flag)
 {
-	if (sign == '+')
-	{
-		if (_modes.find(flag) == std::string::npos)
-			_modes += flag;
-	}
-	else if (sign == '-')
-	{
-		size_t pos = _modes.find(flag);
-		if (pos != std::string::npos)
-			_modes.erase(pos, 1);
-	}
+	(void)sign;
+	(void)flag;
+	/* this method must be called everytime a channel mode is altered
+	if char is +, check if flag already in modes
+		if not, adds it
+	if char is -, check if flag is already non-existing
+		if exists, removes it */
 }
 
 bool	Channel::setOperator(std::string target)
@@ -78,12 +74,14 @@ bool	Channel::setOperator(std::string target)
 
 int Channel::setInvited(std::string const &name)
 {
-	if (this->findMember(name))
-		return ERR_USERINCHAN;
-	_invited.insert(name);
-	return SUCCESS;
-}
+	(void)name;
+	/* if already member
+		return ERR_USERINCHAN
+	else return SUCCESS*/
 
+	std::cout << "INVITED Channel method WIP" << std::endl;
+	return (SUCCESS);
+}
 
 //------------------------ Getters---------------------------
 std::string	Channel::getName() const
@@ -113,38 +111,35 @@ std::vector<Client *> Channel::getMembers() const
 
 
 //-------------------- Command-related methods-----------------------
-int Channel::addMember(Client &client)
+int	Channel::addMember(Client &client, std::string const &key)
 {
-	for (std::vector<Client *>::iterator it = _members.begin(); it != _members.end(); ++it)
-	{
-		if ((*it)->getNickname() == client.getNickname())
-			return ERR_USERINCHAN;
-	}
-	if (_limit > 0 && _members.size() >= static_cast<size_t>(_limit))
-		return ERR_CHANISFULL;
+	(void)client;
+	/* Perform checks
+		if channel is at capacity
+			return ERR_CHANISFULL
+		if channel is invite only && !invited
+			return ERR_INVITEONLYCHAN
+		if user already in
+			return ERR_USERINCHAN
+	add user to channel member
+	return SUCCESS*/
 
-	if (_invite_only)
-	{
-		std::set<std::string>::iterator invited = _invited.find(client.getNickname());
-		if (invited == _invited.end())
-			return ERR_INVITEONLYCHAN;
-		_invited.erase(invited);
-	}
-	_members.push_back(&client);
-
-	return SUCCESS;
+	std::cout << "TOPIC Channel method WIP" << std::endl;
+	return (SUCCESS);
 }
-
-
 
 int Channel::kickMember(Client &client, std::string const &target)
 {
+	(void)client;
+	(void)target;
 	/*
 		if client not op
 			return ERR_NOTCHANOP
 	if target not a member
 		 return ERR_USERNOTINCHAN
 	call rmMember
+		if channel has k flag in _modes
+			return ERR_BADCHANKEY
 	remove user from all relevant containers
 	return SUCCESS
 		 */
@@ -153,28 +148,20 @@ int Channel::kickMember(Client &client, std::string const &target)
 	return (SUCCESS);
 }
 
-int Channel::removeMember(Client &client)
+int	Channel::removeMember(Client &client)
 {
-	std::string nick = client.getNickname();
+	(void)client;
+	/* remove user from all relevant containers
+	return SUCCESS */
 
-	for (std::vector<Client *>::iterator it = _members.begin(); it != _members.end(); ++it)
-	{
-		if ((*it)->getNickname() == nick)
-		{
-			_members.erase(it);
-			_operators.erase(nick);
-			_invited.erase(nick);
-
-			return SUCCESS;
-		}
-	}
-	return ERR_USERNOTINCHANNEL;
+	std::cout << "REMOVE Channel method WIP" << std::endl;
+	return (SUCCESS);
 }
-
-
 
 int Channel::topicHandle(Client &client, std::vector<std::string> const &msg)
 {
+	(void)client;
+	(void)msg;
 	/* differentiate between:
 		get topic
 			return RPL_NOTOPIC if none
@@ -192,69 +179,39 @@ int Channel::topicHandle(Client &client, std::vector<std::string> const &msg)
 	return (SUCCESS);
 }
 
-int Channel::modeFlags(Client &client, char sign, char flag, std::string arg)
+int	Channel::modeFlags(Client &client, char sign, char flag, std::string arg)
 {
-	bool adding = (sign == '+');
+	(void)client;
+	(void)sign;
+	(void)flag;
+	(void)arg;
+	/* check if needsArg(sign, flag) == true && arg.empty()
+			return ERR_NEEDMOREPARAMS
+		else if !(needsArg(sign, flag) && !arg.empty()
+			return ERR_UNKNOWNCOMMAND
 
-	// Exige que o client seja operador
-	if (!this->isOperator(client.getNickname()))
-		return ERR_CHANOPRIVSNEEDED;
+		dispatch to appropriate functions according to sign + flag
+		eg.
+		switch or if else
+			flag == i && sign == +
+				send to channel function handling +i
+					return appropriate error code if any
 
-	switch (flag)
-	{
-		case 'i': // Invite-only
-			this->_invite_only = adding;
-			break;
+	if all goes well, return SUCCCESS*/
 
-		case 't': // Tópico só pode ser alterado por OPs
-			this->_topic_op_only = adding;
-			break;
-
-		case 'k': // Senha
-			if (adding)
-			{
-				if (arg.empty())
-					return ERR_NEEDMOREPARAMS;
-				this->setPassword(arg);
-			}
-			else
-				this->setPassword("");
-			break;
-
-		case 'l': 
-			if (adding)
-			{
-				if (arg.empty() || arg.find_first_not_of("0123456789") != std::string::npos)
-					return ERR_NEEDMOREPARAMS;
-
-				int limit = atoi(arg.c_str());
-				this->setLimit(limit);
-			}
-			else
-				this->setLimit(0);
-			break;
-
-		case 'o': // OP
-			if (arg.empty())
-				return ERR_NEEDMOREPARAMS;
-			if (adding)
-			{
-				if (!this->setOperator(arg))
-					return ERR_USERONCHANNEL; // já é OP
-			}
-			else
-			{
-				if (!this->removeOperator(arg))
-					return ERR_USERNOTINCHANNEL;
-			}
-			break;
-
-		default:
-			return ERR_UNKNOWNMODE;
-	}
-	return SUCCESS;
+	std::cout << "modeFlags method WIP" << std::endl;
+	return (SUCCESS);
 }
 
+void Channel::updateNickname(std::string oldnick, std::string newnick)
+{
+	(void)oldnick;
+	(void)newnick;
+	/* triggered when a user changes nickname
+		remove oldname from channel containers
+		add newname to channel containers
+		no need to do anything about Client * -> the pointer is still valid */
+}
 
 //------------------------- Utils----------------------------
 bool	Channel::isEmpty() const
@@ -264,6 +221,7 @@ bool	Channel::isEmpty() const
 
 bool	Channel::isMember(Client &client) const
 {
+	(void)client;
 	/* check if client is a member */
 	std::cout << "isMember method WIP" << std::endl;
 	return (true);
@@ -277,20 +235,18 @@ bool	Channel::isOperator(std::string nick) const
 	return (false);
 }
 
-bool Channel::needsArg(char sign, char flag)
+bool	Channel::needsArg(char sign, char flag)
 {
-	if ((flag == 'k' || flag == 'l') && sign == '+')
-		return true;
-	if (flag == 'o' || flag == 'v' || flag == 'b')
-		return true;
-		
-	if (flag == 'i' || flag == 't' || flag == 'n' ||
-		flag == 's' || flag == 'p' || flag == 'm')
-		return false;
+	(void)flag;
+	(void)sign;
+	/* check which sign + flag require arg
+		if do
+			return true
+		return false */
 
-	return false;
+	std::cout << "NeedsArg method WIP" << std::endl;
+	return (false);
 }
-
 
 Client *Channel::findMember(std::string name)
 {
@@ -305,10 +261,3 @@ Client *Channel::findMember(std::string name)
 	return (NULL);
 }
 
-bool Channel::removeOperator(std::string const &nick)
-{
-	if(!this->isOperator(nick))
-		return (false);
-	this->_operators.erase(nick);
-	return (true);
-}

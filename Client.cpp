@@ -146,4 +146,3 @@ bool	Client::passedUser()const
 		return (false);
 	return (true);
 }
-
