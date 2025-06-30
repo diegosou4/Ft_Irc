@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 22:02:14 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/30 16:12:39 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -126,7 +126,7 @@ class Server
 		void setCmdMaps();
 		bool authCheck(Client &client);
 		std::string getMsg(Client &client);
-		std::string unSplit(str_vector const &msg, size_t index);
+		std::string argExists(str_vector const &msg, size_t index);
 		str_vector splitMsg(std::string &msg);
 		str_vector newVector(std::string const &arg1, std::string const &arg2, std::string *arg3);
 	};

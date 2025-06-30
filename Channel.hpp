@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:22 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 21:18:59 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/30 15:35:44 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ class Channel
 		std::vector<Client *> getMembers() const;
 
 		//Command-related methods:
-		int	addMember(Client &client);
+		int	addMember(Client &client, std::string const &key);
 		int	removeMember(Client &client);
 		int kickMember(Client &client, std::string const &target);
 		int topicHandle(Client &client, std::vector<std::string> const &msg);

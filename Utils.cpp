@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 13:00:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/30 00:01:14 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/30 16:14:18 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,16 +52,22 @@ std::string Server::getMsg(Client &client)
 // Splits user command into vector string items
 Server::str_vector Server::splitMsg(std::string &msg)
 {
+	std::string str;
 	str_vector split_msg;
-	size_t pos = 0;
+	std::stringstream ss(msg);
 
-	while (pos <= msg.size())
+	while (ss >> str)
 	{
-		pos = msg.find_first_of(" \t\0"); // while those chars are to be found CAMILLE
-		split_msg.push_back(msg.substr(0, pos));
-		if (pos == msg.size())
+		if (str[0] == ':')
+		{
+			std::string arg;
+			std::getline(ss, arg);
+			if (!arg.empty())
+				str += arg;
+			split_msg.push_back(str);
 			break;
-		msg = msg.substr(pos +1, msg.size());
+		}
+		split_msg.push_back(str);
 	}
 
 	return (split_msg);
@@ -112,15 +118,10 @@ Server::str_vector Server::newVector(std::string const &arg1, std::string const 
 }
 
 // Joins vector indexes into a space separated string
-std::string	Server::unSplit(str_vector const &msg, size_t index)
+std::string	Server::argExists(str_vector const &msg, size_t index)
 {
 	if (index >= msg.size())
 		return (NULL);
 
-	std::string str = msg[index++];
-
-	for (; index < msg.size(); index++)
-		str += " " + msg[index];
-
-	return (str);
+	return (msg[index]);
 }

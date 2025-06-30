@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:35:58 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/30 00:20:35 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/30 16:13:30 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ void Server::cmdJoin(Client *client, Channel *channel, str_vector const &msg)
 		throw (std::runtime_error("Fatal: client not found"));
 	if (client->getState() != ACTIVE)
 		code = ERR_NOTAUTHED;
-	else if (msg.size() != 2) //check format in case of pass CAMILLE
+	else if (msg.size() < 2)
 		code = ERR_NEEDMOREPARAMS;
 	else if (msg[1][0] != '#' || msg[1].length() < 2)
 		code = ERR_UNKNOWNCOMMAND;
@@ -34,7 +34,7 @@ void Server::cmdJoin(Client *client, Channel *channel, str_vector const &msg)
 			channel = new Channel(msg[1]);
 			this->_channels[msg[1]] = channel;
 		}
-		code = channel->addMember(*client);
+		code = channel->addMember(*client, this->argExists(msg, 2));
 	}
 
 	if (code)
@@ -88,9 +88,8 @@ void Server::cmdKick(Client *client, Channel *channel, str_vector const &msg)
 		return (this->sendNumeric(*client, code));
 
 	if (msg.size() > 3)
-		reason = this->unSplit(msg, 3);
+		reason = this->argExists(msg, 3);
 	this->broadcast(*client, *channel, msg[0], msg[1] + reason);
-	//CAMILLE check if stuff needs to be sent to kicker or kicked
 }
 
 // Performs checks, sends to channel remove method, deletes channel if empty, sends relevant message
@@ -113,7 +112,7 @@ void Server::cmdPart(Client *client, Channel *channel, str_vector const &msg)
 		return (this->sendNumeric(*client, code));
 
 	if (!channel->isEmpty())
-		return (this->broadcast(*client, *channel, msg[0], this->unSplit(msg, 2)));
+		return (this->broadcast(*client, *channel, msg[0], this->argExists(msg, 2)));
 
 	this->_channels.erase(channel->getName());
 	delete channel;
@@ -123,8 +122,8 @@ void Server::cmdPart(Client *client, Channel *channel, str_vector const &msg)
 void Server::cmdNames(Client *client, Channel *channel, str_vector const &msg)
 {
 	int code = 0;
-	// CAMILLE add is ACTIVE check
-	if (msg.size() == 1)
+
+	if (client->getState() == ACTIVE && msg.size() == 1)
 	{
 		channels_iter it = this->_channels.begin();
 		for (; it != this->_channels.end(); ++it)
@@ -165,12 +164,10 @@ void Server::cmdPrivmsg(Client *client, Channel *channel, str_vector const &msg)
 	if (code)
 		return (this->sendNumeric(*client, code));
 
-	std::string output = this->unSplit(msg, 2); // check if tabs must be restituted as original CAMILLE
-
 	if (channel)
-		this->broadcast(*client, *channel, msg[0], output);
+		this->broadcast(*client, *channel, msg[0], this->argExists(msg, 2));
 	else
-		this->broadcast(*client, *this->_clients[msg[1]], msg[0], output);
+		this->broadcast(*client, *this->_clients[msg[1]], msg[0], this->argExists(msg, 2));
 }
 
 // Performs checks, sends to channel topic method, sends relevant messages & codes

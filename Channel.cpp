@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:27 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 21:18:48 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/30 15:35:55 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,7 +111,7 @@ std::vector<Client *> Channel::getMembers() const
 
 
 //-------------------- Command-related methods-----------------------
-int	Channel::addMember(Client &client)
+int	Channel::addMember(Client &client, std::string const &key)
 {
 	(void)client;
 	/* Perform checks
@@ -138,6 +138,8 @@ int Channel::kickMember(Client &client, std::string const &target)
 	if target not a member
 		 return ERR_USERNOTINCHAN
 	call rmMember
+		if channel has k flag in _modes
+			return ERR_BADCHANKEY
 	remove user from all relevant containers
 	return SUCCESS
 		 */
