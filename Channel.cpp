@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:27 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/01 15:42:35 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/01 18:20:53 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,9 +35,9 @@ void	Channel::setTopic(std::string const &topic) // checks to be handled in topi
 	this->_topic = topic;
 }
 
-void	Channel::setPassword(std::string const &password) // checks to be handled in modeCmd
+void	Channel::setKey(std::string const &key) // checks to be handled in modeCmd
 {
-	this->_password = password;
+	this->_key = key;
 }
 
 void	Channel::setLimit(int const &limit)
@@ -96,7 +96,30 @@ std::string	Channel::getTopic() const
 
 std::string Channel::getModes() const
 {
-	return (this->_modes);
+	std::string modes;
+	std::string args = " ";
+
+	if (this->_invite_only)
+		modes += 'i';
+
+	if (!this->_key.empty())
+	{
+		modes += 'k';
+		args += this->_key + " ";
+	}
+
+	if (this->_limit != 50)
+	{
+		modes += 'l';
+		std::stringstream ss;
+		ss << this->_limit;
+		args += ss.str();
+	}
+
+	if (this->_topic_op_only)
+		modes += 't';
+
+	return (modes + args);
 }
 
 std::string Channel::getCreat() const
@@ -111,7 +134,7 @@ std::vector<Client *> &Channel::getMembers()
 
 
 //-------------------- Command-related methods-----------------------
-int	Channel::addMember(Client &client, std::string const &key)
+int	Channel::addMember(Client &client, std::string const &key) //We need the key arg so that users can enter channels with pasword
 {
 	(void)key;
 	(void)client;
@@ -151,12 +174,15 @@ int Channel::kickMember(Client &client, std::string const &target)
 
 int	Channel::removeMember(Client &client)
 {
-	(void)client;
-	/* remove user from all relevant containers
-	return SUCCESS */
+	std::string nickname = client.getNickname();
 
-	std::cout << "REMOVE Channel method WIP" << std::endl;
-	return (SUCCESS);
+	member_iter it = std::find(this->_members.begin(), this->_members.end(), client);
+	if (it == this->_members.end())
+		return (ERR_NOTINCHAN);
+
+	this->_members.erase(it);
+	this->_operators.erase(nickname);
+	this->_invited.erase(nickname);
 }
 
 int Channel::topicHandle(Client &client, std::vector<std::string> const &msg)
@@ -182,25 +208,43 @@ int Channel::topicHandle(Client &client, std::vector<std::string> const &msg)
 
 int	Channel::modeFlags(Client &client, char sign, char flag, std::string arg)
 {
-	(void)client;
-	(void)sign;
-	(void)flag;
-	(void)arg;
-	/* check if needsArg(sign, flag) == true && arg.empty()
-			return ERR_NEEDMOREPARAMS
-		else if !(needsArg(sign, flag) && !arg.empty()
-			return ERR_UNKNOWNCOMMAND
+	bool on_off = (sign == '+'); // renamed "adding" to "on_off" for more clarity
 
-		dispatch to appropriate functions according to sign + flag
-		eg.
-		switch or if else
-			flag == i && sign == +
-				send to channel function handling +i
-					return appropriate error code if any
+	if (this->isOperator(client.getNickname()))
+		return (ERR_NOTCHANOP);
+	if (this->needsArg(sign, flag) && arg.empty()) // this prevents us from doing if (!arg.empty()) return (ERR_NEEDMOREPARAMS) in every condition
+		return (ERR_NEEDMOREPARAMS);
 
-	if all goes well, return SUCCCESS*/
+	switch (flag)
+	{
+		case 'i':
+			this->_invite_only = on_off; break;
+		case 't':
+			this->_topic_op_only = on_off; break;
+		case 'k':
+			this->_key.clear(); // used with "-" sign, k removes the need for a key
+			if (on_off)
+				this->_key = arg;
+			break;
+		case 'l':
+			if (on_off && arg.find_first_not_of (DIGIT_CHARS) != arg.npos || atoi(arg.c_str()) > 50)
+					return (ERR_UNKNOWNMODE);
+			this->_limit = 50;
+			if (on_off)
+				this->_limit = atoi(arg.c_str());
+			break;
+		case 'o':
+			if (!this->findMember(arg))
+				return (ERR_USERNOTINCHAN);
+			if (on_off)
+				this->_operators.insert(arg); // no need to check if already in, sets don't allow duplicates
+			else
+				this->_operators.erase(arg);
+			break;
+		default:
+			return (ERR_UNKNOWNMODE);
+	}
 
-	std::cout << "modeFlags method WIP" << std::endl;
 	return (SUCCESS);
 }
 
@@ -213,7 +257,10 @@ void Channel::updateNickname(std::string oldnick, std::string newnick)
 		add newname to channel containers
 		no need to do anything about Client * -> the pointer is still valid */
 }
-
+void Channel::removeOperator(std::string target)
+{
+	this->_operators.erase(target); // if they weren't op in the first place, we're supposed to ignore and not send error
+}
 //------------------------- Utils----------------------------
 bool	Channel::isEmpty() const
 {
