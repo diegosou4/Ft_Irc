@@ -13,10 +13,10 @@
 #include "Channel.hpp"
 
 //----------------- Constructor/Destructor ------------------
-Channel::Channel(std::string const &name): _name(name), _limit(50)
+Channel::Channel(std::string const &name): _name(name), _limit(50), _invite_only(false), _topic_op_only(false)  // default limit is 50, invite-only and topic-op-only are false
 {}
 
-Channel::Channel(std::string const &name, int const limit): _name(name), _limit(limit)
+Channel::Channel(std::string const &name, int const limit): _name(name), _limit(limit), _invite_only(false), _topic_op_only(false)
 {}
 
 Channel::~Channel()
@@ -136,22 +136,24 @@ std::vector<Client *> &Channel::getMembers()
 //-------------------- Command-related methods-----------------------
 int	Channel::addMember(Client &client, std::string const &key) //We need the key arg so that users can enter channels with pasword
 {
-	(void)key;
-	(void)client;
 	std::cout << "ADD Channel method WIP" << std::endl;
-	/* Perform checks
-		if channel is at capacity
-			return ERR_CHANISFULL
-		if channel is invite only && !invited
-			return ERR_INVITEONLYCHAN
-		if user already in
-			return ERR_USERINCHAN
-	add user to channel member
-	return SUCCESS*/
+	(void)key;
+	if (std::find(_members.begin(), _members.end(), &client) != _members.end())
+		return ERR_USERINCHAN;
 
-	std::cout << "TOPIC Channel method WIP" << std::endl;
-	return (SUCCESS);
+	if (_limit > 0 && _members.size() >= _limit)
+		return ERR_CHANISFULL;
+
+	// Invite-only?
+	if (_invite_only && _invited.find(client.getNickname()) == _invited.end())
+		return ERR_INVITEONLYCHAN;
+
+	_members.push_back(&client);
+
+
+	return SUCCESS;
 }
+
 
 int Channel::kickMember(Client &client, std::string const &target)
 {
@@ -272,14 +274,16 @@ bool	Channel::isEmpty() const
 {
 	return (this->_members.empty());
 }
-
-bool	Channel::isMember(Client &client) const
+bool Channel::isMember(Client &client) const
 {
-	(void)client;
-	/* check if client is a member */
-	std::cout << "isMember method WIP" << std::endl;
-	return (true);
+	for (std::vector<Client*>::const_iterator it = _members.begin(); it != _members.end(); ++it)
+	{
+		if (*it == &client)
+			return true;
+	}
+	return false;
 }
+
 
 bool	Channel::isOperator(std::string nick) const
 {

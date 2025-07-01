@@ -75,7 +75,7 @@ void	Server::broadcast(Client &client, Channel &channel, std::string const &cmd,
 
 	Channel::member_iter it = channel.getMembers().begin();
 	for (; it != channel.getMembers().end(); ++it)
-		if (*it != &client && (*it)->getState() == ACTIVE)
+		if ((*it)->getState() == ACTIVE)
 			this->sendClient(**it, output);
 }
 

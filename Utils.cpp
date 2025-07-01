@@ -16,6 +16,7 @@
 // Creates maps linking command to an function
 void	Server::setCmdMaps()
 {
+	
 	this->_authcmds["PASS"] = &Server::cmdPass;
 	this->_authcmds["NICK"] = &Server::cmdNick;
 	this->_authcmds["USER"] = &Server::cmdUser;
@@ -117,15 +118,17 @@ Server::str_vector Server::newVector(std::string const &arg1, std::string const 
 	return (new_vector);
 }
 
-// Joins vector indexes into a space separated string
-std::string	Server::argExists(str_vector const &msg, size_t index)
+std::string Server::argExists(str_vector const &msg, size_t index)
 {
-	std::string result = NULL;
-
-	std::cout << "argExists called with index: " << index << std::endl;
-	std::cout << "msg size: " << msg.size() << std::endl;
 	if (index >= msg.size())
-		return ("");
+		return "";
 
-	return (msg[index]);
+	if (msg[index][0] == ':')
+	{
+		std::string result = msg[index].substr(1); 
+		for (size_t i = index + 1; i < msg.size(); ++i)
+			result += " " + msg[i];
+		return result;
+	}
+	return msg[index];
 }

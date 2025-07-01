@@ -36,7 +36,6 @@ void Server::cmdJoin(Client *client, Channel *channel, str_vector const &msg)
 		}
 		std::cout << "Channel created: " << msg[1] << std::endl;
 		code = channel->addMember(*client, this->argExists(msg, 2));
-		std::cout << "After: " << msg[1] << std::endl;
 	}
 
 	if (code)
@@ -169,7 +168,11 @@ void Server::cmdPrivmsg(Client *client, Channel *channel, str_vector const &msg)
 	if (channel)
 		this->broadcast(*client, *channel, msg[0], this->argExists(msg, 2));
 	else
+	{
+		std::cout << "arroz com feijao e batata frita" << std::endl;
 		this->broadcast(*client, *this->_clients[msg[1]], msg[0], this->argExists(msg, 2));
+	}
+		
 }
 
 // Performs checks, sends to channel topic method, sends relevant messages & codes
