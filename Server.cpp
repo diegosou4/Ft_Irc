@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 23:34:13 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/06/30 00:34:13 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -164,4 +164,6 @@ void	Server::addSocket(bool isclient)
 
 	this->_fds.push_back(newpoll);
 }
+
+// DIEGO ADD PING/PONG
 

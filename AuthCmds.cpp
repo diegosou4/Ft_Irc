@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:25:25 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/30 00:01:20 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/01 15:21:33 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,7 +92,7 @@ void Server::cmdUser(Client *client, Channel *channel, str_vector const &msg)
 		return (this->sendNumeric(*client, code));
 
 	client->setUsername(msg[1]);
-	client->setRealname(this->unSplit(msg, 4));
+	client->setRealname(this->argExists(msg, 4));
 
 	this->authCheck(*client);
 }
@@ -113,7 +113,7 @@ void Server::cmdQuit(Client *client, Channel *channel, str_vector const &msg)
 		it++;
 		if (channel->isMember(*client))
 		{
-			std::string goodbye_msg = this->unSplit(msg, 1);
+			std::string goodbye_msg = this->argExists(msg, 1);
 			this->cmdPart(client, channel, this->newVector(msg[0], channel->getName(), &goodbye_msg));
 		}
 	}

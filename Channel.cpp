@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:27 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/30 15:35:55 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/01 15:42:35 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,7 +104,7 @@ std::string Channel::getCreat() const
 	return (this->_creat);
 }
 
-std::vector<Client *> Channel::getMembers() const
+std::vector<Client *> &Channel::getMembers()
 {
 	return (this->_members);
 }
@@ -113,6 +113,7 @@ std::vector<Client *> Channel::getMembers() const
 //-------------------- Command-related methods-----------------------
 int	Channel::addMember(Client &client, std::string const &key)
 {
+	(void)key;
 	(void)client;
 	/* Perform checks
 		if channel is at capacity
