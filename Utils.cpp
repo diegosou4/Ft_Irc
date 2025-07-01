@@ -122,13 +122,17 @@ std::string Server::argExists(str_vector const &msg, size_t index)
 {
 	if (index >= msg.size())
 		return "";
+	std::cout << "argExists: " << msg[index] << std::endl;
 
 	if (msg[index][0] == ':')
 	{
 		std::string result = msg[index].substr(1); 
 		for (size_t i = index + 1; i < msg.size(); ++i)
 			result += " " + msg[i];
+
+		std::cout << "argExists: " << result << std::endl;
 		return result;
 	}
+
 	return msg[index];
 }

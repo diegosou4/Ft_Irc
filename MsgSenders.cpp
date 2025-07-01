@@ -39,7 +39,7 @@ void	Server::sendNumeric(Client &client, int code)
 		throw (std::runtime_error("Invalid error code"));
 
 	msg = ErrMsg.find(code)->second;
-
+	std::cout << "Sending code " << msg << " to client " << client.getNickname() << std::endl;
 	ss 	<< ":" << this->_name << " " \
 		<< std::setw(3) << std::setfill('0') \
 		<< code << " " << client.getNickname() \
@@ -69,14 +69,20 @@ void	Server::broadcast(Client &client, Client &target, std::string const &cmd, s
 }
 
 // Composes message, sends to all channels where client is a member
-void	Server::broadcast(Client &client, Channel &channel, std::string const &cmd, std::string const &msg)
+// i don`t why when i send messagem to channel, the client receive the message as if it were a private message 
+void Server::broadcast(Client &client, Channel &channel, std::string const &cmd, std::string const &msg)
 {
-	std::string output = client.getPrefix() + " " + cmd + " " + msg + "\r\n";
+    std::string output = client.getPrefix() + " " + cmd + " " + msg + "\r\n";
+	std::cout << output << std::endl;
 
-	Channel::member_iter it = channel.getMembers().begin();
-	for (; it != channel.getMembers().end(); ++it)
-		if ((*it)->getState() == ACTIVE)
-			this->sendClient(**it, output);
+    Channel::member_iter it = channel.getMembers().begin();
+    for (; it != channel.getMembers().end(); ++it)
+    {
+        if ((*it)->getState() == ACTIVE && (*it)->getFd() != client.getFd())
+        {
+            this->sendClient(**it, output);
+        }
+    }
 }
 
 

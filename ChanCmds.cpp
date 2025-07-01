@@ -165,7 +165,7 @@ void Server::cmdPrivmsg(Client *client, Channel *channel, str_vector const &msg)
 	if (code)
 		return (this->sendNumeric(*client, code));
 
-	if (channel)
+	if (channel) // When i did this command PRIVMSG #general :ola the another client dont receve the ola only the second str example ola mundo, only mundo
 		this->broadcast(*client, *channel, msg[0], this->argExists(msg, 2));
 	else
 	{
