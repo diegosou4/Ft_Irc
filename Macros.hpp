@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/27 12:11:32 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/01 15:58:44 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/02 00:15:23 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,6 @@
 
 #define SUCCESS			000
 #define RPL_WELCOME		001
-// did not add RPL_PONG is not a real protocol error code - PONG is not a numeric response, but a raw command
 
 #define	RPL_CHANMODE	324
 #define RPL_CREATTIME	329
@@ -82,8 +81,7 @@
 #define	ERR_UNKNOWNMODE		472
 #define	ERR_INVITEONLYCHAN	473
 #define	ERR_BADCHANKEY		475
-#define	ERR_NOTCHANOP		482 // To be used instead of ERR_USERNOTOP (not part of protocol)
-// Removing ERR_USERALREADYOP -> not part of protocol -> we are to return 0 if user is already op - because no failure occurred
+#define	ERR_NOTCHANOP		482
 
 static std::map<int, std::string> create_errmsg()
 {
