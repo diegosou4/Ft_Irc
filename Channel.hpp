@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:22 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/30 15:35:44 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/01 18:19:01 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,9 @@
 // -LIBRARIES-
 #include <set>
 #include <vector>
+#include <sstream>
 #include <iostream>
+#include <algorithm>
 
 #include "Client.hpp"
 #include "Macros.hpp"
@@ -25,13 +27,13 @@ class Channel
 {
 	private:
 		std::string	_name;
+		std::string _creat; //add creation time CAMILLE
 		std::string _topic;
-		std::string _password;
-		std::string _modes; //add modes
-		std::string _creat; //add creation time
-		bool	_topic_op_only; // Top 
-		bool	_invite_only;
-		size_t	_limit;
+
+		size_t _limit;
+		std::string _key;
+		bool _invite_only;
+		bool _topic_op_only;
 
 		std::vector<Client *> 	_members;
 		std::set<std::string>	_operators;
@@ -48,7 +50,7 @@ class Channel
 		//Setters:
 		void	setName(std::string const &name);
 		void	setTopic(std::string const &topic);
-		void	setPassword(std::string const &password);
+		void	setKey(std::string const &password);
 		void	setLimit(int const &limit);
 		void	setModes(char sign, char flag);
 		bool	setOperator(std::string target);
@@ -59,18 +61,19 @@ class Channel
 		std::string	getTopic() const;
 		std::string getModes() const;
 		std::string getCreat() const;
-		std::vector<Client *> getMembers() const;
+		std::vector<Client *> &getMembers();
 
 		//Command-related methods:
-		int	addMember(Client &client);
+		int	addMember(Client &client, std::string const &key); //We need the key arg so that users can enter channels with pasword
 		int	removeMember(Client &client);
 		int kickMember(Client &client, std::string const &target);
 		int topicHandle(Client &client, std::vector<std::string> const &msg);
 		int	modeFlags(Client &client, char sign, char flag, std::string arg);
 		void updateNickname(std::string oldnick, std::string newnick);
 
+		void removeOperator(std::string target); //1-line function -> should we merge w another?
+
 		//Utils:
-		bool	removeOperator(std::string target);
 		bool	isEmpty() const;
 		bool	isMember(Client &client) const;
 		bool	isOperator(std::string nick) const;
