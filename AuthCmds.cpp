@@ -6,12 +6,25 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:25:25 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/01 15:21:33 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/02 13:38:38 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 //------------------------------AuthCmds---------------------------------------
 #include "Server.hpp"
+
+void Server::cmdPong(Client *client, Channel *channel, str_vector const &msg)
+{
+	(void)channel;
+
+	if (!client || msg.size() < 2)
+		return ;
+
+	if (msg[0] == this->_name)
+		client->setPinged(false);
+
+	client->setLastActivity();
+}
 
 // Performs checks, switches client state to PASS_OK if pass is valid
 void Server::cmdPass(Client *client, Channel *channel, str_vector const &msg)
@@ -58,11 +71,9 @@ void Server::cmdNick(Client *client, Channel *channel, str_vector const &msg)
 
 	for (channels_iter it = this->_channels.begin(); it != this->_channels.end(); ++it)
 	{
+		it->second->updateNickname(client->getNickname(), msg[1]); // done even if user is non member, because can be on invited list
 		if (it->second->isMember(*client))
-		{
-			it->second->updateNickname(client->getNickname(), msg[1]);
 			this->broadcast(*client, *it->second, msg[0], msg[1]);
-		}
 	}
 
 	this->_clients.erase(client->getNickname());
@@ -90,6 +101,7 @@ void Server::cmdUser(Client *client, Channel *channel, str_vector const &msg)
 
 	if (code)
 		return (this->sendNumeric(*client, code));
+
 
 	if(msg.size() < 4)
 		return (this->sendNumeric(*client, ERR_NEEDMOREPARAMS));

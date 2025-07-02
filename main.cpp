@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/26 21:57:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/27 11:23:01 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/02 13:01:41 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,3 +87,14 @@ TOPIC #mychannel :This is the new topic
 INVITE username #mychannel
 PRIVMSG #mychannel :Hello, world!
 KICK #mychannel username :optional reason*/
+
+/*
+TO-DOS
+
+	PING/PONG is actually a necessary system check
+		used to track last activity time for each client
+		-> if inactive for too long (1-3 mins), server sends PING
+		-> if no PONG received, server disconnects client
+
+	add function that checks how many fd are acceptable for given machine*/
+

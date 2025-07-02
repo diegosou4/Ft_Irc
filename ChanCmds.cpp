@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:35:58 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/30 16:13:30 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/02 11:04:05 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@
 void Server::cmdJoin(Client *client, Channel *channel, str_vector const &msg)
 {
 	int code = 0;
-	
+
 	if (!client)
 		throw (std::runtime_error("Fatal: client not found"));
 	if (client->getState() != ACTIVE)
@@ -34,7 +34,9 @@ void Server::cmdJoin(Client *client, Channel *channel, str_vector const &msg)
 			channel = new Channel(msg[1]);
 			this->_channels[msg[1]] = channel;
 		}
+
 		std::cout << "Channel created: " << msg[1] << std::endl;
+
 		code = channel->addMember(*client, this->argExists(msg, 2));
 	}
 
@@ -165,14 +167,11 @@ void Server::cmdPrivmsg(Client *client, Channel *channel, str_vector const &msg)
 	if (code)
 		return (this->sendNumeric(*client, code));
 
-	if (channel) // When i did this command PRIVMSG #general :ola the another client dont receve the ola only the second str example ola mundo, only mundo
+
+	if (channel)
 		this->broadcast(*client, *channel, msg[0], this->argExists(msg, 2));
 	else
-	{
-		std::cout << "arroz com feijao e batata frita" << std::endl;
 		this->broadcast(*client, *this->_clients[msg[1]], msg[0], this->argExists(msg, 2));
-	}
-		
 }
 
 // Performs checks, sends to channel topic method, sends relevant messages & codes
@@ -188,7 +187,7 @@ void Server::cmdTopic(Client *client, Channel *channel, str_vector const &msg)
 		code = cmdCheck(client, channel, "");
 
 	if (!code)
-		code = channel->topicHandle(*client, msg);
+		code = channel->topicHandle(*client, this->argExists(msg, 2));
 
 	if (code == RPL_NOTOPIC)
 		this->sendNumeric(*client, code, channel->getName() + " :No topic is set");
@@ -221,21 +220,3 @@ void Server::cmdMode(Client *client, Channel *channel, str_vector const &msg)
 	this->sendNumeric(*client, RPL_CREATTIME, channel->getName() + " " + channel->getCreat());
 }
 
-
-void Server::cmdPing(Client *client, Channel *channel, str_vector const &msg)
-{
-	int code = 0;
-	(void)channel; 
-	if (!client)
-		throw (std::runtime_error("Fatal: client not found"));
-
-	if (msg.size() != 2)
-		code = ERR_NEEDMOREPARAMS;
-	else if (msg[1].find_first_not_of(DIGIT_CHARS ALPHA_CHARS) != msg[1].npos)
-		code = ERR_UNKNOWNCOMMAND;
-
-	if (code)
-		return (this->sendNumeric(*client, code));
-
-	this->sendNumeric(*client, 0, MSG_PONG);
-}

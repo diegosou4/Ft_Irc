@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/30 00:34:13 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/02 13:46:10 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,6 +108,8 @@ void	Server::setSocket(in_port_t port, in_addr_t ip)
 // Launches server, listens to pollfd activity, adds new clients and treats events
 void	Server::handleClient(size_t max_fds, int timeout)
 {
+	time_t last_check = time(NULL);
+
 	this->initServer(max_fds);
 
 	while (true)
@@ -122,8 +124,11 @@ void	Server::handleClient(size_t max_fds, int timeout)
 
 			this->addSocket(true);
 		}
-
 		this->treatRevent();
+
+		time_t current_time = time(NULL);
+		if (current_time - last_check >= 30)
+			last_check = this->checkActivity(current_time);
 	}
 }
 
@@ -165,6 +170,22 @@ void	Server::addSocket(bool isclient)
 	this->_fds.push_back(newpoll);
 }
 
-// DIEGO ADD PING/PONG
 
+time_t Server::checkActivity(time_t current_time)
+{
+	clients_iter it = this->_clients.begin();
 
+	for (; it != _clients.end(); ++it)
+	{
+		if (it->second->getState() == ACTIVE)
+		{
+			time_t inactivity = current_time - it->second->getLastActivity();
+			if (!it->second->wasPinged() && inactivity >= PING_TIMEOUT)
+				this->pingClient(*it->second);
+			else if (it->second->wasPinged() && inactivity >= PONG_TIMEOUT)
+				this->removeClient(it->second);
+		}
+	}
+
+	return (current_time);
+}

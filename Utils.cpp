@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 13:00:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/30 16:14:18 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/02 13:41:04 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 // Creates maps linking command to an function
 void	Server::setCmdMaps()
 {
-	
+	this->_authcmds["PONG"] = &Server::cmdPong;
 	this->_authcmds["PASS"] = &Server::cmdPass;
 	this->_authcmds["NICK"] = &Server::cmdNick;
 	this->_authcmds["USER"] = &Server::cmdUser;
@@ -118,21 +118,19 @@ Server::str_vector Server::newVector(std::string const &arg1, std::string const 
 	return (new_vector);
 }
 
-std::string Server::argExists(str_vector const &msg, size_t index)
+// Joins vector indexes into a space separated string
+std::string	Server::argExists(str_vector const &msg, size_t index)
 {
 	if (index >= msg.size())
-		return "";
-	std::cout << "argExists: " << msg[index] << std::endl;
+		return (NULL);
 
-	if (msg[index][0] == ':')
-	{
-		std::string result = msg[index].substr(1); 
-		for (size_t i = index + 1; i < msg.size(); ++i)
-			result += " " + msg[i];
+	return (msg[index]);
+}
 
-		std::cout << "argExists: " << result << std::endl;
-		return result;
-	}
+void Server::pingClient(Client &client)
+{
+	std::string msg = "PING :" + this->_name + "\r\n";
+	this->sendClient(client, msg);
 
-	return msg[index];
+	client.setPinged(true);
 }
