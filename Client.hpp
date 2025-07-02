@@ -40,8 +40,6 @@ class Client
 		std::string _realname;
 		std::string _username;
 		std::string _nickname;
-		std::string _hostname;
-		std::string _prefix;
 
 		bool _pinged;
 		time_t _last_activity;
@@ -79,7 +77,8 @@ class Client
 		std::string getUsername() const;
 		std::string getNickname() const;
 		std::string getHostname() const;
-
+		std::string getPrefix() const;
+		
 		bool	passedNick()const;
 		bool	passedUser()const;
 		bool	wasPinged()const;

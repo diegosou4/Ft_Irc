@@ -14,32 +14,34 @@
 #include "Server.hpp"
 
 // Loops around all pollfds for revent activity - if found, sends to relevant event-managing method
-void	Server::treatRevent()
+void    Server::treatRevent()
 {
-	if (this->_fds.size() <= 1)
-		return ;
-
-	for (pollfd_iter it = this->_fds.begin() +1; it != this->_fds.end(); ++it)
-	{
-		Client *client = this->getClient(it->fd);
-		if (!client)
-			continue ;
-		switch (it->revents)
-		{
-			case POLLHUP:
-				this->pollHup(*client); break;
-			case POLLIN:
-				this->pollIn(*client); break;
-			case POLLERR:
-				this->pollErr(*client); break;
-			case POLLNVAL:
-				this->pollNVal(*client); break;
-			default:
-				break;
-		}
-		if (it->fd == REMOVAL)
-			this->_fds.erase(it--);
-	}
+    if (this->_fds.size() <= 1)
+        return ;
+    pollfd_iter it = this->_fds.begin() +1;
+    while (it != this->_fds.end())
+    {
+        Client *client = this->getClient(it->fd);
+        pollfd_iter current = it;
+        it++;
+        if (!client)
+            continue;
+        switch (current->revents)
+        {
+            case POLLHUP:
+                this->pollHup(*client); break;
+            case POLLIN:
+                this->pollIn(*client); break;
+            case POLLERR:
+                this->pollErr(*client); break;
+            case POLLNVAL:
+                this->pollNVal(*client); break;
+            default:
+                break;
+        }
+        if ((current)->fd == REMOVAL)
+            this->_fds.erase(current);
+    }
 }
 
 // POLLUP = client left
@@ -90,12 +92,18 @@ void Server::pollIn(Client &client)
 			split_msg[0][i] = toupper(split_msg[0][i]);
 
 		Channel *channel = findChannel(split_msg);
+		if(channel == NULL)
+		{
+			std::cout << "Channel not found: " << split_msg[1] << std::endl;
+			std::cout << "Channel not found: " << std::endl;
+		}
 
 		if (this->_authcmds.find(split_msg[0]) != this->_authcmds.end())
 			(this->*_authcmds[split_msg[0]])(&client, channel, split_msg);
 		else
 			this->sendNumeric(client, ERR_UNKNOWNCOMMAND);
 	}
+	std::cout << "Outro Patamar" << std::endl;
 
 }
 

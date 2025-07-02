@@ -80,12 +80,15 @@ void	Server::removeClient(Client *client)
 	for (pollfd_iter it = this->_fds.begin(); it != this->_fds.end(); ++it)
 		if (client->getFd() == it->fd)
 			it->fd = REMOVAL;
+	
+	
 
 	this->printServer(client, "has left");
 
 	this->_clients.erase(client->getNickname());
 	close(client->getFd());
 	delete client;
+	client = NULL;
 }
 
 // Checks if client has passed PASS, NICK and USER to be considered ACTIVE
@@ -119,12 +122,12 @@ Server::str_vector Server::newVector(std::string const &arg1, std::string const 
 }
 
 // Joins vector indexes into a space separated string
-std::string	Server::argExists(str_vector const &msg, size_t index)
+std::string Server::argExists(str_vector const &msg, size_t index)
 {
 	if (index >= msg.size())
-		return (NULL);
+		return "";
 
-	return (msg[index]);
+	return msg[index];
 }
 
 void Server::pingClient(Client &client)

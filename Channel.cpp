@@ -13,12 +13,20 @@
 #include "Channel.hpp"
 
 //----------------- Constructor/Destructor ------------------
-
 Channel::Channel(std::string const &name): _name(name), _limit(50), _invite_only(false), _topic_op_only(false) {
+	this->_topic = "";
+	this->_key = "";
+	this->_limit = 50;
+	this->_creat = "";
 	setCreat();
 }
 
-Channel::Channel(std::string const &name, int const limit): _name(name), _limit(limit), _invite_only(false), _topic_op_only(false) {
+
+Channel::Channel(std::string const &name, int const limit): _name(name), _limit(limit), _invite_only(false), _topic_op_only(false)  {
+	this->_topic = "";
+	this->_key = "";
+	this->_limit = limit;
+	this->_creat = "";
 	setCreat();
 }
 
@@ -113,7 +121,7 @@ std::string Channel::getCreat() const {
 std::vector<Client *> &Channel::getMembers() {
 	return (_members);
 
-
+}
 //-------------------- Command-related methods-----------------------
 
 int	Channel::addMember(Client &client, std::string const &key) {
@@ -134,7 +142,7 @@ int	Channel::addMember(Client &client, std::string const &key) {
 
 	if (_members.size() == 1)
 		_operators.insert(client.getNickname());
-
+	std::cout << "Client " << client.getNickname() << " joined channel " << _name << std::endl;
 	return (SUCCESS);
 }
 
@@ -276,43 +284,8 @@ Client *Channel::findMember(std::string name) {
 			return (*it);
 
 	return (NULL);
-=======
-int	Channel::addMember(Client &client, std::string const &key) //We need the key arg so that users can enter channels with pasword
-{
-	std::cout << "ADD Channel method WIP" << std::endl;
-	(void)key;
-	if (std::find(_members.begin(), _members.end(), &client) != _members.end())
-		return ERR_USERINCHAN;
-
-	if (_limit > 0 && _members.size() >= _limit)
-		return ERR_CHANISFULL;
-
-	// Invite-only?
-	if (_invite_only && _invited.find(client.getNickname()) == _invited.end())
-		return ERR_INVITEONLYCHAN;
-
-	_members.push_back(&client);
-
-
-	return SUCCESS;
 }
 
 
-int Channel::kickMember(Client &client, std::string const &target)
-{
-	(void)client;
-	(void)target;
-	/*
-		if client not op
-			return ERR_NOTCHANOP
-	if target not a member
-		 return ERR_USERNOTINCHAN
-	call rmMember
-		if channel has k flag in _modes
-			return ERR_BADCHANKEY
-	remove user from all relevant containers
-	return SUCCESS
-		 */
 
-	std::cout << "KICK Channel method WIP" << std::endl;
-	return (SUCCESS);
+

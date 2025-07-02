@@ -15,7 +15,9 @@
 
 
 //----------------- Constructor/Destructor ------------------
-Client::Client(): _client_fd(-1), _state(OFFLINE), _username(), _nickname(), _hostname("unknown")
+
+
+Client::Client(): _client_fd(-1), _state(OFFLINE), _username(), _nickname(), _realname(),  _pinged(false),_hostname("unknown")
 {
 	char hostname[1000];
 
@@ -23,7 +25,7 @@ Client::Client(): _client_fd(-1), _state(OFFLINE), _username(), _nickname(), _ho
 		this->_hostname = hostname;
 }
 
-Client::Client(int fd): _client_fd(fd), _state(OFFLINE), _username(), _nickname(), _hostname("unknown")
+Client::Client(int fd): _client_fd(-1), _state(OFFLINE),  _username(), _nickname(), _realname(),_pinged(false), _hostname("unknown")
 {
 	struct sockaddr_in addr;
 	socklen_t addrlen = sizeof(addr);

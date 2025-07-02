@@ -28,7 +28,7 @@
 #endif
 
 //Set values:
-#define MAX_CLIENTS	10
+#define MAX_CLIENTS 500
 #define TIMEOUT		-1
 
 // -FUNCTION DEFINITION-

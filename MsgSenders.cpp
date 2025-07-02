@@ -25,6 +25,11 @@ void	Server::printServer(Client *client, std::string const &msg)
 // Sends given message to given client
 void	Server::sendClient(Client &client, std::string const &msg)
 {
+	if(client.getFd() < 0)
+	{
+		this->printServer(&client, RED "Failed to send message - client disconnected");
+		return;
+	}
 	if (send(client.getFd(), msg.c_str(), msg.length(), 0) < 0)
 		this->printServer(&client, RED "Failed to send message");
 }
@@ -35,8 +40,12 @@ void	Server::sendNumeric(Client &client, int code)
 	std::stringstream ss;
 	std::string msg;
 
-	if (ErrMsg.find(code) == ErrMsg.end())
-		throw (std::runtime_error("Invalid error code"));
+	if (ErrMsg.find(code) == ErrMsg.end()) 
+	{
+		std::cout << RED "Error: Numeric code " << code << " not found in ErrMsg map." R << std::endl;
+		return;
+	}
+
 
 	msg = ErrMsg.find(code)->second;
 
@@ -65,6 +74,7 @@ void	Server::sendNumeric(Client &client, int code, std::string const &msg)
 void	Server::broadcast(Client &client, Client &target, std::string const &cmd, std::string const &msg)
 {
 	std::string output = client.getPrefix() + " " + cmd + " " + msg + "\r\n";
+	std::cout << output << std::endl;
 	if (target.getState() == ACTIVE)
 		this->sendClient(target, output);
 }
@@ -79,8 +89,10 @@ void	Server::broadcast(Client &client, Channel &channel, std::string const &cmd,
 	Channel::member_iter it = channel.getMembers().begin();
 	for (; it != channel.getMembers().end(); ++it)
 		if ((*it)->getState() == ACTIVE)
+		{
+			std::cout << (*it)->getNickname() << " " << output << std::endl;
 			this->sendClient(**it, output);
-	this->sendClient(target, output);
+		}	
 }
 
 

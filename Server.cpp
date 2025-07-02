@@ -111,7 +111,6 @@ void	Server::handleClient(size_t max_fds, int timeout)
 	time_t last_check = time(NULL);
 
 	this->initServer(max_fds);
-
 	while (true)
 	{
 		if (poll(this->_fds.data(), this->_fds.size(), timeout) < 0)
@@ -130,6 +129,7 @@ void	Server::handleClient(size_t max_fds, int timeout)
 		if (current_time - last_check >= 30)
 			last_check = this->checkActivity(current_time);
 	}
+
 }
 
 // Binds socket fd with local address, prepares to listen to connections, add server socket to pollfd vector
