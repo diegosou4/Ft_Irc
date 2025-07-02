@@ -28,7 +28,7 @@
 #endif
 
 //Set values:
-#define MAX_CLIENTS 500
+#define MAX_CLIENTS	10
 #define TIMEOUT		-1
 
 // -FUNCTION DEFINITION-
@@ -54,7 +54,6 @@ int main(int ac, char **av)
 	}
 	catch (std::exception &e)
 	{
-		std::cout << "Entra aqui" << std::endl;
 		std::cerr << RED << e.what() << R << std::endl;
 	}
 }

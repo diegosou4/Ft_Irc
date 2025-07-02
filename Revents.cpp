@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:41:33 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 13:48:12 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/02 22:43:28 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,34 +14,37 @@
 #include "Server.hpp"
 
 // Loops around all pollfds for revent activity - if found, sends to relevant event-managing method
-void    Server::treatRevent()
+void	Server::treatRevent()
 {
-    if (this->_fds.size() <= 1)
-        return ;
-    pollfd_iter it = this->_fds.begin() +1;
-    while (it != this->_fds.end())
-    {
-        Client *client = this->getClient(it->fd);
-        pollfd_iter current = it;
-        it++;
-        if (!client)
-            continue;
-        switch (current->revents)
-        {
-            case POLLHUP:
-                this->pollHup(*client); break;
-            case POLLIN:
-                this->pollIn(*client); break;
-            case POLLERR:
-                this->pollErr(*client); break;
-            case POLLNVAL:
-                this->pollNVal(*client); break;
-            default:
-                break;
-        }
-        if ((current)->fd == REMOVAL)
-            this->_fds.erase(current);
-    }
+	if (this->_fds.size() <= 1)
+		return ;
+
+	pollfd_iter it = this->_fds.begin() +1;
+	while (it != this->_fds.end())
+	{
+		Client *client = this->getClient(it->fd);
+		pollfd_iter current = it;
+		it++;
+
+		if (!client)
+			continue;
+
+		switch (current->revents)
+		{
+			case POLLHUP:
+				this->pollHup(*client); break;
+			case POLLIN:
+				this->pollIn(*client); break;
+			case POLLERR:
+				this->pollErr(*client); break;
+			case POLLNVAL:
+				this->pollNVal(*client); break;
+			default:
+				break;
+		}
+		if ((current)->fd == REMOVAL)
+			this->_fds.erase(current);
+	}
 }
 
 // POLLUP = client left
@@ -54,27 +57,9 @@ void	Server::pollHup(Client &client)
 // Retrieves message, treats each line, splits it into vector, sends it to command managers
 void Server::pollIn(Client &client)
 {
-	// Need to modify function to handle newlines DIEGO
 	std::string msg = getMsg(client);
-
 	if (msg.empty())
 		return;
-	// Split msg by "\r\n" manually
-	std::vector<std::string> split_enter;
-	size_t start = 0;
-	size_t end = 0;
-	
-	while ((end = msg.find("\r\n", start)) != std::string::npos) { // Camille Check This
-		std::string line = msg.substr(start, end - start);
-		if (!line.empty())
-			split_enter.push_back(line);
-		start = end + 2;
-	}
-	if (start < msg.size()) {
-		std::string line = msg.substr(start);
-		if (!line.empty())
-			split_enter.push_back(line);
-	}
 
 	std::string line;
 	std::stringstream ss(msg);
@@ -92,19 +77,12 @@ void Server::pollIn(Client &client)
 			split_msg[0][i] = toupper(split_msg[0][i]);
 
 		Channel *channel = findChannel(split_msg);
-		if(channel == NULL)
-		{
-			std::cout << "Channel not found: " << split_msg[1] << std::endl;
-			std::cout << "Channel not found: " << std::endl;
-		}
 
 		if (this->_authcmds.find(split_msg[0]) != this->_authcmds.end())
 			(this->*_authcmds[split_msg[0]])(&client, channel, split_msg);
 		else
 			this->sendNumeric(client, ERR_UNKNOWNCOMMAND);
 	}
-	std::cout << "Outro Patamar" << std::endl;
-
 }
 
 // POLLERR = error occurred with fd

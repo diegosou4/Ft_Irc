@@ -6,13 +6,13 @@
 #    By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/05/26 21:49:04 by cbouvet           #+#    #+#              #
-#    Updated: 2025/07/02 18:25:22 by feden-pe         ###   ########.fr        #
+#    Updated: 2025/06/29 22:10:47 by cbouvet          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = ircserv
 CXX = @c++
-CXX_FLAGS = -Werror -Wall -Wextra -std=c++98 -g
+CXX_FLAGS = -Werror -Wall -Wextra -std=c++98
 SRC = 	main.cpp \
 		Server.cpp		Revents.cpp		AuthCmds.cpp	ChanCmds.cpp \
 		MsgSenders.cpp	CmdUtils.cpp	Utils.cpp \

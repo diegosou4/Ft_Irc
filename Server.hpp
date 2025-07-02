@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 13:39:11 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/02 22:04:44 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,9 +84,7 @@ class Server
 		void setSocket(in_port_t port, in_addr_t ip);
 		void initServer(int max_fds);
 		void addSocket(bool isclient);
-
 		time_t checkActivity(time_t current_time);
-
 
 		// Poll/revents - Revents.cpp
 		void treatRevent();
@@ -102,9 +100,8 @@ class Server
 		void sendNumeric(Client &client, int code, std::string const &msg);
 		void broadcast(Client &client, Client &target, std::string const &cmd, std::string const &msg);
 		void broadcast(Client &client, Channel &channel, std::string const &cmd, std::string const &msg);
-
+		void broadcastJoin(Client &client, Channel &channel);
 		// Authentication-related Commands - AuthCmds.cpp
-
 		void cmdPong(Client *client, Channel *channel, str_vector const &msg);
 		void cmdPass(Client *client, Channel *channel, str_vector const &msg);
 		void cmdNick(Client *client, Channel *channel, str_vector const &msg);
@@ -120,15 +117,15 @@ class Server
 		void cmdPrivmsg(Client *client, Channel *channel, str_vector const &msg);
 		void cmdTopic(Client *client, Channel *channel, str_vector const &msg);
 		void cmdMode(Client *client, Channel *channel, str_vector const &msg);
+
 		// Command-related Utils = CmdUtils.cpp
 		Channel *findChannel(str_vector &split_msg);
+		Channel *findChannel(std::string const &name);
 		std::string nameList(Channel &channel);
 		int	cmdCheck(Client *client, Channel *channel, std::string target);
 		int	checkModeFormat(str_vector const &msg);
 		void sendMode(Client &client, Channel &channel, size_t stop, str_vector const &msg);
-
 		void pingClient(Client &client);
-
 
 		// Utils - Utils.cpp
 		void setCmdMaps();
