@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:47:44 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 22:18:58 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/02 23:27:23 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,7 +72,7 @@ void	Server::broadcast(Client &client, Client &target, std::string const &cmd, s
 // Composes message, sends to all channels where client is a member
 void	Server::broadcast(Client &client, Channel &channel, std::string const &cmd, std::string const &msg)
 {
-	std::string output = client.getPrefix() + " " + cmd + " " + msg + "\r\n";
+	std::string output = client.getPrefix() + " " + cmd + " " + channel.getName() + " " + msg + "\r\n";
 	if (channel.isOperator(client.getNickname()))
 		output = "@" + output;
 

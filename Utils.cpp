@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 13:00:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 22:19:59 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/02 23:24:12 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,6 +98,7 @@ bool	Server::authCheck(Client &client)
 		return (false);
 
 	client.setState(ACTIVE);
+	client.setPrefix();
 
 	this->sendNumeric(client, RPL_WELCOME, WELCOME);
 	this->printServer(&client, "has successfully logged in");
