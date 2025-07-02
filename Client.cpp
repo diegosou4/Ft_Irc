@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 17:06:16 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 13:27:19 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/02 13:55:13 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,7 +134,7 @@ std::string Client::getUsername() const
 std::string Client::getNickname() const
 {
 	if (this->_nickname.empty())
-		return ("user@" + this->_hostname); //Only for server display
+		return ("user@" + this->_hostname);
 	return (this->_nickname);
 }
 

@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:22 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 12:13:05 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/02 13:58:17 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ class Channel
 {
 	private:
 		std::string	_name;
-		std::string _creat; //add creation time CAMILLE
+		std::string _creat;
 		std::string _topic;
 
 		size_t _limit;
@@ -67,14 +67,13 @@ class Channel
 		std::vector<Client *> &getMembers();
 
 		//Command-related methods:
-		int	addMember(Client &client, std::string const &key); //We need the key arg so that users can enter channels with pasword
+		int	addMember(Client &client, std::string const &key);
 		int	removeMember(Client &client);
 		int kickMember(Client &client, std::string const &target);
 		int topicHandle(Client &client, std::string arg);
 		int	modeFlags(Client &client, char sign, char flag, std::string arg);
 		void updateNickname(std::string oldnick, std::string newnick);
-
-		void removeOperator(std::string target); //1-line function -> should we merge w another?
+		void removeOperator(std::string target);
 
 		//Utils:
 		bool	isEmpty() const;

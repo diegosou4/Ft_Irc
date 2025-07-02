@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:27 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 13:53:11 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/02 13:58:48 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -133,7 +133,7 @@ std::vector<Client *> &Channel::getMembers()
 
 
 //-------------------- Command-related methods-----------------------
-int	Channel::addMember(Client &client, std::string const &key) //We need the key arg so that users can enter channels with pasword
+int	Channel::addMember(Client &client, std::string const &key)
 {
 	if (this->isMember(client))
 		return (ERR_USERINCHAN);

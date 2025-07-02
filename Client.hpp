@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 16:47:09 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 13:26:47 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/02 13:55:52 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,15 +40,15 @@ class Client
 		std::string _realname;
 		std::string _username;
 		std::string _nickname;
-		std::string _hostname; // more useful than IP - we can get IP from hostname anyways
-		std::string _prefix; // needed for compliance with RFC 2812 output responses
+		std::string _hostname;
+		std::string _prefix;
 
 		bool _pinged;
 		time_t _last_activity;
 
 	public:
 		//Constructor/Destructor:
-		Client(); // check if we actually use it?
+		Client();
 		Client(int fd);
 		Client(Client const &src);
 		~Client();
