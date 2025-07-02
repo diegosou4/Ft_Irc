@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 00:19:16 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/02 13:16:50 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 
 // -LIBRARIES-
 #include <map>
+#include <ctime>
 #include <vector>
 #include <cstring>
 #include <iomanip>
@@ -83,6 +84,7 @@ class Server
 		void setSocket(in_port_t port, in_addr_t ip);
 		void initServer(int max_fds);
 		void addSocket(bool isclient);
+		time_t checkActivity(time_t current_time);
 
 		// Poll/revents - Revents.cpp
 		void treatRevent();

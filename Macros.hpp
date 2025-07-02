@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/27 12:11:32 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 00:15:23 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/02 13:00:34 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,3 +111,6 @@ static std::map<int, std::string> create_errmsg()
 }
 
 static const std::map<int, std::string> ErrMsg = create_errmsg();
+
+static time_t ping_timeout = 180;
+static time_t pong_timeout = 60;

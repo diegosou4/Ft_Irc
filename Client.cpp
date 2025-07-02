@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 17:06:16 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 16:52:16 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/02 13:27:19 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,6 +60,16 @@ void	Client::setFd(int fd)
 	this->_client_fd = fd;
 }
 
+void	Client::setLastActivity()
+{
+	this->_last_activity = time(NULL);
+}
+
+void	Client::setPinged(bool status)
+{
+	this->_pinged = status;
+}
+
 void	Client::setState(clientState state)
 {
 	this->_state = state;
@@ -99,6 +109,11 @@ void	Client::setPrefix()
 int	Client::getFd() const
 {
 	return (this->_client_fd);
+}
+
+time_t Client::getLastActivity()const
+{
+	return (this->_last_activity);
 }
 
 clientState	Client::getState() const
@@ -145,4 +160,9 @@ bool	Client::passedUser()const
 	if (this->_username.empty() || this->_realname.empty())
 		return (false);
 	return (true);
+}
+
+bool	Client::wasPinged()const
+{
+	return (this->_pinged);
 }
