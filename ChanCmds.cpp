@@ -34,6 +34,9 @@ void Server::cmdJoin(Client *client, Channel *channel, str_vector const &msg)
 			channel = new Channel(msg[1]);
 			this->_channels[msg[1]] = channel;
 		}
+
+		std::cout << "Channel created: " << msg[1] << std::endl;
+
 		code = channel->addMember(*client, this->argExists(msg, 2));
 	}
 
@@ -164,6 +167,7 @@ void Server::cmdPrivmsg(Client *client, Channel *channel, str_vector const &msg)
 	if (code)
 		return (this->sendNumeric(*client, code));
 
+
 	if (channel)
 		this->broadcast(*client, *channel, msg[0], this->argExists(msg, 2));
 	else
@@ -215,3 +219,4 @@ void Server::cmdMode(Client *client, Channel *channel, str_vector const &msg)
 	this->sendNumeric(*client, RPL_CHANMODE, channel->getName() + " " + channel->getModes());
 	this->sendNumeric(*client, RPL_CREATTIME, channel->getName() + " " + channel->getCreat());
 }
+

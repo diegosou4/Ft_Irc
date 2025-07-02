@@ -119,7 +119,7 @@ void	Server::handleClient(size_t max_fds, int timeout)
 
 		if (this->_fds[0].revents & POLLIN)
 		{
-			if (this->_fds.size() >= max_fds -1)
+			if (this->_fds.size() >= max_fds -1) // can be replaced by max client Macros //Diego to add function that checks how many fd are acceptable for given machine
 				throw (std::runtime_error("All client slots are taken!"));
 
 			this->addSocket(true);
@@ -170,6 +170,7 @@ void	Server::addSocket(bool isclient)
 	this->_fds.push_back(newpoll);
 }
 
+
 time_t Server::checkActivity(time_t current_time)
 {
 	clients_iter it = this->_clients.begin();
@@ -188,4 +189,3 @@ time_t Server::checkActivity(time_t current_time)
 
 	return (current_time);
 }
-

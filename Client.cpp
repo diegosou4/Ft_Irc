@@ -60,6 +60,7 @@ void	Client::setFd(int fd)
 	this->_client_fd = fd;
 }
 
+
 void	Client::setLastActivity()
 {
 	this->_last_activity = time(NULL);
@@ -69,6 +70,7 @@ void	Client::setPinged(bool status)
 {
 	this->_pinged = status;
 }
+
 
 void	Client::setState(clientState state)
 {
@@ -88,6 +90,7 @@ void	Client::setUsername(std::string username)
 	this->_username = username;
 }
 
+
 void	Client::setNickname(std::string nickname)
 {
 	this->_nickname = nickname;
@@ -97,6 +100,7 @@ void	Client::setHostname(std::string hostname)
 {
 	this->_hostname = hostname;
 }
+
 
 void	Client::setPrefix()
 {
@@ -111,10 +115,12 @@ int	Client::getFd() const
 	return (this->_client_fd);
 }
 
+
 time_t Client::getLastActivity()const
 {
 	return (this->_last_activity);
 }
+
 
 clientState	Client::getState() const
 {
@@ -135,6 +141,7 @@ std::string Client::getNickname() const
 {
 	if (this->_nickname.empty())
 		return ("user@" + this->_hostname);
+
 	return (this->_nickname);
 }
 
@@ -162,7 +169,9 @@ bool	Client::passedUser()const
 	return (true);
 }
 
+
 bool	Client::wasPinged()const
 {
 	return (this->_pinged);
 }
+

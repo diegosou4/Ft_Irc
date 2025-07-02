@@ -54,6 +54,7 @@ int main(int ac, char **av)
 	}
 	catch (std::exception &e)
 	{
+		std::cout << "Entra aqui" << std::endl;
 		std::cerr << RED << e.what() << R << std::endl;
 	}
 }

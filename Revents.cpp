@@ -52,9 +52,27 @@ void	Server::pollHup(Client &client)
 // Retrieves message, treats each line, splits it into vector, sends it to command managers
 void Server::pollIn(Client &client)
 {
+	// Need to modify function to handle newlines DIEGO
 	std::string msg = getMsg(client);
+
 	if (msg.empty())
 		return;
+	// Split msg by "\r\n" manually
+	std::vector<std::string> split_enter;
+	size_t start = 0;
+	size_t end = 0;
+	
+	while ((end = msg.find("\r\n", start)) != std::string::npos) { // Camille Check This
+		std::string line = msg.substr(start, end - start);
+		if (!line.empty())
+			split_enter.push_back(line);
+		start = end + 2;
+	}
+	if (start < msg.size()) {
+		std::string line = msg.substr(start);
+		if (!line.empty())
+			split_enter.push_back(line);
+	}
 
 	std::string line;
 	std::stringstream ss(msg);
@@ -78,6 +96,7 @@ void Server::pollIn(Client &client)
 		else
 			this->sendNumeric(client, ERR_UNKNOWNCOMMAND);
 	}
+
 }
 
 // POLLERR = error occurred with fd

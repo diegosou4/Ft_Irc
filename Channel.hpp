@@ -51,6 +51,7 @@ class Channel
 
 		//Setters:
 		void	setCreat();
+
 		void	setName(std::string const &name);
 		void	setTopic(std::string const &topic);
 		void	setKey(std::string const &password);
@@ -74,6 +75,7 @@ class Channel
 		int	modeFlags(Client &client, char sign, char flag, std::string arg);
 		void updateNickname(std::string oldnick, std::string newnick);
 		void removeOperator(std::string target);
+
 
 		//Utils:
 		bool	isEmpty() const;

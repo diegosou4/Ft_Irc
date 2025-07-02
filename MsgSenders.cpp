@@ -80,6 +80,9 @@ void	Server::broadcast(Client &client, Channel &channel, std::string const &cmd,
 	for (; it != channel.getMembers().end(); ++it)
 		if ((*it)->getState() == ACTIVE)
 			this->sendClient(**it, output);
+	this->sendClient(target, output);
 }
+
+
 
 
