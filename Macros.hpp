@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/27 12:11:32 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 13:00:34 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/02 13:46:05 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,9 @@
 #define LOCALHOST	"127.0.0.1"
 #define BUFFSIZE	1000
 #define REMOVAL		-2
+#define PING_TIMEOUT 180
+#define PONG_TIMEOUT 60
+
 //Colours:
 #define PURPLE	"\001\033[1;38;2;209;174;231m\002"
 #define GREY	"\001\033[1;37m\002"
@@ -111,6 +114,3 @@ static std::map<int, std::string> create_errmsg()
 }
 
 static const std::map<int, std::string> ErrMsg = create_errmsg();
-
-static time_t ping_timeout = 180;
-static time_t pong_timeout = 60;

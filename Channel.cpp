@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:27 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 12:13:04 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/02 13:53:11 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,6 +78,8 @@ int Channel::setInvited(std::string const &name)
 		return (ERR_USERINCHAN);
 
 	this->_invited.insert(name);
+
+	return (SUCCESS);
 }
 
 //------------------------ Getters---------------------------
@@ -174,13 +176,15 @@ int	Channel::removeMember(Client &client)
 {
 	std::string nickname = client.getNickname();
 
-	member_iter it = std::find(this->_members.begin(), this->_members.end(), client);
+	member_iter it = std::find(this->_members.begin(), this->_members.end(), &client);
 	if (it == this->_members.end())
 		return (ERR_NOTINCHAN);
 
 	this->_members.erase(it);
 	this->_invited.erase(nickname);
 	this->removeOperator(nickname);
+
+	return (SUCCESS);
 }
 
 int Channel::topicHandle(Client &client, std::string arg)
@@ -221,7 +225,7 @@ int	Channel::modeFlags(Client &client, char sign, char flag, std::string arg)
 				this->_key = arg;
 			break;
 		case 'l':
-			if (on_off && arg.find_first_not_of (DIGIT_CHARS) != arg.npos || atoi(arg.c_str()) > 50)
+			if (on_off && (arg.find_first_not_of (DIGIT_CHARS) != arg.npos || atoi(arg.c_str()) > 50))
 					return (ERR_UNKNOWNMODE);
 			this->_limit = 50;
 			if (on_off)
@@ -270,7 +274,7 @@ bool	Channel::isEmpty() const
 
 bool	Channel::isMember(Client &client) const
 {
-	if (std::find(this->_members.begin(), this->_members.end(), client) != this->_members.end())
+	if (std::find(this->_members.begin(), this->_members.end(), &client) != this->_members.end())
 		return (true);
 
 	return (false);

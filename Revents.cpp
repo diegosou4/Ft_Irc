@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:41:33 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 11:52:55 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/02 13:48:12 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,8 +61,8 @@ void Server::pollIn(Client &client)
 
 	while (getline(ss, line, '\n'))
 	{
-		if (!line.empty() && line.back() == '\r')
-				line.pop_back();
+		if (!line.empty() && line[line.length() - 1] == '\r')
+			line = line.substr(0, line.length() -1);
 
 		str_vector split_msg = this->splitMsg(line);
 		if (line.empty() || split_msg.empty())
