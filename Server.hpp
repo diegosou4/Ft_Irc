@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 13:16:50 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/02 13:39:11 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,6 +102,7 @@ class Server
 		void broadcast(Client &client, Channel &channel, std::string const &cmd, std::string const &msg);
 
 		// Authentication-related Commands - AuthCmds.cpp
+		void cmdPong(Client *client, Channel *channel, str_vector const &msg);
 		void cmdPass(Client *client, Channel *channel, str_vector const &msg);
 		void cmdNick(Client *client, Channel *channel, str_vector const &msg);
 		void cmdUser(Client *client, Channel *channel, str_vector const &msg);
@@ -123,6 +124,7 @@ class Server
 		int	cmdCheck(Client *client, Channel *channel, std::string target);
 		int	checkModeFormat(str_vector const &msg);
 		void sendMode(Client &client, Channel &channel, size_t stop, str_vector const &msg);
+		void pingClient(Client &client);
 
 		// Utils - Utils.cpp
 		void setCmdMaps();
