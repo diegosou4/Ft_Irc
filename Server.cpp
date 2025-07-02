@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 13:46:10 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/02 22:41:59 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,8 +82,8 @@ int	Server::getPort()const
 Client *Server::getClient(int fd)
 {
 	for (clients_iter it = this->_clients.begin(); it != this->_clients.end(); ++it)
-	if (it->second->getFd() == fd)
-		return (it->second);
+		if (it->second && it->second->getFd() == fd)
+			return (it->second);
 
 	this->printServer(NULL, RED "No client found with requested fd");
 	return (NULL);
@@ -108,7 +108,7 @@ void	Server::setSocket(in_port_t port, in_addr_t ip)
 // Launches server, listens to pollfd activity, adds new clients and treats events
 void	Server::handleClient(size_t max_fds, int timeout)
 {
-	time_t last_check = time(NULL);
+	//time_t last_check = time(NULL);
 
 	this->initServer(max_fds);
 
@@ -126,9 +126,9 @@ void	Server::handleClient(size_t max_fds, int timeout)
 		}
 		this->treatRevent();
 
-		time_t current_time = time(NULL);
+	/* 	time_t current_time = time(NULL);
 		if (current_time - last_check >= 30)
-			last_check = this->checkActivity(current_time);
+			last_check = this->checkActivity(current_time); */
 	}
 }
 

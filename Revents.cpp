@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:41:33 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 13:48:12 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/02 22:43:28 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,12 +19,17 @@ void	Server::treatRevent()
 	if (this->_fds.size() <= 1)
 		return ;
 
-	for (pollfd_iter it = this->_fds.begin() +1; it != this->_fds.end(); ++it)
+	pollfd_iter it = this->_fds.begin() +1;
+	while (it != this->_fds.end())
 	{
 		Client *client = this->getClient(it->fd);
+		pollfd_iter current = it;
+		it++;
+
 		if (!client)
-			continue ;
-		switch (it->revents)
+			continue;
+
+		switch (current->revents)
 		{
 			case POLLHUP:
 				this->pollHup(*client); break;
@@ -37,8 +42,8 @@ void	Server::treatRevent()
 			default:
 				break;
 		}
-		if (it->fd == REMOVAL)
-			this->_fds.erase(it--);
+		if ((current)->fd == REMOVAL)
+			this->_fds.erase(current);
 	}
 }
 
