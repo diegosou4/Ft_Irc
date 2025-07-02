@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:35:58 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/30 16:13:30 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/02 11:04:05 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -183,7 +183,7 @@ void Server::cmdTopic(Client *client, Channel *channel, str_vector const &msg)
 		code = cmdCheck(client, channel, "");
 
 	if (!code)
-		code = channel->topicHandle(*client, msg);
+		code = channel->topicHandle(*client, this->argExists(msg, 2));
 
 	if (code == RPL_NOTOPIC)
 		this->sendNumeric(*client, code, channel->getName() + " :No topic is set");

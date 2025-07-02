@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/26 21:57:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 00:49:50 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/02 12:13:18 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,14 +90,8 @@ KICK #mychannel username :optional reason*/
 /*
 TO-DOS
 
-	topicHandle()
-
 	PING/PONG is actually a necessary system check
 		used to track last activity time for each client
 		-> if inactive for too long (1-3 mins), server sends PING
-		-> if no PONG received, server disconnects client
-
-	Creat time at channel creation
-
-	Add Diego's split to pollin*/
+		-> if no PONG received, server disconnects client*/
 

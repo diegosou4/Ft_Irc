@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:41:33 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/29 23:37:37 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/02 11:52:55 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,21 +49,35 @@ void	Server::pollHup(Client &client)
 }
 
 // POLLIN = message sent by client
-// Retrieves message, splits it into vector, sends it to command managers
+// Retrieves message, treats each line, splits it into vector, sends it to command managers
 void Server::pollIn(Client &client)
 {
-	// Need to modify function to handle newlines DIEGO
 	std::string msg = getMsg(client);
 	if (msg.empty())
 		return;
 
-	str_vector split_msg = this->splitMsg(msg);
-	Channel *channel = findChannel(split_msg);
+	std::string line;
+	std::stringstream ss(msg);
 
-	if (this->_authcmds.find(split_msg[0]) != this->_authcmds.end())
-		(this->*_authcmds[split_msg[0]])(&client, channel, split_msg);
-	else
-		this->sendNumeric(client, ERR_UNKNOWNCOMMAND);
+	while (getline(ss, line, '\n'))
+	{
+		if (!line.empty() && line.back() == '\r')
+				line.pop_back();
+
+		str_vector split_msg = this->splitMsg(line);
+		if (line.empty() || split_msg.empty())
+			continue;
+
+		for (size_t i = 0; split_msg[0][i]; i++)
+			split_msg[0][i] = toupper(split_msg[0][i]);
+
+		Channel *channel = findChannel(split_msg);
+
+		if (this->_authcmds.find(split_msg[0]) != this->_authcmds.end())
+			(this->*_authcmds[split_msg[0]])(&client, channel, split_msg);
+		else
+			this->sendNumeric(client, ERR_UNKNOWNCOMMAND);
+	}
 }
 
 // POLLERR = error occurred with fd

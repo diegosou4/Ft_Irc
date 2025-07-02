@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:22 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 00:39:02 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/02 12:13:05 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 
 // -LIBRARIES-
 #include <set>
+#include <ctime>
 #include <vector>
 #include <cstring>
 #include <sstream>
@@ -49,6 +50,7 @@ class Channel
 		~Channel();
 
 		//Setters:
+		void	setCreat();
 		void	setName(std::string const &name);
 		void	setTopic(std::string const &topic);
 		void	setKey(std::string const &password);
@@ -68,7 +70,7 @@ class Channel
 		int	addMember(Client &client, std::string const &key); //We need the key arg so that users can enter channels with pasword
 		int	removeMember(Client &client);
 		int kickMember(Client &client, std::string const &target);
-		int topicHandle(Client &client, std::vector<std::string> const &msg);
+		int topicHandle(Client &client, std::string arg);
 		int	modeFlags(Client &client, char sign, char flag, std::string arg);
 		void updateNickname(std::string oldnick, std::string newnick);
 

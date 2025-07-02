@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:27 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 00:49:22 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/02 12:13:04 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,10 +14,14 @@
 
 //----------------- Constructor/Destructor ------------------
 Channel::Channel(std::string const &name): _name(name), _limit(50), _invite_only(false), _topic_op_only(false)
-{}
+{
+	this->setCreat();
+}
 
 Channel::Channel(std::string const &name, int const limit): _name(name), _limit(limit), _invite_only(false), _topic_op_only(false)
-{}
+{
+	this->setCreat();
+}
 
 Channel::~Channel()
 {
@@ -27,6 +31,18 @@ Channel::~Channel()
 }
 
 //------------------------ Setters --------------------------
+void	Channel::setCreat()
+{
+	char buff[26];
+
+	time_t current_time = time(NULL);
+	struct tm *timeinfo = localtime (&current_time);
+
+	strftime(buff, 26, "%Y-%m-%d %H:%M:%S", timeinfo);
+
+	this->_creat = buff;
+}
+
 void	Channel::setName(std::string const &name)
 {
 	this->_name = name;
@@ -167,24 +183,20 @@ int	Channel::removeMember(Client &client)
 	this->removeOperator(nickname);
 }
 
-int Channel::topicHandle(Client &client, std::vector<std::string> const &msg)
+int Channel::topicHandle(Client &client, std::string arg)
 {
-	(void)client;
-	(void)msg;
-	/* differentiate between:
-		get topic
-			return RPL_NOTOPIC if none
-			return RPL_TOPIC if exists
+	if (arg.empty())
+	{
+		if (this->_topic.empty())
+			return (RPL_NOTOPIC);
+		return (RPL_TOPIC);
+	}
 
-		set topic
-			here, legitimacy of client must be verified
-				return ERR_NOTCHANOP if client is not op
-			if change successful ->
-			recompose message
-			this->setTopic
-			return SUCCESS*/
+	if (!this->isOperator(client.getNickname()))
+		return (ERR_NOTCHANOP);
 
-	std::cout << "TOPIC Channel method WIP" << std::endl;
+	this->setTopic(arg);
+
 	return (SUCCESS);
 }
 
