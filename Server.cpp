@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 22:41:59 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/03 20:32:01 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,10 +82,10 @@ int	Server::getPort()const
 Client *Server::getClient(int fd)
 {
 	for (clients_iter it = this->_clients.begin(); it != this->_clients.end(); ++it)
-		if (it->second && it->second->getFd() == fd)
+		if (it->second != NULL && it->second->getFd() == fd)
 			return (it->second);
 
-	this->printServer(NULL, RED "No client found with requested fd");
+	/* this->printServer(NULL, RED "No client found with requested fd"); */
 	return (NULL);
 }
 

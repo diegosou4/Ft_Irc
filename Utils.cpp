@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 13:00:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 23:24:12 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/03 19:48:30 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,6 +86,7 @@ void	Server::removeClient(Client *client)
 	this->_clients.erase(client->getNickname());
 	close(client->getFd());
 	delete client;
+	client = NULL;
 }
 
 // Checks if client has passed PASS, NICK and USER to be considered ACTIVE
