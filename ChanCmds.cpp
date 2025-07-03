@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:35:58 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 11:04:05 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/02 22:49:45 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,20 +33,23 @@ void Server::cmdJoin(Client *client, Channel *channel, str_vector const &msg)
 		{
 			channel = new Channel(msg[1]);
 			this->_channels[msg[1]] = channel;
+			
 		}
-
-		std::cout << "Channel created: " << msg[1] << std::endl;
-
 		code = channel->addMember(*client, this->argExists(msg, 2));
+		
 	}
 
 	if (code)
 		return (this->sendNumeric(*client, code));
 
-	this->cmdTopic(client, channel, this->newVector("TOPIC", channel->getName(), 0));
-	this->cmdNames(client, channel, this->newVector("NAMES", channel->getName(), 0));
+  	if (!code) //  Camille validate this please
+	{
+        this->broadcastJoin(*client, *channel);
+        this->cmdTopic(client, channel, this->newVector("TOPIC", channel->getName(), 0));
+        this->cmdNames(client, channel, this->newVector("NAMES", channel->getName(), 0));
+    
+	}
 
-	this->broadcast(*client, *channel, msg[0], channel->getName());
 }
 
 // Performs checks, sends to channel invite method, sends relevant messages
@@ -145,6 +148,10 @@ void Server::cmdNames(Client *client, Channel *channel, str_vector const &msg)
 		return (this->sendNumeric(*client, code));
 
 	this->sendNumeric(*client, RPL_NAMREPLY, this->nameList(*channel));
+
+	if (channel->isEmpty())
+		this->sendClient(*client, "Channel is empty");
+
 	this->sendNumeric(*client, RPL_ENDOFNAMES, ":End of /NAMES list.");
 }
 
@@ -167,7 +174,6 @@ void Server::cmdPrivmsg(Client *client, Channel *channel, str_vector const &msg)
 	if (code)
 		return (this->sendNumeric(*client, code));
 
-
 	if (channel)
 		this->broadcast(*client, *channel, msg[0], this->argExists(msg, 2));
 	else
@@ -179,12 +185,14 @@ void Server::cmdTopic(Client *client, Channel *channel, str_vector const &msg)
 {
 	int code = 0;
 
-	if (!code && msg.size() < 5)
+	if (!code && msg.size() < 2)
 		code = ERR_NEEDMOREPARAMS;
 	else if (!code && msg.size() > 2 && (msg[2][0] != ':' || msg[2].length() <= 1))
 		code = ERR_UNKNOWNCOMMAND;
 	else
 		code = cmdCheck(client, channel, "");
+	if (code == ERR_NOTINCHAN)
+		code = 0;
 
 	if (!code)
 		code = channel->topicHandle(*client, this->argExists(msg, 2));
@@ -219,4 +227,3 @@ void Server::cmdMode(Client *client, Channel *channel, str_vector const &msg)
 	this->sendNumeric(*client, RPL_CHANMODE, channel->getName() + " " + channel->getModes());
 	this->sendNumeric(*client, RPL_CREATTIME, channel->getName() + " " + channel->getCreat());
 }
-

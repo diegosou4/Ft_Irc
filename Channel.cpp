@@ -3,33 +3,36 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: feden-pe <feden-pe@student.42lisboa.com>   +#+  +:+       +#+        */
+/*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/06/25 20:32:16 by feden-pe          #+#    #+#             */
-/*   Updated: 2025/07/02 14:50:33 by feden-pe         ###   ########.fr       */
+/*   Created: 2025/06/25 20:54:27 by cbouvet           #+#    #+#             */
+/*   Updated: 2025/07/02 22:06:19 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Channel.hpp"
 
 //----------------- Constructor/Destructor ------------------
-
-Channel::Channel(std::string const &name): _name(name), _limit(50), _invite_only(false), _topic_op_only(false) {
-	setCreat();
+Channel::Channel(std::string const &name): _name(name), _limit(50), _invite_only(false), _topic_op_only(false)
+{
+	this->setCreat();
 }
 
-Channel::Channel(std::string const &name, int const limit): _name(name), _limit(limit), _invite_only(false), _topic_op_only(false) {
-	setCreat();
+Channel::Channel(std::string const &name, int const limit): _name(name), _limit(limit), _invite_only(false), _topic_op_only(false)
+{
+	this->setCreat();
 }
 
-Channel::~Channel() {
-	_members.clear();
-	_invited.clear();
-	_operators.clear();
+Channel::~Channel()
+{
+	this->_members.clear();
+	this->_invited.clear();
+	this->_operators.clear();
 }
 
 //------------------------ Setters --------------------------
-void	Channel::setCreat() {
+void	Channel::setCreat()
+{
 	char buff[26];
 
 	time_t current_time = time(NULL);
@@ -37,38 +40,44 @@ void	Channel::setCreat() {
 
 	strftime(buff, 26, "%Y-%m-%d %H:%M:%S", timeinfo);
 
-	_creat = buff;
+	this->_creat = buff;
 }
 
-void	Channel::setName(std::string const &name) {
-	_name = name;
+void	Channel::setName(std::string const &name)
+{
+	this->_name = name;
 }
 
-void	Channel::setTopic(std::string const &topic) {
-	_topic = topic;
+void	Channel::setTopic(std::string const &topic)
+{
+	this->_topic = topic;
 }
 
-void	Channel::setKey(std::string const &key) {
-	_key = key;
+void	Channel::setKey(std::string const &key)
+{
+	this->_key = key;
 }
 
-void	Channel::setLimit(int const &limit) {
-	_limit = limit;
+void	Channel::setLimit(int const &limit)
+{
+	this->_limit = limit;
 }
 
-bool	Channel::setOperator(std::string target) {
-	if (isOperator(target))
+bool	Channel::setOperator(std::string target)
+{
+	if (this->isOperator(target))
 		return (false);
 
-	_operators.insert(target);
+	this->_operators.insert(target);
 	return (true);
 }
 
-int Channel::setInvited(std::string const &name) {
-	if (findMember(name))
+int Channel::setInvited(std::string const &name)
+{
+	if (this->findMember(name))
 		return (ERR_USERINCHAN);
 
-	_invited.insert(name);
+	this->_invited.insert(name);
 
 	return (SUCCESS);
 }
@@ -76,12 +85,12 @@ int Channel::setInvited(std::string const &name) {
 //------------------------ Getters---------------------------
 std::string	Channel::getName() const
 {
-	return (_name);
+	return (this->_name);
 }
 
 std::string	Channel::getTopic() const
 {
-	return (_topic);
+	return (this->_topic);
 }
 
 std::string Channel::getModes() const
@@ -89,176 +98,198 @@ std::string Channel::getModes() const
 	std::string modes;
 	std::string args = " ";
 
-	if (_invite_only)
+	if (this->_invite_only)
 		modes += 'i';
-	if (!_key.empty()) {
+
+	if (!this->_key.empty())
+	{
 		modes += 'k';
-		args += _key + " ";
+		args += this->_key + " ";
 	}
-	if (_limit != 50) {
+
+	if (this->_limit != 50)
+	{
 		modes += 'l';
 		std::stringstream ss;
-		ss << _limit;
+		ss << this->_limit;
 		args += ss.str();
 	}
-	if (_topic_op_only)
+
+	if (this->_topic_op_only)
 		modes += 't';
+
 	return (modes + args);
 }
 
-std::string Channel::getCreat() const {
-	return (_creat);
+std::string Channel::getCreat() const
+{
+	return (this->_creat);
 }
 
-std::vector<Client *> &Channel::getMembers() {
-	return (_members);
+std::vector<Client *> &Channel::getMembers()
+{
+	return (this->_members);
+}
 
 
 //-------------------- Command-related methods-----------------------
-
-int	Channel::addMember(Client &client, std::string const &key) {
-	if (isMember(client))
+int	Channel::addMember(Client &client, std::string const &key)
+{
+	if (this->isMember(client))
 		return (ERR_USERINCHAN);
 
-	if (_invite_only && _invited.find(client.getNickname()) == _invited.end())
+	if (this->_invite_only && this->_invited.find(client.getNickname()) == this->_invited.end())
 		return (ERR_INVITEONLYCHAN);
 
-	if (_members.size() == _limit)
+	if (this->_members.size() == this->_limit)
 		return (ERR_CHANISFULL);
 
-	if (!_key.empty() && (key.empty() || key != _key))
+	if (!this->_key.empty() && (key.empty() || key != this->_key))
 		return (ERR_BADCHANKEY);
 
-	_members.push_back(&client);
-	_invited.erase(client.getNickname());
+	this->_members.push_back(&client);
+	this->_invited.erase(client.getNickname());
 
-	if (_members.size() == 1)
-		_operators.insert(client.getNickname());
+	if (this->_members.size() == 1)
+		this->_operators.insert(client.getNickname());
 
 	return (SUCCESS);
 }
 
-int Channel::kickMember(Client &client, std::string const &target) {
+int Channel::kickMember(Client &client, std::string const &target)
+{
 	std::cout << "KICK Channel method WIP" << std::endl;
 	return (SUCCESS);
 
-	if (!isOperator(client.getNickname()))
+	if (!this->isOperator(client.getNickname()))
 		return (ERR_NOTCHANOP);
 
-	if (!findMember(target))
+	if (!this->findMember(target))
 		return (ERR_USERNOTINCHAN);
 
-	removeMember(*findMember(target));
+	this->removeMember(*this->findMember(target));
 
 	return (SUCCESS);
 }
 
-int	Channel::removeMember(Client &client) {
+int	Channel::removeMember(Client &client)
+{
 	std::string nickname = client.getNickname();
 
-	member_iter it = std::find(_members.begin(), _members.end(), &client);
-	if (it == _members.end())
+	member_iter it = std::find(this->_members.begin(), this->_members.end(), &client);
+	if (it == this->_members.end())
 		return (ERR_NOTINCHAN);
 
-	_members.erase(it);
-	_invited.erase(nickname);
-	removeOperator(nickname);
+	this->_members.erase(it);
+	this->_invited.erase(nickname);
+	this->removeOperator(nickname);
 
 	return (SUCCESS);
 }
 
-int Channel::topicHandle(Client &client, std::string arg) {
-	if (arg.empty()) {
-		if (_topic.empty())
+int Channel::topicHandle(Client &client, std::string arg)
+{
+	if (arg.empty())
+	{
+		if (this->_topic.empty())
 			return (RPL_NOTOPIC);
 		return (RPL_TOPIC);
 	}
 
-	if (!isOperator(client.getNickname()))
+	if (!this->isOperator(client.getNickname()))
 		return (ERR_NOTCHANOP);
 
-	setTopic(arg);
+	this->setTopic(arg);
 
 	return (SUCCESS);
 }
 
-int	Channel::modeFlags(Client &client, char sign, char flag, std::string arg) {
+int	Channel::modeFlags(Client &client, char sign, char flag, std::string arg)
+{
 	bool on_off = (sign == '+');
 
-	if (isOperator(client.getNickname()))
+	if (this->isOperator(client.getNickname()))
 		return (ERR_NOTCHANOP);
-	if (needsArg(sign, flag) && arg.empty())
+	if (this->needsArg(sign, flag) && arg.empty())
 		return (ERR_NEEDMOREPARAMS);
 
-	switch (flag) {
+	switch (flag)
+	{
 		case 'i':
-			_invite_only = on_off; break;
+			this->_invite_only = on_off; break;
 		case 't':
-			_topic_op_only = on_off; break;
+			this->_topic_op_only = on_off; break;
 		case 'k':
-			_key.clear();
+			this->_key.clear();
 			if (on_off)
-				_key = arg;
+				this->_key = arg;
 			break;
 		case 'l':
 			if (on_off && (arg.find_first_not_of (DIGIT_CHARS) != arg.npos || atoi(arg.c_str()) > 50))
 					return (ERR_UNKNOWNMODE);
-			_limit = 50;
+			this->_limit = 50;
 			if (on_off)
-				_limit = atoi(arg.c_str());
+				this->_limit = atoi(arg.c_str());
 			break;
 		case 'o':
-			if (!findMember(arg))
+			if (!this->findMember(arg))
 				return (ERR_USERNOTINCHAN);
 			if (on_off)
-				_operators.insert(arg);
+				this->_operators.insert(arg);
 			else
-				_operators.erase(arg);
+				this->_operators.erase(arg);
 			break;
 		default:
 			return (ERR_UNKNOWNMODE);
 	}
+
 	return (SUCCESS);
 }
 
-void Channel::updateNickname(std::string oldnick, std::string newnick) {
-	if (_operators.find(oldnick) != _invited.end())
-		_operators.insert(newnick);
+void Channel::updateNickname(std::string oldnick, std::string newnick)
+{
+	if (this->_operators.find(oldnick) != this->_invited.end())
+		this->_operators.insert(newnick);
 
-	_operators.erase(oldnick);
+	this->_operators.erase(oldnick);
 
-	if (_invited.find(oldnick) != _invited.end())
-		_operators.insert(newnick);
+	if (this->_invited.find(oldnick) != this->_invited.end())
+		this->_operators.insert(newnick);
 
-	_operators.erase(newnick);
+	this->_operators.erase(newnick);
 }
-void Channel::removeOperator(std::string target) {
-	if (!_members.empty() && _operators.size() == 1 && isOperator(target))
-		_operators.insert((*_members.begin()+1)->getNickname()); // set oldest member as op
+void Channel::removeOperator(std::string target)
+{
+	if (!this->_members.empty() && this->_operators.size() == 1 && this->isOperator(target))
+		this->_operators.insert((*this->_members.begin()+1)->getNickname()); // set oldest member as op
 
-	_operators.erase(target); // if they weren't op in the first place, we're supposed to ignore and not send error
+	this->_operators.erase(target); // if they weren't op in the first place, we're supposed to ignore and not send error
 	//no need to add a if (this->_operators.find(target) == this->_operators.end()) condition, .erase() handles it for us
 }
 //------------------------- Utils----------------------------
-bool	Channel::isEmpty() const {
-	return (_members.empty());
+bool	Channel::isEmpty() const
+{
+	return (this->_members.empty());
 }
 
-bool	Channel::isMember(Client &client) const {
-	if (std::find(_members.begin(), _members.end(), &client) != _members.end())
+bool	Channel::isMember(Client &client) const
+{
+	if (std::find(this->_members.begin(), this->_members.end(), &client) != this->_members.end())
 		return (true);
 
 	return (false);
 }
 
-bool	Channel::isOperator(std::string nick) const {
-	if (_operators.find(nick) != _operators.end())
+bool	Channel::isOperator(std::string nick) const
+{
+	if (this->_operators.find(nick) != this->_operators.end())
 		return (true);
 
 	return (false);
 }
 
-bool	Channel::needsArg(char sign, char flag) {
+bool	Channel::needsArg(char sign, char flag)
+{
 	if (sign == '+' && strchr("klo", flag))
 		return (true);
 
@@ -268,51 +299,14 @@ bool	Channel::needsArg(char sign, char flag) {
 	return (false);
 }
 
-Client *Channel::findMember(std::string name) {
-	member_iter it = _members.begin();
+Client *Channel::findMember(std::string name)
+{
+	member_iter it = this->_members.begin();
 
-	for (; it != _members.end(); ++it)
+	for (; it != this->_members.end(); ++it)
 		if ((*it)->getNickname() == name)
 			return (*it);
 
 	return (NULL);
-=======
-int	Channel::addMember(Client &client, std::string const &key) //We need the key arg so that users can enter channels with pasword
-{
-	std::cout << "ADD Channel method WIP" << std::endl;
-	(void)key;
-	if (std::find(_members.begin(), _members.end(), &client) != _members.end())
-		return ERR_USERINCHAN;
-
-	if (_limit > 0 && _members.size() >= _limit)
-		return ERR_CHANISFULL;
-
-	// Invite-only?
-	if (_invite_only && _invited.find(client.getNickname()) == _invited.end())
-		return ERR_INVITEONLYCHAN;
-
-	_members.push_back(&client);
-
-
-	return SUCCESS;
 }
 
-
-int Channel::kickMember(Client &client, std::string const &target)
-{
-	(void)client;
-	(void)target;
-	/*
-		if client not op
-			return ERR_NOTCHANOP
-	if target not a member
-		 return ERR_USERNOTINCHAN
-	call rmMember
-		if channel has k flag in _modes
-			return ERR_BADCHANKEY
-	remove user from all relevant containers
-	return SUCCESS
-		 */
-
-	std::cout << "KICK Channel method WIP" << std::endl;
-	return (SUCCESS);

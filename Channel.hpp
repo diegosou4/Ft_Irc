@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:22 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 13:58:17 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/02 22:07:48 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,6 @@ class Channel
 
 		//Setters:
 		void	setCreat();
-
 		void	setName(std::string const &name);
 		void	setTopic(std::string const &topic);
 		void	setKey(std::string const &password);
@@ -75,7 +74,6 @@ class Channel
 		int	modeFlags(Client &client, char sign, char flag, std::string arg);
 		void updateNickname(std::string oldnick, std::string newnick);
 		void removeOperator(std::string target);
-
 
 		//Utils:
 		bool	isEmpty() const;

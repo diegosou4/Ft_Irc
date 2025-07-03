@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 13:00:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 13:41:04 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/02 23:24:12 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ void	Server::setCmdMaps()
 	this->_authcmds["KICK"] = &Server::cmdKick;
 	this->_authcmds["PART"] = &Server::cmdPart;
 	this->_authcmds["QUIT"] = &Server::cmdQuit;
-	this->_authcmds["NAME"] = &Server::cmdNames;
+	this->_authcmds["NAMES"] = &Server::cmdNames;
 	this->_authcmds["PRIVMSG"] = &Server::cmdPrivmsg;
 	this->_authcmds["TOPIC"] = &Server::cmdTopic;
 	this->_authcmds["MODE"] = &Server::cmdMode;
@@ -98,6 +98,7 @@ bool	Server::authCheck(Client &client)
 		return (false);
 
 	client.setState(ACTIVE);
+	client.setPrefix();
 
 	this->sendNumeric(client, RPL_WELCOME, WELCOME);
 	this->printServer(&client, "has successfully logged in");
@@ -122,7 +123,7 @@ Server::str_vector Server::newVector(std::string const &arg1, std::string const 
 std::string	Server::argExists(str_vector const &msg, size_t index)
 {
 	if (index >= msg.size())
-		return (NULL);
+		return ("");
 
 	return (msg[index]);
 }

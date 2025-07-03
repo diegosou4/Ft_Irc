@@ -30,6 +30,17 @@ Channel	*Server::findChannel(str_vector &split_msg)
 	return (channel);
 }
 
+Channel *Server::findChannel(std::string const &name)
+{
+	Channel *channel = NULL;
+
+	if (this->_channels.find(name) != this->_channels.end())
+		channel = this->_channels[name];
+
+	return (channel);
+}
+
+
 // Lists all channel members, sends back string
 std::string Server::nameList(Channel &channel)
 {

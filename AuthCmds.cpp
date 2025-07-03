@@ -102,18 +102,9 @@ void Server::cmdUser(Client *client, Channel *channel, str_vector const &msg)
 	if (code)
 		return (this->sendNumeric(*client, code));
 
-
-	if(msg.size() < 4)
-		return (this->sendNumeric(*client, ERR_NEEDMOREPARAMS));
-	if(msg[1].length() < 1 || msg[2].length() < 1 || msg[3].length() < 1)
-		return (this->sendNumeric(*client, ERR_NEEDMOREPARAMS));
-	
 	client->setUsername(msg[1]);
-	client->setHostname(msg[2]);
-	client->setPrefix(); 
-	client->setState(ACTIVE); 
-	client->setRealname(msg[3]); 
-	this->sendClient(*client, WELCOME);
+	client->setRealname(this->argExists(msg, 4));
+
 	this->authCheck(*client);
 }
 

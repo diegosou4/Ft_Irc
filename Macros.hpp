@@ -23,10 +23,8 @@
 #define LOCALHOST	"127.0.0.1"
 #define BUFFSIZE	1000
 #define REMOVAL		-2
-
 #define PING_TIMEOUT 180
 #define PONG_TIMEOUT 60
-
 
 //Colours:
 #define PURPLE	"\001\033[1;38;2;209;174;231m\002"
@@ -86,9 +84,7 @@
 #define	ERR_UNKNOWNMODE		472
 #define	ERR_INVITEONLYCHAN	473
 #define	ERR_BADCHANKEY		475
-
 #define	ERR_NOTCHANOP		482
-
 
 static std::map<int, std::string> create_errmsg()
 {

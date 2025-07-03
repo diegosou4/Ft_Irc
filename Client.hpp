@@ -49,10 +49,6 @@ class Client
 	public:
 		//Constructor/Destructor:
 		Client();
-		std::string _hostname; // more useful than IP - we can get IP from hostname anyways
-		std::string _prefix; // needed for compliance with RFC 2812 output responses
-
-	public:
 		Client(int fd);
 		Client(Client const &src);
 		~Client();
@@ -79,6 +75,7 @@ class Client
 		std::string getUsername() const;
 		std::string getNickname() const;
 		std::string getHostname() const;
+		std::string getPrefix() const;
 
 		bool	passedNick()const;
 		bool	passedUser()const;
