@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:25:25 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 13:38:38 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/03 21:03:51 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ void Server::cmdPass(Client *client, Channel *channel, str_vector const &msg)
 		code = ERR_WRONGPASS;
 
 	if (code)
-		return (this->sendNumeric(*client, code));
+		return (this->sendNumeric(*client, 0, code));
 
 	client->setState(PASS_OK);
 
@@ -67,7 +67,7 @@ void Server::cmdNick(Client *client, Channel *channel, str_vector const &msg)
 		code = ERR_INVALIDNICK;
 
 	if (code)
-		return (this->sendNumeric(*client, code));
+		return (this->sendNumeric(*client, 0, code));
 
 	for (channels_iter it = this->_channels.begin(); it != this->_channels.end(); ++it)
 	{
@@ -100,7 +100,7 @@ void Server::cmdUser(Client *client, Channel *channel, str_vector const &msg)
 		code = ERR_UNKNOWNCOMMAND;
 
 	if (code)
-		return (this->sendNumeric(*client, code));
+		return (this->sendNumeric(*client, 0, code));
 
 	client->setUsername(msg[1]);
 	client->setRealname(this->argExists(msg, 4));
@@ -115,7 +115,7 @@ void Server::cmdQuit(Client *client, Channel *channel, str_vector const &msg)
 		throw std::runtime_error("Fatal: client not found");
 
 	if (msg.size() > 1 && (msg[1][0] != ':' || msg[1].length() < 2))
-		return (this->sendNumeric(*client, ERR_NEEDMOREPARAMS));
+		return (this->sendNumeric(*client, 0, ERR_NEEDMOREPARAMS));
 
 	channels_iter it = this->_channels.begin();
 	while (it != this->_channels.end())

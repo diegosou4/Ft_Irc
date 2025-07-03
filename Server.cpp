@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/03 20:32:01 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/03 21:24:16 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,10 @@ Server::~Server()
 {
 	if (this->_fd > 0)
 		close(this->_fd);
+
+	for (pollfd_iter it = this->_fds.begin(); it != this->_fds.end(); ++it)
+		if (it->fd > 0)
+			close(it->fd);
 	this->_fds.clear();
 
 	for (clients_iter it = this->_clients.begin(); it != this->_clients.end(); ++it)

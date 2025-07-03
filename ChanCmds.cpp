@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:35:58 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/03 20:25:24 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/03 21:38:07 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ void Server::cmdJoin(Client *client, Channel *channel, str_vector const &msg)
 	}
 
 	if (code)
-		return (this->sendNumeric(*client, code));
+		return (this->sendNumeric(*client, channel, code));
 
 	this->broadcastJoin(*client, *channel);
 	this->cmdTopic(client, channel, this->newVector("TOPIC", channel->getName(), 0));
@@ -60,7 +60,7 @@ void Server::cmdInvite(Client *client, Channel *channel, str_vector const &msg)
 		code = channel->setInvited(msg[1]);
 
 	if (code)
-		return (this->sendNumeric(*client, code));
+		return (this->sendNumeric(*client, channel, code));
 
 	Client target = *this->_clients[msg[1]];
 
@@ -85,7 +85,7 @@ void Server::cmdKick(Client *client, Channel *channel, str_vector const &msg)
 		code = channel->kickMember(*client, msg[2]);
 
 	if (code)
-		return (this->sendNumeric(*client, code));
+		return (this->sendNumeric(*client, channel, code));
 
 	if (msg.size() > 3)
 		reason = this->argExists(msg, 3);
@@ -109,7 +109,7 @@ void Server::cmdPart(Client *client, Channel *channel, str_vector const &msg)
 		code = channel->removeMember(*client);
 
 	if (code)
-		return (this->sendNumeric(*client, code));
+		return (this->sendNumeric(*client, channel, code));
 
 	if (!channel->isEmpty())
 		return (this->broadcast(*client, *channel, msg[0], this->argExists(msg, 2)));
@@ -139,7 +139,7 @@ void Server::cmdNames(Client *client, Channel *channel, str_vector const &msg)
 		code = 0;
 
 	if (code)
-		return (this->sendNumeric(*client, code));
+		return (this->sendNumeric(*client, channel, code));
 
 	this->sendNumeric(*client, RPL_NAMREPLY, this->nameList(*channel));
 
@@ -166,7 +166,7 @@ void Server::cmdPrivmsg(Client *client, Channel *channel, str_vector const &msg)
 		code = ERR_NOTINCHAN;
 
 	if (code)
-		return (this->sendNumeric(*client, code));
+		return (this->sendNumeric(*client, channel, code));
 
 	if (channel)
 		this->broadcast(*client, *channel, msg[0], this->argExists(msg, 2));
@@ -194,9 +194,9 @@ void Server::cmdTopic(Client *client, Channel *channel, str_vector const &msg)
 	if (code == RPL_NOTOPIC)
 		this->sendNumeric(*client, code, channel->getName() + " :No topic is set");
 	else if (code == RPL_TOPIC)
-		this->sendNumeric(*client, code, channel->getName() + " :" + channel->getTopic());
+		this->sendNumeric(*client, code, channel->getName() + " " + channel->getTopic());
 	else if (code)
-		this->sendNumeric(*client, code);
+		this->sendNumeric(*client, channel, code);
 	else
 		this->broadcast(*client, *channel, msg[0], channel->getTopic());
 }
@@ -213,7 +213,7 @@ void Server::cmdMode(Client *client, Channel *channel, str_vector const &msg)
 		code = ERR_UNKNOWNCOMMAND;
 
 	if (code)
-		return (this->sendNumeric(*client, code));
+		return (this->sendNumeric(*client, channel, code));
 
 	if (msg.size() > 2)
 		return (this->sendMode(*client, *channel, stop, msg));

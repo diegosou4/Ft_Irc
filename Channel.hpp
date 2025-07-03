@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:22 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 22:07:48 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/03 21:42:33 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,9 +29,9 @@ class Channel
 {
 	private:
 		std::string	_name;
-		std::string _creat;
 		std::string _topic;
 
+		time_t _creat;
 		size_t _limit;
 		std::string _key;
 		bool _invite_only;

@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/03 20:01:01 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/03 21:02:40 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,7 @@ class Server
 		// Messages senders - MsgSenders.cpp
 		void printServer(Client *client, std::string const &msg);
 		void sendClient(Client &client, std::string const &msg);
-		void sendNumeric(Client &client, int code);
+		void sendNumeric(Client &client, Channel *channel, int code);
 		void sendNumeric(Client &client, int code, std::string const &msg);
 		void broadcast(Client &client, Client &target, std::string const &cmd, std::string const &msg);
 		void broadcast(Client &client, Channel &channel, std::string const &cmd, std::string const &msg);

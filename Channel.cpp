@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:27 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 22:06:19 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/03 21:45:15 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,16 +31,10 @@ Channel::~Channel()
 }
 
 //------------------------ Setters --------------------------
-void	Channel::setCreat()
+
+void Channel::setCreat()
 {
-	char buff[26];
-
-	time_t current_time = time(NULL);
-	struct tm *timeinfo = localtime (&current_time);
-
-	strftime(buff, 26, "%Y-%m-%d %H:%M:%S", timeinfo);
-
-	this->_creat = buff;
+	time(&this->_creat); // sets current time
 }
 
 void	Channel::setName(std::string const &name)
@@ -96,7 +90,7 @@ std::string	Channel::getTopic() const
 std::string Channel::getModes() const
 {
 	std::string modes;
-	std::string args = " ";
+	std::string args;
 
 	if (this->_invite_only)
 		modes += 'i';
@@ -104,7 +98,7 @@ std::string Channel::getModes() const
 	if (!this->_key.empty())
 	{
 		modes += 'k';
-		args += this->_key + " ";
+		args += " " + this->_key;
 	}
 
 	if (this->_limit != 50)
@@ -112,18 +106,23 @@ std::string Channel::getModes() const
 		modes += 'l';
 		std::stringstream ss;
 		ss << this->_limit;
-		args += ss.str();
+		args += " " + ss.str();
 	}
 
 	if (this->_topic_op_only)
 		modes += 't';
 
-	return (modes + args);
+	if (!modes.empty())
+		modes = "+" + modes + args;
+
+	return (modes);
 }
 
 std::string Channel::getCreat() const
 {
-	return (this->_creat);
+	std::ostringstream oss;
+	oss << this->_creat;
+	return oss.str();
 }
 
 std::vector<Client *> &Channel::getMembers()
@@ -158,9 +157,6 @@ int	Channel::addMember(Client &client, std::string const &key)
 
 int Channel::kickMember(Client &client, std::string const &target)
 {
-	std::cout << "KICK Channel method WIP" << std::endl;
-	return (SUCCESS);
-
 	if (!this->isOperator(client.getNickname()))
 		return (ERR_NOTCHANOP);
 
@@ -208,7 +204,7 @@ int	Channel::modeFlags(Client &client, char sign, char flag, std::string arg)
 {
 	bool on_off = (sign == '+');
 
-	if (this->isOperator(client.getNickname()))
+	if (!this->isOperator(client.getNickname()))
 		return (ERR_NOTCHANOP);
 	if (this->needsArg(sign, flag) && arg.empty())
 		return (ERR_NEEDMOREPARAMS);

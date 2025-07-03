@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:47:44 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/03 20:26:02 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/03 21:02:56 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ void	Server::sendClient(Client &client, std::string const &msg)
 }
 
 // Composes message based on provided code, sends to client
-void	Server::sendNumeric(Client &client, int code)
+void	Server::sendNumeric(Client &client, Channel *channel, int code)
 {
 	std::stringstream ss;
 	std::string msg;
@@ -39,6 +39,8 @@ void	Server::sendNumeric(Client &client, int code)
 		throw (std::runtime_error("Invalid error code"));
 
 	msg = ErrMsg.find(code)->second;
+	if (channel)
+		msg = channel->getName() + " " + msg;
 
 	ss 	<< ":" << this->_name << " " \
 		<< std::setw(3) << std::setfill('0') \
