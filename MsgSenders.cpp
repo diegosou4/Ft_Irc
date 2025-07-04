@@ -131,3 +131,7 @@ void	Server::broadcastJoin(Client &client, Channel &channel)
 }
 
 
+void Server::SendErrorMsg(Client &client, const std::string &msg)
+{
+	this->sendClient(client, msg);
+}

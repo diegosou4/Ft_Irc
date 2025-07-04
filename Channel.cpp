@@ -213,7 +213,13 @@ int Channel::topicHandle(Client &client, std::string arg)
 	}
 
 	if (!this->isOperator(client.getNickname()))
+	{
+		std::cout << "Not an operator" << std::endl;
+		std::cout << "Nickname: " << client.getNickname() << std::endl;
+		std::cout << this->_operators.size() << std::endl;
 		return (ERR_NOTCHANOP);
+	}
+		
 
 	this->setTopic(arg.substr(1)); // remove leading ':'
 	// Changed By Diego

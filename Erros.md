@@ -15,7 +15,7 @@ https://i.imgur.com/nezz4xT.png
 Comando Invite Failed to send message
 https://i.imgur.com/EvCeZHL.png
 
-TOPIC OK
+TOPIC NOT ok
 
 PART OK
 https://i.imgur.com/2vVwAMh.png

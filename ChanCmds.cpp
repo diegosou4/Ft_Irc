@@ -206,7 +206,18 @@ void Server::cmdTopic(Client *client, Channel *channel, str_vector const &msg)
 	
 
 	// Changed By Diego
-	if (code == RPL_NOTOPIC)
+	if( code == ERR_NOTCHANOP) // Working With client
+	{
+		std::ostringstream oss;
+		oss << ":" << this->_name << " "
+			<< std::setw(3) << std::setfill('0') << code << " "
+			<< client->getNickname() << " "
+			<< channel->getName() << " "
+			<< ":You're not channel operator\r\nY";		
+		this->SendErrorMsg(*client, oss.str());
+		return;
+	}
+	else if (code == RPL_NOTOPIC)
 	{
 		this->sendNumeric(*client, code, channel->getName() + " :No topic is set");
 	}
@@ -237,35 +248,75 @@ void Server::cmdMode(Client *client, Channel *channel, str_vector const &msg)
 {
 	int code = 0;
 
-	code = cmdCheck(client, channel, "");
+	code = cmdCheck(client, channel, client->getNickname());
 	std::cout << "Code aqui " << code << std::endl;
 	int stop = checkModeFormat(msg);
 
 	if (!code && stop == -1)
 		code = ERR_UNKNOWNCOMMAND;
 	std::cout << "Mode: " << msg[0] << std::endl;
-	std::cout << code << code << std::endl;
+	std::cout << " Porque o codeg aqui " << code << std::endl;
 	if (code)
 		return (this->sendNumeric(*client, code));
 
-	if (msg.size() > 2 && !code && stop == -1) 
-	{
-		std::cout << "Passo aqui" << std::endl;
-		return (this->sendMode(*client, *channel, stop, msg));
-	}
+	// if (msg.size() > 2 && !code && stop == -1) 
+	// {
+	// 	return (this->sendMode(*client, *channel, stop, msg));
+	// }
 	if(msg.size() > 2 && code  == 0 && stop != -1)
 	{
-		if(channel->hasOperator() ==  false)
-		{
-			channel->setHasOperator(true);
-			channel->setOperator(client->getNickname());
-			this->sendNumeric(*client, RPL_YOUREOPER, "You are now an operator of " + channel->getName());
-		}
-		else if (!channel->isOperator(client->getNickname()))
-		{
-			return this->sendNumeric(*client, ERR_NOTCHANOP);
-		}
+		if(msg[2][0] == '+' && msg[2][1] == 'o')
+			this->setOperatorChannel(*channel, *client);
+		else if(msg[2][0] == '-' && msg[2][1] == 'o')
+			this->removeOperatorChannel(*channel, *client);
 	}
 	this->sendNumeric(*client, RPL_CHANMODE, channel->getName() + " " + channel->getModes());
 	this->sendNumeric(*client, RPL_CREATTIME, channel->getName() + " " + channel->getCreat());
+}
+
+void Server::setOperatorChannel(Channel &channel, Client &client)
+{
+	std::cout << channel.getName() << " " << channel.hasOperator() << std::endl;
+	if(channel.hasOperator() == false)
+	{
+		channel.setHasOperator(true);
+		channel.setOperator(client.getNickname());
+		this->broadcastAll(client, channel, "MODE", "+o " + client.getNickname());
+	}
+	else if(channel.hasOperator() == true && !channel.isOperator(client.getNickname()))
+	{
+		this->sendNumeric(client, ERR_NOTCHANOP);
+	}
+}
+// With client the fuction working ok but, when use nc segfault i don't know why
+void Server::removeOperatorChannel(Channel &channel, Client &client)
+{
+	if (channel.isOperator(client.getNickname()))
+	{
+		channel.removeOperator(client.getNickname());
+		channel.setHasOperator(false);
+		
+		this->broadcastAll(client, channel, "MODE", "-o " + client.getNickname());
+	}
+	else
+	{
+		this->sendNumeric(client, ERR_NOTCHANOP);
+	}
+}
+
+void parseOperator(Channel *channel, Client *client, std::string &arg)
+{
+	if (arg[0] == '+')
+	{
+		if (channel->setOperator(client->getNickname()))
+			channel->setHasOperator(true);
+		else
+			throw std::runtime_error("Failed to set operator");
+	}
+	else if (arg[0] == '-')
+	{
+		channel->removeOperator(arg.substr(1));
+	}
+	else
+		throw std::runtime_error("Invalid operator format");
 }

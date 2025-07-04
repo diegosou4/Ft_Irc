@@ -103,6 +103,10 @@ class Server
 		void broadcastAll(Client &client, Channel &channel, std::string const &cmd, std::string const &msg);
 		void broadcastJoin(Client &client, Channel &channel);
 		void sendNumeric(Client &client, Channel *channel, int code);
+
+		// Command-modes
+		void setOperatorChannel(Channel &channel, Client &client);
+		void removeOperatorChannel(Channel &channel, Client &client);
 		// Authentication-related Commands - AuthCmds.cpp
 		void cmdPong(Client *client, Channel *channel, str_vector const &msg);
 		void cmdPass(Client *client, Channel *channel, str_vector const &msg);
@@ -120,6 +124,7 @@ class Server
 		void cmdTopic(Client *client, Channel *channel, str_vector const &msg);
 		void cmdMode(Client *client, Channel *channel, str_vector const &msg);
 
+		void SendErrorMsg(Client &client, const std::string &msg);
 		// Command-related Utils = CmdUtils.cpp
 		Channel *findChannel(str_vector &split_msg);
 		Channel *findChannel(std::string const &name);
