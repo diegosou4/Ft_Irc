@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:35:58 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/04 17:19:43 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/04 17:40:17 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,7 +89,10 @@ void Server::cmdKick(Client *client, Channel *channel, str_vector const &msg)
 
 	if (msg.size() > 3)
 		reason = this->argExists(msg, 3);
-	this->broadcastAll(*client, *channel, msg[0], msg[1] + reason);
+
+	this->broadcastAll(*client, *channel, msg[0], channel->getName() + " " + msg[2] + " :" + reason);
+
+	channel->removeMember(*channel->findMember(msg[2]));
 }
 
 // Performs checks, sends to channel remove method, deletes channel if empty, sends relevant message

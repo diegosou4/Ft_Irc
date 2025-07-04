@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:27 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/03 21:45:15 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/04 17:38:12 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -163,7 +163,7 @@ int Channel::kickMember(Client &client, std::string const &target)
 	if (!this->findMember(target))
 		return (ERR_USERNOTINCHAN);
 
-	this->removeMember(*this->findMember(target));
+	//this->removeMember(*this->findMember(target));
 
 	return (SUCCESS);
 }
