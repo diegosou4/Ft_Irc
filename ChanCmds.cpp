@@ -203,6 +203,8 @@ void Server::cmdTopic(Client *client, Channel *channel, str_vector const &msg)
 	if (!code)
 		code = channel->topicHandle(*client, this->argExists(msg, 2));
 	
+
+	// Changed By Diego
 	if (code == RPL_NOTOPIC)
 	{
 		this->sendNumeric(*client, code, channel->getName() + " :No topic is set");

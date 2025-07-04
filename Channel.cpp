@@ -158,7 +158,7 @@ int	Channel::addMember(Client &client, std::string const &key)
 
 int Channel::kickMember(Client &client, std::string const &target)
 {
-	std::cout << "KICK Channel method WIP" << std::endl;
+	// Changed By Diego
 
 	if (!this->isOperator(client.getNickname()))
 		return (ERR_NOTCHANOP);
@@ -201,7 +201,7 @@ int Channel::topicHandle(Client &client, std::string arg)
 		return (ERR_NOTCHANOP);
 
 	this->setTopic(arg.substr(1)); // remove leading ':'
-	
+	// Changed By Diego
 	return (RPL_TOPIC);  // RPL_TOPIC is a numerical reply in IRC (Internet Relay Chat) that is sent to a user when they request the topic of a channel, or when the topic of a channel is changed.
 }
 

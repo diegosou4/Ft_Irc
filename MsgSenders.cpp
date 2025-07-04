@@ -88,6 +88,8 @@ void	Server::broadcast(Client &client, Client &target, std::string const &cmd, s
 		this->sendClient(target, output);
 }
 
+
+// Changed By Diego
 void Server::broadcastAll(Client &client, Channel &channel, const std::string &cmd, const std::string &msg)
 {
 	std::string output = client.getPrefix() + " " + cmd + " " + channel.getName() + " " + msg + "\r\n";
@@ -113,6 +115,8 @@ void	Server::broadcast(Client &client, Channel &channel, std::string const &cmd,
 			this->sendClient(**it, output);
 }
 
+
+// Changed By Diego
 void	Server::broadcastJoin(Client &client, Channel &channel)
 {
 	std::string output = client.getPrefix() + " JOIN :" + channel.getName() + "\r\n";
@@ -123,7 +127,7 @@ void	Server::broadcastJoin(Client &client, Channel &channel)
 			this->sendClient(**it, output);
 }
 
-
+// Changed By Diego
 void Server::broadcastTopic(Client &client, Channel &channel)
 {
 	std::string output = client.getPrefix() + " TOPIC " + channel.getName() + " :" + channel.getTopic() + "\r\n";

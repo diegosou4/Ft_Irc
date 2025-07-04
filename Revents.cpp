@@ -44,6 +44,13 @@ void	Server::treatRevent()
 		}
 		if ((current)->fd == REMOVAL)
 		{
+			// Changed By Diego
+			// We need fix the problem when removing the client
+			// the problem is you close the client and delete 
+			// but you din`t remove the client from the _fds vector
+			// I believe that the problem is in the treatRevent method
+			// I think it`s better first put flag removal and when pass in 
+			// this loop we close the fd and delete the client
 			// close(client->getFd());
 			// delete client;
 			// client = NULL;
