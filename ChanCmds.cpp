@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:35:58 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/04 16:22:54 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/04 17:19:43 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ void Server::cmdJoin(Client *client, Channel *channel, str_vector const &msg)
 	if (code)
 		return (this->sendNumeric(*client, channel, code));
 
-	this->broadcast(*client, *channel, msg[0], channel->getName());
+	this->broadcastAll(*client, *channel, msg[0], channel->getName());
 	this->cmdTopic(client, channel, this->newVector("TOPIC", channel->getName(), 0));
 	this->cmdNames(client, channel, this->newVector("NAMES", channel->getName(), 0));
 }
@@ -61,10 +61,11 @@ void Server::cmdInvite(Client *client, Channel *channel, str_vector const &msg)
 	if (code)
 		return (this->sendNumeric(*client, channel, code));
 
-	Client target = *this->_clients[msg[1]];
+	Client &target = *this->_clients[msg[1]];
 
 	this->sendNumeric(*client, RPL_INVITING, target.getNickname() + " " + channel->getName());
-	this->broadcast(*client, target, msg[0], target.getNickname() + " :" + channel->getName());
+	this->broadcast(*client, target, msg[0], target.getNickname() + " " + channel->getName());
+	this->broadcastOthers(*client, *channel, msg[0], target.getNickname() + " " + channel->getName());
 }
 
 // Performs checks, sends to channel kick method, sends relevant message
@@ -88,7 +89,7 @@ void Server::cmdKick(Client *client, Channel *channel, str_vector const &msg)
 
 	if (msg.size() > 3)
 		reason = this->argExists(msg, 3);
-	this->broadcast(*client, *channel, msg[0], msg[1] + reason);
+	this->broadcastAll(*client, *channel, msg[0], msg[1] + reason);
 }
 
 // Performs checks, sends to channel remove method, deletes channel if empty, sends relevant message
@@ -111,7 +112,7 @@ void Server::cmdPart(Client *client, Channel *channel, str_vector const &msg)
 		return (this->sendNumeric(*client, channel, code));
 
 	if (!channel->isEmpty())
-		return (this->broadcast(*client, *channel, msg[0], this->argExists(msg, 2)));
+		return (this->broadcastAll(*client, *channel, msg[0], this->argExists(msg, 2)));
 
 	this->_channels.erase(channel->getName());
 	delete channel;
@@ -168,7 +169,7 @@ void Server::cmdPrivmsg(Client *client, Channel *channel, str_vector const &msg)
 		return (this->sendNumeric(*client, channel, code));
 
 	if (channel)
-		this->broadcast(*client, *channel, msg[0], this->argExists(msg, 2));
+		this->broadcastAll(*client, *channel, msg[0], this->argExists(msg, 2));
 	else
 		this->broadcast(*client, *this->_clients[msg[1]], msg[0], this->argExists(msg, 2));
 }
@@ -197,7 +198,7 @@ void Server::cmdTopic(Client *client, Channel *channel, str_vector const &msg)
 	else if (code)
 		this->sendNumeric(*client, channel, code);
 	else
-		this->broadcast(*client, *channel, msg[0], channel->getTopic());
+		this->broadcastAll(*client, *channel, msg[0], channel->getTopic());
 }
 
 // Performs checks, sends to flag dispatch function or sends back relevant messages & codes

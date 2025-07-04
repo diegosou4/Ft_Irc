@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/03 21:02:40 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/04 16:58:03 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,8 +99,8 @@ class Server
 		void sendNumeric(Client &client, Channel *channel, int code);
 		void sendNumeric(Client &client, int code, std::string const &msg);
 		void broadcast(Client &client, Client &target, std::string const &cmd, std::string const &msg);
-		void broadcast(Client &client, Channel &channel, std::string const &cmd, std::string const &msg);
-		void broadcastJoin(Client &client, Channel &channel);
+		void broadcastAll(Client &client, Channel &channel, std::string const &cmd, std::string const &msg);
+		void broadcastOthers(Client &client, Channel &channel, std::string const &cmd, std::string const &msg);
 
 		// Authentication-related Commands - AuthCmds.cpp
 		void cmdPong(Client *client, Channel *channel, str_vector const &msg);

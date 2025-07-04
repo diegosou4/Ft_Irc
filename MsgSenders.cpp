@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:47:44 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/04 16:35:11 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/04 17:19:42 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,13 +66,13 @@ void	Server::sendNumeric(Client &client, int code, std::string const &msg)
 // Composes message, sends to given target client
 void	Server::broadcast(Client &client, Client &target, std::string const &cmd, std::string const &msg)
 {
-	std::string output = client.getPrefix() + " " + cmd + " " + msg + "\r\n";
+	std::string output = client.getPrefix() + " " + cmd + " :" + msg + "\r\n";
 	if (target.getState() == ACTIVE)
 		this->sendClient(target, output);
 }
 
 // Composes message, sends to all channels where client is a member
-void	Server::broadcast(Client &client, Channel &channel, std::string const &cmd, std::string const &msg)
+void	Server::broadcastAll(Client &client, Channel &channel, std::string const &cmd, std::string const &msg)
 {
 	std::string output = client.getPrefix() + " " + cmd + " :" +  msg +  "\r\n";
 	if (cmd == "PRIVMSG" && channel.isOperator(client.getNickname()))
@@ -81,6 +81,18 @@ void	Server::broadcast(Client &client, Channel &channel, std::string const &cmd,
 	Channel::member_iter it = channel.getMembers().begin();
 	for (; it != channel.getMembers().end(); ++it)
 		if ((*it)->getState() == ACTIVE)
+			this->sendClient(**it, output);
+}
+
+void	Server::broadcastOthers(Client &client, Channel &channel, std::string const &cmd, std::string const &msg)
+{
+	std::string output = client.getPrefix() + " " + cmd + " :" +  msg +  "\r\n";
+	if (cmd == "PRIVMSG" && channel.isOperator(client.getNickname()))
+		output = "@" + output;
+
+	Channel::member_iter it = channel.getMembers().begin();
+	for (; it != channel.getMembers().end(); ++it)
+		if ((*it) != &client && (*it)->getState() == ACTIVE)
 			this->sendClient(**it, output);
 }
 
