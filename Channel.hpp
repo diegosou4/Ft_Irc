@@ -36,6 +36,7 @@ class Channel
 		std::string _key;
 		bool _invite_only;
 		bool _topic_op_only;
+		bool _has_operador;
 
 		std::vector<Client *> 	_members;
 		std::set<std::string>	_operators;
@@ -74,8 +75,9 @@ class Channel
 		int	modeFlags(Client &client, char sign, char flag, std::string arg);
 		void updateNickname(std::string oldnick, std::string newnick);
 		void removeOperator(std::string target);
-
+		int setHasOperator(bool status);
 		//Utils:
+		bool	hasOperator() const; // Check First Time if channel has an operator
 		bool	isEmpty() const;
 		bool	isMember(Client &client) const;
 		bool	isOperator(std::string nick) const;

@@ -13,12 +13,12 @@
 #include "Channel.hpp"
 
 //----------------- Constructor/Destructor ------------------
-Channel::Channel(std::string const &name): _name(name), _limit(50), _invite_only(false), _topic_op_only(false)
+Channel::Channel(std::string const &name): _name(name), _limit(50), _invite_only(false), _topic_op_only(false), _has_operador(false)
 {
 	this->setCreat();
 }
 
-Channel::Channel(std::string const &name, int const limit): _name(name), _limit(limit), _invite_only(false), _topic_op_only(false)
+Channel::Channel(std::string const &name, int const limit): _name(name), _limit(limit), _invite_only(false), _topic_op_only(false),  _has_operador(false)
 {
 	this->setCreat();
 }
@@ -131,6 +131,21 @@ std::vector<Client *> &Channel::getMembers()
 	return (this->_members);
 }
 
+
+bool Channel::hasOperator() const
+{
+	return this->_has_operador;
+}
+
+int Channel::setHasOperator(bool status)
+{
+	if (this->_has_operador == true)
+		return (ERR_NOTCHANOP);
+	else 
+		this->_has_operador = status;
+
+	return (SUCCESS);
+}
 
 //-------------------- Command-related methods-----------------------
 int	Channel::addMember(Client &client, std::string const &key)

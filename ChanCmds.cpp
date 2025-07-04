@@ -238,17 +238,34 @@ void Server::cmdMode(Client *client, Channel *channel, str_vector const &msg)
 	int code = 0;
 
 	code = cmdCheck(client, channel, "");
+	std::cout << "Code aqui " << code << std::endl;
 	int stop = checkModeFormat(msg);
 
 	if (!code && stop == -1)
 		code = ERR_UNKNOWNCOMMAND;
-
+	std::cout << "Mode: " << msg[0] << std::endl;
+	std::cout << code << code << std::endl;
 	if (code)
 		return (this->sendNumeric(*client, code));
 
-	if (msg.size() > 2)
+	if (msg.size() > 2 && !code && stop == -1) 
+	{
+		std::cout << "Passo aqui" << std::endl;
 		return (this->sendMode(*client, *channel, stop, msg));
-
+	}
+	if(msg.size() > 2 && code  == 0 && stop != -1)
+	{
+		if(channel->hasOperator() ==  false)
+		{
+			channel->setHasOperator(true);
+			channel->setOperator(client->getNickname());
+			this->sendNumeric(*client, RPL_YOUREOPER, "You are now an operator of " + channel->getName());
+		}
+		else if (!channel->isOperator(client->getNickname()))
+		{
+			return this->sendNumeric(*client, ERR_NOTCHANOP);
+		}
+	}
 	this->sendNumeric(*client, RPL_CHANMODE, channel->getName() + " " + channel->getModes());
 	this->sendNumeric(*client, RPL_CREATTIME, channel->getName() + " " + channel->getCreat());
 }

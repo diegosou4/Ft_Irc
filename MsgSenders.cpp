@@ -34,7 +34,7 @@ void	Server::sendNumeric(Client &client, int code)
 {
 	std::stringstream ss;
 	std::string msg;
-
+	
 	if (ErrMsg.find(code) == ErrMsg.end())
 		throw (std::runtime_error("Invalid error code"));
 
