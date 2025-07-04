@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 13:00:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/03 21:21:44 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/04 14:17:27 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,7 +65,7 @@ Server::str_vector Server::splitMsg(std::string &msg)
 			std::getline(ss, arg);
 			if (!arg.empty())
 				str += arg;
-			split_msg.push_back(str.substr(1, str.size()));
+			split_msg.push_back(str);
 			break;
 		}
 		split_msg.push_back(str);
@@ -126,7 +126,7 @@ std::string	Server::argExists(str_vector const &msg, size_t index)
 	if (index >= msg.size())
 		return ("");
 
-	return (msg[index]);
+	return (&msg[index][1]);
 }
 
 void Server::pingClient(Client &client)

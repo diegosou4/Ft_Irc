@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:41:33 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/03 21:06:18 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/04 14:28:20 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,39 +14,32 @@
 #include "Server.hpp"
 
 // Loops around all pollfds for revent activity - if found, sends to relevant event-managing method
-void	Server::treatRevent()
+
+void Server::treatRevent()
 {
 	if (this->_fds.size() <= 1)
-		return ;
+		return;
 
-	pollfd_iter it = this->_fds.begin() +1;
-	while (it != this->_fds.end())
+	for (size_t i = this->_fds.size() - 1; i > 0; --i)
 	{
 		if (this->_clients.empty())
-			return ;
+			return;
 
-		pollfd_iter current = it++;
-		Client *client = this->getClient(current->fd);
-
+		Client *client = this->getClient(this->_fds[i].fd);
 		if (!client)
 			continue;
 
-		switch (current->revents)
+		switch (this->_fds[i].revents)
 		{
-			case POLLHUP:
-				this->pollHup(*client); break;
-			case POLLIN:
-				this->pollIn(*client); break;
-			case POLLERR:
-				this->pollErr(*client); break;
-			case POLLNVAL:
-				this->pollNVal(*client); break;
-			default:
-				break;
+			case POLLHUP: this->pollHup(*client); break;
+			case POLLIN: this->pollIn(*client); break;
+			case POLLERR: this->pollErr(*client); break;
+			case POLLNVAL: this->pollNVal(*client); break;
+			default: break;
 		}
 
-		if (current->fd == REMOVAL)
-			this->_fds.erase(current);
+		if (this->_fds[i].fd == REMOVAL)
+		this->_fds.erase(this->_fds.begin() + i);
 	}
 }
 

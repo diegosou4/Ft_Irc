@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:35:58 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/03 21:38:07 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/04 13:38:11 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,10 +40,9 @@ void Server::cmdJoin(Client *client, Channel *channel, str_vector const &msg)
 	if (code)
 		return (this->sendNumeric(*client, channel, code));
 
-	this->broadcastJoin(*client, *channel);
+	this->broadcast(*client, *channel, msg[0], "");
 	this->cmdTopic(client, channel, this->newVector("TOPIC", channel->getName(), 0));
 	this->cmdNames(client, channel, this->newVector("NAMES", channel->getName(), 0));
-
 }
 
 // Performs checks, sends to channel invite method, sends relevant messages

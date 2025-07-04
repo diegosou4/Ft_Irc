@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/03 21:24:16 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/04 14:42:34 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,7 +89,6 @@ Client *Server::getClient(int fd)
 		if (it->second != NULL && it->second->getFd() == fd)
 			return (it->second);
 
-	/* this->printServer(NULL, RED "No client found with requested fd"); */
 	return (NULL);
 }
 
@@ -166,9 +165,7 @@ void	Server::addSocket(bool isclient)
 
 		Client *newclient = new Client(newpoll.fd);
 		newclient->setState(AT_DOOR);
-		this->_clients[newclient->getNickname()]= newclient; //use fd (as string) as key OR UICIDSS
-
-		this->printServer(newclient, "is at the door");
+		this->_clients[newclient->getNickname()]= newclient;
 	}
 
 	this->_fds.push_back(newpoll);
