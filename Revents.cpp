@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:41:33 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/04 14:28:20 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/04 16:04:58 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,6 +76,8 @@ void Server::pollIn(Client &client)
 
 		if (this->_authcmds.find(split_msg[0]) != this->_authcmds.end())
 			(this->*_authcmds[split_msg[0]])(&client, channel, split_msg);
+		else if (split_msg[0] == "CAP" || split_msg[0] == "WHO")
+			continue;
 		else
 			this->sendNumeric(client, 0, ERR_UNKNOWNCOMMAND);
 	}

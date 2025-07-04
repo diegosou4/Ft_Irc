@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:35:58 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/04 13:38:11 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/04 15:50:58 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ void Server::cmdJoin(Client *client, Channel *channel, str_vector const &msg)
 	if (code)
 		return (this->sendNumeric(*client, channel, code));
 
-	this->broadcast(*client, *channel, msg[0], "");
+	this->broadcast(*client, *channel, msg[0], channel->getName());
 	this->cmdTopic(client, channel, this->newVector("TOPIC", channel->getName(), 0));
 	this->cmdNames(client, channel, this->newVector("NAMES", channel->getName(), 0));
 }
@@ -145,7 +145,7 @@ void Server::cmdNames(Client *client, Channel *channel, str_vector const &msg)
 	if (channel->isEmpty())
 		this->sendClient(*client, "Channel is empty");
 
-	this->sendNumeric(*client, RPL_ENDOFNAMES, ":End of /NAMES list.");
+	this->sendNumeric(*client, RPL_ENDOFNAMES, channel->getName() + " :End of /NAMES list.");
 }
 
 // Performs checks, sends message to relevant client/channel
@@ -193,7 +193,7 @@ void Server::cmdTopic(Client *client, Channel *channel, str_vector const &msg)
 	if (code == RPL_NOTOPIC)
 		this->sendNumeric(*client, code, channel->getName() + " :No topic is set");
 	else if (code == RPL_TOPIC)
-		this->sendNumeric(*client, code, channel->getName() + " " + channel->getTopic());
+		this->sendNumeric(*client, code, channel->getName() + " :" + channel->getTopic());
 	else if (code)
 		this->sendNumeric(*client, channel, code);
 	else

@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:25:25 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/04 14:02:25 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/04 15:32:30 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,12 +71,9 @@ void Server::cmdNick(Client *client, Channel *channel, str_vector const &msg)
 
 	for (channels_iter it = this->_channels.begin(); it != this->_channels.end(); ++it)
 	{
-		it->second->updateNickname(client->getNickname(), msg[1]); // done even if user is non member, because can be on invited list
+		it->second->updateNickname(client->getNickname(), msg[1]);
 		if (it->second->isMember(*client))
-			this->broadcast(*client, *it->second, msg[0] + " ", msg[1]);
-		/* expected printing:
-			to client -> "You are now known as Newname"
-			to channel if applicable -> Oldname is now known as Newname*/
+			this->broadcast(*client, *it->second, msg[0] , msg[1]);
 	}
 
 	this->_clients.erase(client->getNickname());
