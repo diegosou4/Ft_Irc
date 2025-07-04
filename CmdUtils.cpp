@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 22:00:13 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/03 21:03:08 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/04 16:34:05 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,7 +111,7 @@ void	Server::sendMode(Client &client, Channel &channel, size_t stop, str_vector 
 			if (code)
 				this->sendNumeric(client, &channel, code);
 			else
-				this->broadcast(client, channel, msg[0], std::string(1, sign) + msg[i][j] + arg);
+				this->broadcast(client, channel, msg[0], channel.getName() + " " + std::string(1, sign) + msg[i][j] + arg);
 		}
 	}
 }
