@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:35:58 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/04 20:15:56 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/05 00:20:01 by feden-pe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -159,6 +159,9 @@ void Server::cmdPrivmsg(Client *client, Channel *channel, str_vector const &msg)
 
 	if (msg.size() < 3 || (msg[2][0] != ':' || msg[2].size() < 2))
 		code = ERR_NEEDMOREPARAMS;
+	if (msg.size() == 1)
+		// code = 411 ERR_NORECIPIENT;
+		std::cout << "ERROR NO RECIPIENT" << std::endl;
 	else
 		code = cmdCheck(client, channel, msg[1]);
 
