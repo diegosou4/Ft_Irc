@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:27 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/04 18:33:32 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/04 19:21:58 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -254,14 +254,15 @@ void Channel::updateNickname(std::string oldnick, std::string newnick)
 
 	this->_operators.erase(newnick);
 }
+
 void Channel::removeOperator(std::string target)
 {
 	if (!this->_members.empty() && this->_operators.size() == 1 && this->isOperator(target))
-		this->_operators.insert((*this->_members.begin()+1)->getNickname()); // set oldest member as op
+		this->_operators.insert((*this->_members.begin())->getNickname());
 
-	this->_operators.erase(target); // if they weren't op in the first place, we're supposed to ignore and not send error
-	//no need to add a if (this->_operators.find(target) == this->_operators.end()) condition, .erase() handles it for us
+	this->_operators.erase(target);
 }
+
 //------------------------- Utils----------------------------
 bool	Channel::isEmpty() const
 {
