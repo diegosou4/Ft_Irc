@@ -103,7 +103,6 @@ class Server
 		void broadcastAll(Client &client, Channel &channel, std::string const &cmd, std::string const &msg);
 		void broadcastJoin(Client &client, Channel &channel);
 		void sendNumeric(Client &client, Channel *channel, int code);
-		void broadcastTopic(Client &client, Channel &channel);
 		// Authentication-related Commands - AuthCmds.cpp
 		void cmdPong(Client *client, Channel *channel, str_vector const &msg);
 		void cmdPass(Client *client, Channel *channel, str_vector const &msg);

@@ -48,10 +48,12 @@ std::string Server::nameList(Channel &channel)
 	Channel::member_iter it = channel.getMembers().begin();
 	for (; it != channel.getMembers().end(); ++it)
 	{
-		if (channel.isOperator((*it)->getNickname()))
-			namelist += " @" + (*it)->getNickname();
+		if (channel.isOperator((*it)->getNickname())) // :ircserv 353 diegpo = #general :@diego diegpo
+			namelist += "@" + (*it)->getNickname();
 		else
-			namelist += " " + (*it)->getNickname();
+			namelist += " " + (*it)->getNickname(); // Essa funcao ta errada pq se o operador for o primeiro  ele vai aparecer corretamente 
+				                                  // se ele for o segundo ou terceiro ele vai  imprimir de forma errada 
+		                                       // ex :ircserv 353 diegpo = #general :diegpo @diego  . ou seja o primeiro nome tem q ficar colado ao : e outros q devem ter o espaco
 	}
 
 	return (namelist);

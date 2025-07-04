@@ -120,21 +120,14 @@ void	Server::broadcast(Client &client, Channel &channel, std::string const &cmd,
 void	Server::broadcastJoin(Client &client, Channel &channel)
 {
 	std::string output = client.getPrefix() + " JOIN :" + channel.getName() + "\r\n";
-
+	
+	// if (channel.isOperator(client.getNickname()))
+	// 	output = "@" + output;
+	
 	Channel::member_iter it = channel.getMembers().begin();
 	for (; it != channel.getMembers().end(); ++it)
 		if ((*it)->getState() == ACTIVE)
 			this->sendClient(**it, output);
 }
 
-// Changed By Diego
-void Server::broadcastTopic(Client &client, Channel &channel)
-{
-	std::string output = client.getPrefix() + " TOPIC " + channel.getName() + " :" + channel.getTopic() + "\r\n";
-
-	Channel::member_iter it = channel.getMembers().begin();
-	for (; it != channel.getMembers().end(); ++it)
-		if ((*it)->getState() == ACTIVE)
-			this->sendClient(**it, output);
-}
 

@@ -44,7 +44,7 @@ void Server::cmdJoin(Client *client, Channel *channel, str_vector const &msg)
 	}
 		
 
-this->broadcastJoin(*client, *channel);
+  this->broadcastJoin(*client, *channel);
 	this->cmdTopic(client, channel, this->newVector("TOPIC", channel->getName(), 0));
 	this->cmdNames(client, channel, this->newVector("NAMES", channel->getName(), 0));
 
@@ -77,7 +77,8 @@ void Server::cmdKick(Client *client, Channel *channel, str_vector const &msg)
 {
 	int code = 0;
 	std::string reason = " :"; // mesmo sem motivo o servidor envia um ":"
-
+	// Deve enviar o motivo pelo channel e depois disso remover ele do channel
+	// :OperadorNick KICK #canal UsuarioExpulso :Motivo aqui
 	if (msg.size() < 3)
 		code = ERR_NEEDMOREPARAMS;
 	else if (msg.size() > 3 && (msg[3][0] != ':' || msg[3].length() < 2))
@@ -220,7 +221,7 @@ void Server::cmdTopic(Client *client, Channel *channel, str_vector const &msg)
 	}
 	else if (code)
 	{
-		this->broadcastTopic(*client, *channel);
+		this->broadcastAll(*client, *channel, "TOPIC ", " :" + channel->getTopic());
 		this->sendNumeric(*client, code);
 		this->broadcast(*client, *channel, msg[0], channel->getTopic());
 	}
