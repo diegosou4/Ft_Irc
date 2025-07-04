@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:35:58 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/04 19:51:39 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/04 20:15:56 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -171,14 +171,6 @@ void Server::cmdPrivmsg(Client *client, Channel *channel, str_vector const &msg)
 	if (code)
 		return (this->sendNumeric(*client, channel, code));
 
-/* 	if (channel)
-		this->broadcastAll(*client, *channel, msg[0], channel->getName() + " :" + this->argExists(msg, 2));
-	else
-	{
-		this->broadcast(*client, *this->_clients[msg[1]], msg[0], ": " + this->argExists(msg, 2));
-		this->broadcast(*client, *client, msg[0], ": " + this->argExists(msg, 2));
-	} */
-
 	if (channel)
 		this->broadcastOthers(*client, *channel, msg[0], channel->getName() + " :" + this->argExists(msg, 2));
 	else
@@ -209,7 +201,7 @@ void Server::cmdTopic(Client *client, Channel *channel, str_vector const &msg)
 	else if (code)
 		this->sendNumeric(*client, channel, code);
 	else
-		this->broadcastAll(*client, *channel, msg[0], channel->getTopic());
+		this->broadcastAll(*client, *channel, msg[0], channel->getName() + " :" + channel->getTopic());
 }
 
 // Performs checks, sends to flag dispatch function or sends back relevant messages & codes

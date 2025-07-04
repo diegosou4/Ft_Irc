@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:47:44 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/04 19:53:25 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/04 20:15:46 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,9 +78,10 @@ void	Server::broadcastAll(Client &client, Channel &channel, std::string const &c
 	std::string output = client.getPrefix() + " " + cmd + " :" +  msg +  "\r\n";
 	if (cmd == "PRIVMSG" && channel.isOperator(client.getNickname()))
 		output = "@" + output;
-	if (cmd == "MODE" || cmd == "KICK" || cmd == "PRIVMSG")
+	if (cmd == "MODE" || cmd == "KICK" || cmd == "PRIVMSG" || cmd == "TOPIC")
 		output = client.getPrefix() + " " + cmd + " " + msg + "\r\n";
 
+	std::cout << output << std::endl;
 	Channel::member_iter it = channel.getMembers().begin();
 	for (; it != channel.getMembers().end(); ++it)
 		if ((*it)->getState() == ACTIVE)
@@ -92,7 +93,7 @@ void	Server::broadcastOthers(Client &client, Channel &channel, std::string const
 	std::string output = client.getPrefix() + " " + cmd + " :" +  msg +  "\r\n";
 	if (cmd == "PRIVMSG" && channel.isOperator(client.getNickname()))
 		output = "@" + output;
-	if (cmd == "MODE" || cmd == "KICK" || cmd == "PRIVMSG")
+	if (cmd == "MODE" || cmd == "KICK" || cmd == "PRIVMSG" || cmd == "TOPIC")
 		output = client.getPrefix() + " " + cmd + " " + msg + "\r\n";
 
 	Channel::member_iter it = channel.getMembers().begin();
