@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 16:47:09 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 13:55:52 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/04 14:41:53 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,5 +80,6 @@ class Client
 		bool	passedNick()const;
 		bool	passedUser()const;
 		bool	wasPinged()const;
+		std::string defaultNickname(int fd)const;
 
 };

@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 13:00:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 23:24:12 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/04 18:56:44 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,7 +84,9 @@ void	Server::removeClient(Client *client)
 	this->printServer(client, "has left");
 
 	this->_clients.erase(client->getNickname());
-
+	close(client->getFd());
+	delete client;
+	client = NULL;
 }
 
 // Checks if client has passed PASS, NICK and USER to be considered ACTIVE
@@ -124,15 +126,15 @@ std::string	Server::argExists(str_vector const &msg, size_t index)
 	if (index >= msg.size())
 		return ("");
 
-	return (msg[index]);
+	if(msg[index][0] == ':')
+		return (msg[index].substr(1)); // Remove leading ':' if present
+	return (&msg[index][0]);
 }
 
-void Server::pingClient(Client &client) // subject don`t request ping command
+void Server::pingClient(Client &client)  // Se eu remover o Ping tem q tirar o Pong por q ele usa o Pong
 {
 	std::string msg = "PING :" + this->_name + "\r\n";
 	this->sendClient(client, msg);
 
 	client.setPinged(true);
 }
-
-

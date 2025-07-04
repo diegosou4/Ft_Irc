@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 12:41:33 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 22:43:28 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/04 19:12:03 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,49 +14,32 @@
 #include "Server.hpp"
 
 // Loops around all pollfds for revent activity - if found, sends to relevant event-managing method
-void	Server::treatRevent()
+
+void Server::treatRevent()
 {
 	if (this->_fds.size() <= 1)
-		return ;
+		return;
 
-	pollfd_iter it = this->_fds.begin() +1;
-	while (it != this->_fds.end())
+	for (size_t i = this->_fds.size() - 1; i > 0; --i)
 	{
-		Client *client = this->getClient(it->fd);
-		pollfd_iter current = it;
-		it++;
+		if (this->_clients.empty())
+			return;
 
+		Client *client = this->getClient(this->_fds[i].fd);
 		if (!client)
 			continue;
 
-		switch (current->revents)
+		switch (this->_fds[i].revents)
 		{
-			case POLLHUP:
-				this->pollHup(*client); break;
-			case POLLIN:
-				this->pollIn(*client); break;
-			case POLLERR:
-				this->pollErr(*client); break;
-			case POLLNVAL:
-				this->pollNVal(*client); break;
-			default:
-				break;
+			case POLLHUP: this->pollHup(*client); break;
+			case POLLIN: this->pollIn(*client); break;
+			case POLLERR: this->pollErr(*client); break;
+			case POLLNVAL: this->pollNVal(*client); break;
+			default: break;
 		}
-		if ((current)->fd == REMOVAL)
-		{
-			// Changed By Diego
-			// We need fix the problem when removing the client
-			// the problem is you close the client and delete 
-			// but you din`t remove the client from the _fds vector
-			// I believe that the problem is in the treatRevent method
-			// I think it`s better first put flag removal and when pass in 
-			// this loop we close the fd and delete the client
-			// close(client->getFd());
-			// delete client;
-			// client = NULL;
-			// this->_fds.erase(current);
-		}
-			
+
+		if (this->_fds[i].fd == REMOVAL)
+		this->_fds.erase(this->_fds.begin() + i);
 	}
 }
 
@@ -93,8 +76,10 @@ void Server::pollIn(Client &client)
 
 		if (this->_authcmds.find(split_msg[0]) != this->_authcmds.end())
 			(this->*_authcmds[split_msg[0]])(&client, channel, split_msg);
+		else if (split_msg[0] == "CAP" || split_msg[0] == "WHO")
+			continue;
 		else
-			this->sendNumeric(client, ERR_UNKNOWNCOMMAND);
+			this->sendNumeric(client, 0, ERR_UNKNOWNCOMMAND);
 	}
 }
 

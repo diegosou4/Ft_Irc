@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 22:41:59 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/04 14:42:34 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,10 @@ Server::~Server()
 {
 	if (this->_fd > 0)
 		close(this->_fd);
+
+	for (pollfd_iter it = this->_fds.begin(); it != this->_fds.end(); ++it)
+		if (it->fd > 0)
+			close(it->fd);
 	this->_fds.clear();
 
 	for (clients_iter it = this->_clients.begin(); it != this->_clients.end(); ++it)
@@ -82,10 +86,9 @@ int	Server::getPort()const
 Client *Server::getClient(int fd)
 {
 	for (clients_iter it = this->_clients.begin(); it != this->_clients.end(); ++it)
-		if (it->second && it->second->getFd() == fd)
+		if (it->second != NULL && it->second->getFd() == fd)
 			return (it->second);
 
-	this->printServer(NULL, RED "No client found with requested fd");
 	return (NULL);
 }
 
@@ -128,7 +131,7 @@ void	Server::handleClient(size_t max_fds, int timeout)
 
 	/* 	time_t current_time = time(NULL);
 		if (current_time - last_check >= 30)
-			last_check = this->checkActivity(current_time); */
+			last_check = this->checkActivity(current_time); */ // Vamos manter o Comand Pong???
 	}
 }
 
@@ -162,9 +165,7 @@ void	Server::addSocket(bool isclient)
 
 		Client *newclient = new Client(newpoll.fd);
 		newclient->setState(AT_DOOR);
-		this->_clients[newclient->getNickname()]= newclient; //use fd (as string) as key OR UICIDSS
-
-		this->printServer(newclient, "is at the door");
+		this->_clients[newclient->getNickname()]= newclient;
 	}
 
 	this->_fds.push_back(newpoll);

@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 22:00:13 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/06/30 17:44:07 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/04 17:00:08 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,17 +30,6 @@ Channel	*Server::findChannel(str_vector &split_msg)
 	return (channel);
 }
 
-Channel *Server::findChannel(std::string const &name)
-{
-	Channel *channel = NULL;
-
-	if (this->_channels.find(name) != this->_channels.end())
-		channel = this->_channels[name];
-
-	return (channel);
-}
-
-
 // Lists all channel members, sends back string
 std::string Server::nameList(Channel &channel)
 {
@@ -48,12 +37,10 @@ std::string Server::nameList(Channel &channel)
 	Channel::member_iter it = channel.getMembers().begin();
 	for (; it != channel.getMembers().end(); ++it)
 	{
-		if (channel.isOperator((*it)->getNickname())) // :ircserv 353 diegpo = #general :@diego diegpo
-			namelist += "@" + (*it)->getNickname();
+		if (channel.isOperator((*it)->getNickname()))
+			namelist += " @" + (*it)->getNickname();
 		else
-			namelist += " " + (*it)->getNickname(); // Essa funcao ta errada pq se o operador for o primeiro  ele vai aparecer corretamente 
-				                                  // se ele for o segundo ou terceiro ele vai  imprimir de forma errada 
-		                                       // ex :ircserv 353 diegpo = #general :diegpo @diego  . ou seja o primeiro nome tem q ficar colado ao : e outros q devem ter o espaco
+			namelist += " " + (*it)->getNickname();
 	}
 
 	return (namelist);
@@ -120,11 +107,12 @@ void	Server::sendMode(Client &client, Channel &channel, size_t stop, str_vector 
 			std::string arg;
 			if (stop < msg.size() && channel.needsArg(sign, msg[i][j]))
 				arg = " " + msg[stop++];
+				
 			int code = channel.modeFlags(client, sign, msg[i][j], this->argExists(msg, stop -1));
 			if (code)
-				this->sendNumeric(client, code);
+				this->sendNumeric(client, &channel, code);
 			else
-				this->broadcast(client, channel, msg[0], std::string(1, sign) + msg[i][j] + arg);
+				this->broadcastAll(client, channel, msg[0], channel.getName() + " " + std::string(1, sign) + msg[i][j] + arg);
 		}
 	}
 }

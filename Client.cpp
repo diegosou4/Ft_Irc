@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 17:06:16 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 23:26:19 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/04 14:42:33 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,7 +134,7 @@ std::string Client::getUsername() const
 std::string Client::getNickname() const
 {
 	if (this->_nickname.empty())
-		return ("user@" + this->_hostname);
+		return (this->defaultNickname(this->_client_fd));
 	return (this->_nickname);
 }
 
@@ -165,4 +165,12 @@ bool	Client::passedUser()const
 bool	Client::wasPinged()const
 {
 	return (this->_pinged);
+}
+
+std::string Client::defaultNickname(int fd) const
+{
+	std::stringstream ss;
+	ss << "ufd_" << fd << "@" << this->_hostname;
+
+	return (ss.str());
 }

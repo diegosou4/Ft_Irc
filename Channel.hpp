@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:22 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 22:07:48 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/03 21:42:33 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,14 +29,13 @@ class Channel
 {
 	private:
 		std::string	_name;
-		std::string _creat;
 		std::string _topic;
 
+		time_t _creat;
 		size_t _limit;
 		std::string _key;
 		bool _invite_only;
 		bool _topic_op_only;
-		bool _has_operador;
 
 		std::vector<Client *> 	_members;
 		std::set<std::string>	_operators;
@@ -71,13 +70,12 @@ class Channel
 		int	addMember(Client &client, std::string const &key);
 		int	removeMember(Client &client);
 		int kickMember(Client &client, std::string const &target);
-		int topicHandle(Client &client, std::string arg);
+		int topicHandle(Client &client,std::string arg);
 		int	modeFlags(Client &client, char sign, char flag, std::string arg);
 		void updateNickname(std::string oldnick, std::string newnick);
 		void removeOperator(std::string target);
-		int setHasOperator(bool status);
+
 		//Utils:
-		bool	hasOperator() const; // Check First Time if channel has an operator
 		bool	isEmpty() const;
 		bool	isMember(Client &client) const;
 		bool	isOperator(std::string nick) const;

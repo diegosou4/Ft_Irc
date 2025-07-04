@@ -11,7 +11,7 @@
 # **************************************************************************** #
 
 NAME = ircserv
-CXX = @c++
+CXX = @c++ -g
 CXX_FLAGS = -Werror -Wall -Wextra -std=c++98
 SRC = 	main.cpp \
 		Server.cpp		Revents.cpp		AuthCmds.cpp	ChanCmds.cpp \

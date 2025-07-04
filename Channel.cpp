@@ -6,19 +6,19 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:27 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 22:06:19 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/04 19:21:58 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Channel.hpp"
 
 //----------------- Constructor/Destructor ------------------
-Channel::Channel(std::string const &name): _name(name), _limit(50), _invite_only(false), _topic_op_only(false), _has_operador(false)
+Channel::Channel(std::string const &name): _name(name), _limit(50), _invite_only(false), _topic_op_only(false)
 {
 	this->setCreat();
 }
 
-Channel::Channel(std::string const &name, int const limit): _name(name), _limit(limit), _invite_only(false), _topic_op_only(false),  _has_operador(false)
+Channel::Channel(std::string const &name, int const limit): _name(name), _limit(limit), _invite_only(false), _topic_op_only(false)
 {
 	this->setCreat();
 }
@@ -31,16 +31,10 @@ Channel::~Channel()
 }
 
 //------------------------ Setters --------------------------
-void	Channel::setCreat()
+
+void Channel::setCreat()
 {
-	char buff[26];
-
-	time_t current_time = time(NULL);
-	struct tm *timeinfo = localtime (&current_time);
-
-	strftime(buff, 26, "%Y-%m-%d %H:%M:%S", timeinfo);
-
-	this->_creat = buff;
+	time(&this->_creat); // sets current time
 }
 
 void	Channel::setName(std::string const &name)
@@ -96,7 +90,7 @@ std::string	Channel::getTopic() const
 std::string Channel::getModes() const
 {
 	std::string modes;
-	std::string args = " ";
+	std::string args;
 
 	if (this->_invite_only)
 		modes += 'i';
@@ -104,7 +98,7 @@ std::string Channel::getModes() const
 	if (!this->_key.empty())
 	{
 		modes += 'k';
-		args += this->_key + " ";
+		args += " " + this->_key;
 	}
 
 	if (this->_limit != 50)
@@ -112,18 +106,23 @@ std::string Channel::getModes() const
 		modes += 'l';
 		std::stringstream ss;
 		ss << this->_limit;
-		args += ss.str();
+		args += " " + ss.str();
 	}
 
 	if (this->_topic_op_only)
 		modes += 't';
 
-	return (modes + args);
+	if (!modes.empty())
+		modes = "+" + modes + args;
+
+	return (modes);
 }
 
 std::string Channel::getCreat() const
 {
-	return (this->_creat);
+	std::ostringstream oss;
+	oss << this->_creat;
+	return oss.str();
 }
 
 std::vector<Client *> &Channel::getMembers()
@@ -131,21 +130,6 @@ std::vector<Client *> &Channel::getMembers()
 	return (this->_members);
 }
 
-
-bool Channel::hasOperator() const
-{
-	return this->_has_operador;
-}
-
-int Channel::setHasOperator(bool status)
-{
-	if (this->_has_operador == true)
-		return (ERR_NOTCHANOP);
-	else 
-		this->_has_operador = status;
-
-	return (SUCCESS);
-}
 
 //-------------------- Command-related methods-----------------------
 int	Channel::addMember(Client &client, std::string const &key)
@@ -173,16 +157,14 @@ int	Channel::addMember(Client &client, std::string const &key)
 
 int Channel::kickMember(Client &client, std::string const &target)
 {
-	// Changed By Diego
-
 	if (!this->isOperator(client.getNickname()))
 		return (ERR_NOTCHANOP);
 
 	if (!this->findMember(target))
 		return (ERR_USERNOTINCHAN);
 
-	this->removeMember(*this->findMember(target));
-	
+	//this->removeMember(*this->findMember(target));
+
 	return (SUCCESS);
 }
 
@@ -201,36 +183,31 @@ int	Channel::removeMember(Client &client)
 	return (SUCCESS);
 }
 
-
-
-int Channel::topicHandle(Client &client, std::string arg)
+int Channel::topicHandle(Client &client,std::string arg)
 {
+	
 	if (arg.empty())
 	{
 		if (this->_topic.empty())
 			return (RPL_NOTOPIC);
 		return (RPL_TOPIC);
 	}
-
-	if (!this->isOperator(client.getNickname()))
-	{
-		std::cout << "Not an operator" << std::endl;
-		std::cout << "Nickname: " << client.getNickname() << std::endl;
-		std::cout << this->_operators.size() << std::endl;
+	// Assim se o topic for alterado ele pode sim mudar
+	if (!this->isOperator(client.getNickname()) && this->_topic_op_only)
 		return (ERR_NOTCHANOP);
-	}
-		
 
-	this->setTopic(arg.substr(1)); // remove leading ':'
-	// Changed By Diego
-	return (RPL_TOPIC);  // RPL_TOPIC is a numerical reply in IRC (Internet Relay Chat) that is sent to a user when they request the topic of a channel, or when the topic of a channel is changed.
+	
+	this->setTopic(arg);
+
+	return (SUCCESS);
 }
 
 int	Channel::modeFlags(Client &client, char sign, char flag, std::string arg)
 {
 	bool on_off = (sign == '+');
+	std::cout << "arg" << arg << std::endl;
 
-	if (this->isOperator(client.getNickname()))
+	if (!this->isOperator(client.getNickname()))
 		return (ERR_NOTCHANOP);
 	if (this->needsArg(sign, flag) && arg.empty())
 		return (ERR_NEEDMOREPARAMS);
@@ -255,7 +232,10 @@ int	Channel::modeFlags(Client &client, char sign, char flag, std::string arg)
 			break;
 		case 'o':
 			if (!this->findMember(arg))
+			{
+				std::cout << "arg: " << arg << std::endl;
 				return (ERR_USERNOTINCHAN);
+			}
 			if (on_off)
 				this->_operators.insert(arg);
 			else
@@ -280,14 +260,15 @@ void Channel::updateNickname(std::string oldnick, std::string newnick)
 
 	this->_operators.erase(newnick);
 }
+
 void Channel::removeOperator(std::string target)
 {
 	if (!this->_members.empty() && this->_operators.size() == 1 && this->isOperator(target))
-		this->_operators.insert((*this->_members.begin()+1)->getNickname()); // set oldest member as op
+		this->_operators.insert((*this->_members.begin())->getNickname());
 
-	this->_operators.erase(target); // if they weren't op in the first place, we're supposed to ignore and not send error
-	//no need to add a if (this->_operators.find(target) == this->_operators.end()) condition, .erase() handles it for us
+	this->_operators.erase(target);
 }
+
 //------------------------- Utils----------------------------
 bool	Channel::isEmpty() const
 {

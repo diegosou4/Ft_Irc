@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/02 22:04:44 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/04 16:58:03 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,17 +96,12 @@ class Server
 		// Messages senders - MsgSenders.cpp
 		void printServer(Client *client, std::string const &msg);
 		void sendClient(Client &client, std::string const &msg);
-		void sendNumeric(Client &client, int code);
+		void sendNumeric(Client &client, Channel *channel, int code);
 		void sendNumeric(Client &client, int code, std::string const &msg);
-		void broadcast(Client &client, Channel &channel, std::string const &cmd, std::string const &msg);
 		void broadcast(Client &client, Client &target, std::string const &cmd, std::string const &msg);
 		void broadcastAll(Client &client, Channel &channel, std::string const &cmd, std::string const &msg);
-		void broadcastJoin(Client &client, Channel &channel);
-		void sendNumeric(Client &client, Channel *channel, int code);
+		void broadcastOthers(Client &client, Channel &channel, std::string const &cmd, std::string const &msg);
 
-		// Command-modes
-		void setOperatorChannel(Channel &channel, Client &client);
-		void removeOperatorChannel(Channel &channel, Client &client);
 		// Authentication-related Commands - AuthCmds.cpp
 		void cmdPong(Client *client, Channel *channel, str_vector const &msg);
 		void cmdPass(Client *client, Channel *channel, str_vector const &msg);
@@ -124,10 +119,8 @@ class Server
 		void cmdTopic(Client *client, Channel *channel, str_vector const &msg);
 		void cmdMode(Client *client, Channel *channel, str_vector const &msg);
 
-		void SendErrorMsg(Client &client, const std::string &msg);
 		// Command-related Utils = CmdUtils.cpp
 		Channel *findChannel(str_vector &split_msg);
-		Channel *findChannel(std::string const &name);
 		std::string nameList(Channel &channel);
 		int	cmdCheck(Client *client, Channel *channel, std::string target);
 		int	checkModeFormat(str_vector const &msg);
