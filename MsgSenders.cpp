@@ -61,13 +61,44 @@ void	Server::sendNumeric(Client &client, int code, std::string const &msg)
 	this->sendClient(client, ss.str());
 }
 
-// Composes message, sends to given target client
+void	Server::sendNumeric(Client &client, Channel *channel, int code)
+{
+	std::stringstream ss;
+	std::string msg;
+
+	if (ErrMsg.find(code) == ErrMsg.end())
+		throw (std::runtime_error("Invalid error code"));
+
+	msg = ErrMsg.find(code)->second;
+	if (channel)
+		msg = channel->getName() + " " + msg;
+
+	ss 	<< ":" << this->_name << " " \
+		<< std::setw(3) << std::setfill('0') \
+		<< code << " " << client.getNickname() \
+		<< " " << msg << "\r\n";
+
+	this->sendClient(client, ss.str());
+}
+
 void	Server::broadcast(Client &client, Client &target, std::string const &cmd, std::string const &msg)
 {
 	std::string output = client.getPrefix() + " " + cmd + " " + msg + "\r\n";
 	if (target.getState() == ACTIVE)
 		this->sendClient(target, output);
 }
+
+void Server::broadcastAll(Client &client, Channel &channel, const std::string &cmd, const std::string &msg)
+{
+	std::string output = client.getPrefix() + " " + cmd + " " + channel.getName() + " " + msg + "\r\n";
+
+	for (Channel::member_iter it = channel.getMembers().begin(); it != channel.getMembers().end(); ++it)
+	{
+		if ((*it)->getState() == ACTIVE)
+			this->sendClient(**it, output); 
+	}
+}
+
 
 // Composes message, sends to all channels where client is a member
 void	Server::broadcast(Client &client, Channel &channel, std::string const &cmd, std::string const &msg)
@@ -78,19 +109,28 @@ void	Server::broadcast(Client &client, Channel &channel, std::string const &cmd,
 
 	Channel::member_iter it = channel.getMembers().begin();
 	for (; it != channel.getMembers().end(); ++it)
+		if ((*it) != &client && (*it)->getState() == ACTIVE)
+			this->sendClient(**it, output);
+}
+
+void	Server::broadcastJoin(Client &client, Channel &channel)
+{
+	std::string output = client.getPrefix() + " JOIN :" + channel.getName() + "\r\n";
+
+	Channel::member_iter it = channel.getMembers().begin();
+	for (; it != channel.getMembers().end(); ++it)
 		if ((*it)->getState() == ACTIVE)
 			this->sendClient(**it, output);
 }
 
 
-void Server::broadcastJoin(Client &client, Channel &channel) // New Fuction Camille check
+void Server::broadcastTopic(Client &client, Channel &channel)
 {
-    std::string output = client.getPrefix() + " JOIN :" + channel.getName() + "\r\n";
+	std::string output = client.getPrefix() + " TOPIC " + channel.getName() + " :" + channel.getTopic() + "\r\n";
 
-    Channel::member_iter it = channel.getMembers().begin();
-    for (; it != channel.getMembers().end(); ++it)
-        if ((*it)->getState() == ACTIVE)
-            this->sendClient(**it, output);
+	Channel::member_iter it = channel.getMembers().begin();
+	for (; it != channel.getMembers().end(); ++it)
+		if ((*it)->getState() == ACTIVE)
+			this->sendClient(**it, output);
 }
-
 

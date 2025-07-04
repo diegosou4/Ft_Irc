@@ -159,7 +159,6 @@ int	Channel::addMember(Client &client, std::string const &key)
 int Channel::kickMember(Client &client, std::string const &target)
 {
 	std::cout << "KICK Channel method WIP" << std::endl;
-	return (SUCCESS);
 
 	if (!this->isOperator(client.getNickname()))
 		return (ERR_NOTCHANOP);
@@ -168,7 +167,7 @@ int Channel::kickMember(Client &client, std::string const &target)
 		return (ERR_USERNOTINCHAN);
 
 	this->removeMember(*this->findMember(target));
-
+	
 	return (SUCCESS);
 }
 
@@ -187,6 +186,8 @@ int	Channel::removeMember(Client &client)
 	return (SUCCESS);
 }
 
+
+
 int Channel::topicHandle(Client &client, std::string arg)
 {
 	if (arg.empty())
@@ -199,9 +200,9 @@ int Channel::topicHandle(Client &client, std::string arg)
 	if (!this->isOperator(client.getNickname()))
 		return (ERR_NOTCHANOP);
 
-	this->setTopic(arg);
-
-	return (SUCCESS);
+	this->setTopic(arg.substr(1)); // remove leading ':'
+	
+	return (RPL_TOPIC);  // RPL_TOPIC is a numerical reply in IRC (Internet Relay Chat) that is sent to a user when they request the topic of a channel, or when the topic of a channel is changed.
 }
 
 int	Channel::modeFlags(Client &client, char sign, char flag, std::string arg)

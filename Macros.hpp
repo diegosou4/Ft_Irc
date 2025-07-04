@@ -50,7 +50,7 @@
 
 #define SUCCESS			000
 #define RPL_WELCOME		001
-
+#
 #define	RPL_CHANMODE	324
 #define RPL_CREATTIME	329
 #define	RPL_NOTOPIC		331

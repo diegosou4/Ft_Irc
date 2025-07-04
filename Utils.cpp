@@ -84,8 +84,7 @@ void	Server::removeClient(Client *client)
 	this->printServer(client, "has left");
 
 	this->_clients.erase(client->getNickname());
-	close(client->getFd());
-	delete client;
+
 }
 
 // Checks if client has passed PASS, NICK and USER to be considered ACTIVE
@@ -128,10 +127,12 @@ std::string	Server::argExists(str_vector const &msg, size_t index)
 	return (msg[index]);
 }
 
-void Server::pingClient(Client &client)
+void Server::pingClient(Client &client) // subject don`t request ping command
 {
 	std::string msg = "PING :" + this->_name + "\r\n";
 	this->sendClient(client, msg);
 
 	client.setPinged(true);
 }
+
+

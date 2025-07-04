@@ -33,22 +33,20 @@ void Server::cmdJoin(Client *client, Channel *channel, str_vector const &msg)
 		{
 			channel = new Channel(msg[1]);
 			this->_channels[msg[1]] = channel;
-			
 		}
 		code = channel->addMember(*client, this->argExists(msg, 2));
-		
 	}
 
 	if (code)
-		return (this->sendNumeric(*client, code));
-
-  	if (!code) //  Camille validate this please
 	{
-        this->broadcastJoin(*client, *channel);
-        this->cmdTopic(client, channel, this->newVector("TOPIC", channel->getName(), 0));
-        this->cmdNames(client, channel, this->newVector("NAMES", channel->getName(), 0));
-    
+		std::cout << "Join error: " << code << std::endl;
+		return (this->sendNumeric(*client, channel, code));
 	}
+		
+
+this->broadcastJoin(*client, *channel);
+	this->cmdTopic(client, channel, this->newVector("TOPIC", channel->getName(), 0));
+	this->cmdNames(client, channel, this->newVector("NAMES", channel->getName(), 0));
 
 }
 
@@ -78,7 +76,7 @@ void Server::cmdInvite(Client *client, Channel *channel, str_vector const &msg)
 void Server::cmdKick(Client *client, Channel *channel, str_vector const &msg)
 {
 	int code = 0;
-	std::string reason;
+	std::string reason = " :"; // mesmo sem motivo o servidor envia um ":"
 
 	if (msg.size() < 3)
 		code = ERR_NEEDMOREPARAMS;
@@ -86,7 +84,8 @@ void Server::cmdKick(Client *client, Channel *channel, str_vector const &msg)
 		code = ERR_NEEDMOREPARAMS;
 	else
 		code = cmdCheck(client, channel, msg[2]);
-
+	std::cout << "Kick: " << msg[2] << std::endl;
+	std::cout << code << std::endl;
 	if (!code)
 		code = channel->kickMember(*client, msg[2]);
 
@@ -94,7 +93,9 @@ void Server::cmdKick(Client *client, Channel *channel, str_vector const &msg)
 		return (this->sendNumeric(*client, code));
 
 	if (msg.size() > 3)
-		reason = this->argExists(msg, 3);
+		reason = " " + this->argExists(msg, 3);
+
+	this->broadcastAll(*client, *channel, "KICK", msg[2] + reason);
 	this->broadcast(*client, *channel, msg[0], msg[1] + reason);
 }
 
@@ -173,9 +174,14 @@ void Server::cmdPrivmsg(Client *client, Channel *channel, str_vector const &msg)
 
 	if (code)
 		return (this->sendNumeric(*client, code));
-
+	std::cout << "Privmsg: " << msg[2] << std::endl;
+	
 	if (channel)
+	{
+
 		this->broadcast(*client, *channel, msg[0], this->argExists(msg, 2));
+	}
+		
 	else
 		this->broadcast(*client, *this->_clients[msg[1]], msg[0], this->argExists(msg, 2));
 }
@@ -196,15 +202,31 @@ void Server::cmdTopic(Client *client, Channel *channel, str_vector const &msg)
 
 	if (!code)
 		code = channel->topicHandle(*client, this->argExists(msg, 2));
-
+	
 	if (code == RPL_NOTOPIC)
+	{
 		this->sendNumeric(*client, code, channel->getName() + " :No topic is set");
-	else if (code == RPL_TOPIC)
+	}
+	else if (code == RPL_TOPIC && msg.size() > 2) // cliente alterou o tópico
+	{
 		this->sendNumeric(*client, code, channel->getName() + " :" + channel->getTopic());
+		this->broadcastAll(*client, *channel, "TOPIC", ":" + channel->getTopic()); // envia pra todos
+	}
+	else if (code == RPL_TOPIC && msg.size() == 2) // cliente apenas consultou o tópico
+	{
+		this->sendNumeric(*client, code, channel->getName() + " :" + channel->getTopic());
+	}
 	else if (code)
+	{
+		this->broadcastTopic(*client, *channel);
 		this->sendNumeric(*client, code);
-	else
 		this->broadcast(*client, *channel, msg[0], channel->getTopic());
+	}
+	else
+	{
+		this->broadcast(*client, *channel, msg[0], channel->getTopic());
+	}
+
 }
 
 // Performs checks, sends to flag dispatch function or sends back relevant messages & codes

@@ -43,7 +43,13 @@ void	Server::treatRevent()
 				break;
 		}
 		if ((current)->fd == REMOVAL)
-			this->_fds.erase(current);
+		{
+			// close(client->getFd());
+			// delete client;
+			// client = NULL;
+			// this->_fds.erase(current);
+		}
+			
 	}
 }
 
