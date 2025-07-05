@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 22:00:13 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/05 16:18:03 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/05 16:38:16 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,7 +108,9 @@ void	Server::sendMode(Client &client, Channel &channel, size_t stop, str_vector 
 			if (stop < msg.size() && channel.needsArg(sign, msg[i][j]))
 				arg = msg[stop++];
 			int code = channel.modeFlags(client, sign, msg[i][j], arg);
-			if (code)
+			if (code == ERR_NOTCHANOP)
+				this->sendNumeric(client, &channel, code);
+			else if (code)
 				this->sendNumeric(client, code, " " + arg + " :" + ErrMsg.find(code)->second);
 			else
 				this->broadcastAll(client, channel, msg[0], channel.getName() + " " + std::string(1, sign) + msg[i][j] + " " + arg);
