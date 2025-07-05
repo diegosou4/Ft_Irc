@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 13:00:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/05 16:43:04 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/05 18:36:30 by feden-pe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,10 +139,9 @@ int Server::parseNick(const std::string &nick)  // We need this function to chec
 	if (nick.empty())
 		return ERR_INVALIDNICK;
 
-	
-	if (nick.find_first_not_of(ALPHA_CHARS) != nick.npos)
+	if (!std::isalpha(static_cast<unsigned char>(nick[0])))
 		return ERR_INVALIDNICK;
-
+	
 	for (size_t i = 1; i < nick.length(); ++i)
 	{
 		char c = nick[i];
