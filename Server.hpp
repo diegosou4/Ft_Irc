@@ -126,6 +126,7 @@ class Server
 
 		// Utils - Utils.cpp
 		void setCmdMaps();
+		int parseNick(const std::string &nick);
 		bool authCheck(Client &client);
 		void leaveAllChans(std::string cmd, Client &client, std::string msg);
 		std::string getMsg(Client &client);

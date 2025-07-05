@@ -133,3 +133,23 @@ std::string	Server::argExists(str_vector const &msg, size_t index)
 
 	return (msg[index]);
 }
+
+int Server::parseNick(const std::string &nick)  // We need this function to check if the nickname is valid
+{									
+	if (nick.empty())
+		return ERR_INVALIDNICK;
+
+	
+	if (nick.find_first_not_of(ALPHA_CHARS) != nick.npos)
+		return ERR_INVALIDNICK;
+
+	for (size_t i = 1; i < nick.length(); ++i)
+	{
+		char c = nick[i];
+		if (!std::isalnum(static_cast<unsigned char>(c)) &&
+		    std::string("[]\\`_^{|}-").find(c) == std::string::npos)
+			return ERR_INVALIDNICK;
+	}
+
+	return SUCCESS;
+}

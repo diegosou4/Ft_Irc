@@ -37,6 +37,7 @@ void Server::cmdPass(Client *client, Channel *channel, str_vector const &msg)
 	this->authCheck(*client);
 }
 
+
 // Performs checks, updates nickname in client's channels + _client maps, broadcasts message
 void Server::cmdNick(Client *client, Channel *channel, str_vector const &msg)
 {
@@ -50,7 +51,7 @@ void Server::cmdNick(Client *client, Channel *channel, str_vector const &msg)
 	else if (this->_clients.find(msg[1]) != this->_clients.end() || \
 	client->getNickname() == msg[1])
 		code = ERR_NICKINUSE;
-	else if (msg[1].find_first_not_of(DIGIT_CHARS ALPHA_CHARS) != msg[1].npos)
+	else if (this->parseNick(msg[1]) != SUCCESS)
 		code = ERR_INVALIDNICK;
 
 	if (code)
