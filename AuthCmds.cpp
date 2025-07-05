@@ -6,25 +6,12 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:25:25 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/05 14:29:48 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/05 16:41:19 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 //------------------------------AuthCmds---------------------------------------
 #include "Server.hpp"
-
-void Server::cmdPong(Client *client, Channel *channel, str_vector const &msg)
-{
-	(void)channel;
-
-	if (!client || msg.size() < 2)
-		return ;
-
-	if (msg[0] == this->_name)
-		client->setPinged(false);
-
-	client->setLastActivity();
-}
 
 // Performs checks, switches client state to PASS_OK if pass is valid
 void Server::cmdPass(Client *client, Channel *channel, str_vector const &msg)

@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/27 12:11:32 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/05 16:30:20 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/05 16:42:39 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,8 +23,6 @@
 #define LOCALHOST	"127.0.0.1"
 #define BUFFSIZE	1000
 #define REMOVAL		-2
-#define PING_TIMEOUT 180
-#define PONG_TIMEOUT 60
 
 //Colours:
 #define PURPLE	"\001\033[1;38;2;209;174;231m\002"
@@ -34,7 +32,6 @@
 
 #define DIGIT_CHARS	"01234567789"
 #define ALPHA_CHARS "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-#define MSG_PONG  "\nPONG received - server is alive\n"
 #define WELCOME \
 "\n          ▗▄▄▄▖▗▄▄▖  ▗▄▄▖           \n\
             █  ▐▌ ▐▌▐▌              \n\

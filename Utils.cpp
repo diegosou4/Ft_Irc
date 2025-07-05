@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 13:00:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/05 16:24:04 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/05 16:43:04 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,6 @@
 // Creates maps linking command to an function
 void	Server::setCmdMaps()
 {
-	this->_authcmds["PONG"] = &Server::cmdPong;
 	this->_authcmds["PASS"] = &Server::cmdPass;
 	this->_authcmds["NICK"] = &Server::cmdNick;
 	this->_authcmds["USER"] = &Server::cmdUser;
@@ -133,12 +132,4 @@ std::string	Server::argExists(str_vector const &msg, size_t index)
 	}
 
 	return (msg[index]);
-}
-
-void Server::pingClient(Client &client)  // Se eu remover o Ping tem q tirar o Pong por q ele usa o Pong
-{
-	std::string msg = "PING :" + this->_name + "\r\n";
-	this->sendClient(client, msg);
-
-	client.setPinged(true);
 }

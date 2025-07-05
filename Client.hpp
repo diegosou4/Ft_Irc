@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 16:47:09 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/04 14:41:53 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/05 16:43:21 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,9 +43,6 @@ class Client
 		std::string _hostname;
 		std::string _prefix;
 
-		bool _pinged;
-		time_t _last_activity;
-
 	public:
 		//Constructor/Destructor:
 		Client();
@@ -58,8 +55,6 @@ class Client
 
 		//Setters:
 		void	setFd(int fd);
-		void	setLastActivity();
-		void	setPinged(bool status);
 		void	setState(clientState state);
 		void	setRealname(std::string realname);
 		void	setUsername(std::string username);
@@ -69,7 +64,6 @@ class Client
 
 		//Getters:
 		int	getFd() const;
-		time_t getLastActivity()const;
 		clientState	getState() const;
 		std::string getRealname() const;
 		std::string getUsername() const;
@@ -79,7 +73,6 @@ class Client
 
 		bool	passedNick()const;
 		bool	passedUser()const;
-		bool	wasPinged()const;
 		std::string defaultNickname(int fd)const;
 
 };
