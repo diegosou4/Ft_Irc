@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:35:58 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/05 14:20:33 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/05 16:15:07 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ void Server::cmdJoin(Client *client, Channel *channel, str_vector const &msg)
 	else if (msg.size() < 2)
 		code = ERR_NEEDMOREPARAMS;
 	else if (msg[1] == "0")
-		return (this->leaveAllChans("PART", *client, ""));
+		return (this->leaveAllChans(msg[0], *client, ""));
 	else if (msg[1][0] != '#' || msg[1].length() < 2)
 		code = ERR_UNKNOWNCOMMAND;
 

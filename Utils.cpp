@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 13:00:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/05 12:28:58 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/05 16:24:04 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,7 +127,10 @@ std::string	Server::argExists(str_vector const &msg, size_t index)
 		return ("");
 
 	if(msg[index][0] == ':')
-		return (msg[index].substr(1));
+	{
+		size_t start = msg[index].find_first_not_of(':');
+		return (msg[index].substr(start));
+	}
 
 	return (msg[index]);
 }

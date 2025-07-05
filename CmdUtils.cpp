@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 22:00:13 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/05 14:41:43 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/05 16:18:03 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -124,6 +124,19 @@ void Server::leaveAllChans(std::string cmd, Client &client, std::string msg)
 		Channel *channel = it->second;
 		it++;
 		if (channel->isMember(client))
-			this->cmdPart(&client, channel, this->newVector(cmd, channel->getName(), &msg));
+		{
+			if (cmd != "QUIT")
+				this->cmdPart(&client, channel, this->newVector("PART", channel->getName(), &msg));
+			else
+			{
+				this->broadcastOthers(client, *channel, cmd, msg);
+				channel->removeMember(client);
+				if (channel->isEmpty())
+				{
+					this->_channels.erase(channel->getName());
+					delete channel;
+				}
+			}
+		}
 	}
 }
