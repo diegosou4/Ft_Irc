@@ -26,6 +26,7 @@ void	Server::setCmdMaps()
 	this->_authcmds["QUIT"] = &Server::cmdQuit;
 	this->_authcmds["NAMES"] = &Server::cmdNames;
 	this->_authcmds["PRIVMSG"] = &Server::cmdPrivmsg;
+	this->_authcmds["NOTICE"] = &Server::CmdNotice;
 	this->_authcmds["TOPIC"] = &Server::cmdTopic;
 	this->_authcmds["MODE"] = &Server::cmdMode;
 }
@@ -135,13 +136,13 @@ std::string	Server::argExists(str_vector const &msg, size_t index)
 }
 
 int Server::parseNick(const std::string &nick)  // We need this function to check if the nickname is valid
-{									
+{
 	if (nick.empty())
 		return ERR_INVALIDNICK;
 
 	if (!std::isalpha(static_cast<unsigned char>(nick[0])))
 		return ERR_INVALIDNICK;
-	
+
 	for (size_t i = 1; i < nick.length(); ++i)
 	{
 		char c = nick[i];

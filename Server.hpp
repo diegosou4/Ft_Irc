@@ -114,6 +114,7 @@ class Server
 		void cmdPart(Client *client, Channel *channel, str_vector const &msg);
 		void cmdNames(Client *client, Channel *channel, str_vector const &msg);
 		void cmdPrivmsg(Client *client, Channel *channel, str_vector const &msg);
+		void cmdNotice(Client *client, Channel *channel, str_vector const &msg);
 		void cmdTopic(Client *client, Channel *channel, str_vector const &msg);
 		void cmdMode(Client *client, Channel *channel, str_vector const &msg);
 

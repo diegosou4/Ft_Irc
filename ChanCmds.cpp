@@ -179,6 +179,25 @@ void Server::cmdPrivmsg(Client *client, Channel *channel, str_vector const &msg)
 		this->broadcast(*client, *this->_clients[msg[1]], msg[0], msg[1] + " :" + this->argExists(msg, 2));
 }
 
+void Server::cmdNotice(Client *client, Channel *channel, str_vector const &msg)
+{
+	if (msg.size() < 3 || msg[2][0] != ':' || msg[2].size() < 2)
+		return;
+
+	int code = cmdCheck(client, channel, msg[1]);
+
+	if ((code == ERR_NOSUCHNICK && channel) || (code == ERR_NOSUCHCHAN && msg[1][0] != '#'))
+		code = 0;
+
+	if (!code && channel && !channel->isMember(*client))
+		return;
+
+	if (channel)
+		this->broadcastOthers(*client, *channel, msg[0], channel->getName() + " :" + this->argExists(msg, 2));
+	else
+		this->broadcast(*client, *this->_clients[msg[1]], msg[0], msg[1] + " :" + this->argExists(msg, 2));
+}
+
 // Performs checks, sends to channel topic method, sends relevant messages & codes
 void Server::cmdTopic(Client *client, Channel *channel, str_vector const &msg)
 {

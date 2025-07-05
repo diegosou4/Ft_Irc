@@ -251,9 +251,9 @@ void Channel::updateNickname(std::string oldnick, std::string newnick)
 	this->_operators.erase(oldnick);
 
 	if (this->_invited.find(oldnick) != this->_invited.end())
-		this->_operators.insert(newnick);
+		this->_invited.insert(newnick);
 
-	this->_operators.erase(newnick);
+	this->_invited.erase(oldnick);
 }
 
 void Channel::removeOperator(std::string target)
