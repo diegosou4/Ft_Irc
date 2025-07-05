@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:47:44 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/05 14:10:01 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/05 18:53:42 by feden-pe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,8 +25,15 @@ void	Server::printServer(Client *client, std::string const &msg)
 // Sends given message to given client
 void	Server::sendClient(Client &client, std::string const &msg)
 {
-	if (send(client.getFd(), msg.c_str(), msg.length(), 0) < 0)
-		this->printServer(&client, RED "Failed to send message");
+	try
+	{
+		if (send(client.getFd(), msg.c_str(), msg.length(), 0) < 0)
+			this->printServer(&client, RED "Failed to send message");
+	}
+	catch (const std::exception &e)
+	{
+		std::cerr << "Error sending message to client: " << e.what() << std::endl;
+	}
 }
 
 // Composes message based on provided code, sends to client
