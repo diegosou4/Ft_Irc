@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:47:44 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/04 20:15:46 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/05 12:42:54 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,19 +33,19 @@ void	Server::sendClient(Client &client, std::string const &msg)
 void	Server::sendNumeric(Client &client, Channel *channel, int code)
 {
 	std::stringstream ss;
-	std::string msg;
+	std::string output;
 
 	if (ErrMsg.find(code) == ErrMsg.end())
 		throw (std::runtime_error("Invalid error code"));
 
-	msg = ErrMsg.find(code)->second;
 	if (channel)
-		msg = channel->getName() + " " + msg;
+		output = channel->getName() + " ";
+	output += ErrMsg.find(code)->second;
 
 	ss 	<< ":" << this->_name << " " \
 		<< std::setw(3) << std::setfill('0') \
 		<< code << " " << client.getNickname() \
-		<< " " << msg << "\r\n";
+		<< " " << output << "\r\n";
 
 	this->sendClient(client, ss.str());
 }
@@ -76,9 +76,7 @@ void	Server::broadcast(Client &client, Client &target, std::string const &cmd, s
 void	Server::broadcastAll(Client &client, Channel &channel, std::string const &cmd, std::string const &msg)
 {
 	std::string output = client.getPrefix() + " " + cmd + " :" +  msg +  "\r\n";
-	if (cmd == "PRIVMSG" && channel.isOperator(client.getNickname()))
-		output = "@" + output;
-	if (cmd == "MODE" || cmd == "KICK" || cmd == "PRIVMSG" || cmd == "TOPIC")
+	if (cmd == "MODE" || cmd == "KICK" || cmd == "TOPIC")
 		output = client.getPrefix() + " " + cmd + " " + msg + "\r\n";
 
 	std::cout << output << std::endl;
@@ -93,7 +91,7 @@ void	Server::broadcastOthers(Client &client, Channel &channel, std::string const
 	std::string output = client.getPrefix() + " " + cmd + " :" +  msg +  "\r\n";
 	if (cmd == "PRIVMSG" && channel.isOperator(client.getNickname()))
 		output = "@" + output;
-	if (cmd == "MODE" || cmd == "KICK" || cmd == "PRIVMSG" || cmd == "TOPIC")
+	if (cmd == "PRIVMSG")
 		output = client.getPrefix() + " " + cmd + " " + msg + "\r\n";
 
 	Channel::member_iter it = channel.getMembers().begin();

@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 22:00:13 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/05 12:16:03 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/05 12:46:44 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,7 +109,7 @@ void	Server::sendMode(Client &client, Channel &channel, size_t stop, str_vector 
 				arg = " " + msg[stop++];
 			int code = channel.modeFlags(client, sign, msg[i][j], arg);
 			if (code)
-				this->sendNumeric(client, &channel, code);
+				this->sendNumeric(client, code, " " + arg + " :" + ErrMsg.find(code)->second);
 			else
 				this->broadcastAll(client, channel, msg[0], channel.getName() + " " + std::string(1, sign) + msg[i][j] + arg);
 		}
