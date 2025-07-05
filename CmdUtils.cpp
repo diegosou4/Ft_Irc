@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 22:00:13 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/04 17:00:08 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/05 12:16:03 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,8 +107,7 @@ void	Server::sendMode(Client &client, Channel &channel, size_t stop, str_vector 
 			std::string arg;
 			if (stop < msg.size() && channel.needsArg(sign, msg[i][j]))
 				arg = " " + msg[stop++];
-				
-			int code = channel.modeFlags(client, sign, msg[i][j], this->argExists(msg, stop -1));
+			int code = channel.modeFlags(client, sign, msg[i][j], arg);
 			if (code)
 				this->sendNumeric(client, &channel, code);
 			else

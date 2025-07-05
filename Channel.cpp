@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:27 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/04 19:21:58 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/05 12:16:45 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -185,7 +185,7 @@ int	Channel::removeMember(Client &client)
 
 int Channel::topicHandle(Client &client,std::string arg)
 {
-	
+
 	if (arg.empty())
 	{
 		if (this->_topic.empty())
@@ -196,7 +196,7 @@ int Channel::topicHandle(Client &client,std::string arg)
 	if (!this->isOperator(client.getNickname()) && this->_topic_op_only)
 		return (ERR_NOTCHANOP);
 
-	
+
 	this->setTopic(arg);
 
 	return (SUCCESS);
@@ -205,7 +205,6 @@ int Channel::topicHandle(Client &client,std::string arg)
 int	Channel::modeFlags(Client &client, char sign, char flag, std::string arg)
 {
 	bool on_off = (sign == '+');
-	std::cout << "arg" << arg << std::endl;
 
 	if (!this->isOperator(client.getNickname()))
 		return (ERR_NOTCHANOP);
@@ -232,10 +231,7 @@ int	Channel::modeFlags(Client &client, char sign, char flag, std::string arg)
 			break;
 		case 'o':
 			if (!this->findMember(arg))
-			{
-				std::cout << "arg: " << arg << std::endl;
 				return (ERR_USERNOTINCHAN);
-			}
 			if (on_off)
 				this->_operators.insert(arg);
 			else

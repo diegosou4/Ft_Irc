@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:25:25 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/04 16:59:00 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/05 11:46:29 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ void Server::cmdNick(Client *client, Channel *channel, str_vector const &msg)
 	if (!client)
 		throw (std::runtime_error("Fatal: client not found"));
 	if (msg.size() != 2)
-		code = ERR_NEEDMOREPARAMS;
+		code = ERR_NONICK;
 	else if (this->_clients.find(msg[1]) != this->_clients.end() || \
 	client->getNickname() == msg[1])
 		code = ERR_NICKINUSE;
