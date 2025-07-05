@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:25:25 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/05 13:29:22 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/05 14:29:48 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,6 +69,7 @@ void Server::cmdNick(Client *client, Channel *channel, str_vector const &msg)
 	if (code)
 		return (this->sendNumeric(*client, 0, code));
 
+	this->broadcast(*client, *client, msg[0] , msg[1]);
 	for (channels_iter it = this->_channels.begin(); it != this->_channels.end(); ++it)
 	{
 		it->second->updateNickname(client->getNickname(), msg[1]);
