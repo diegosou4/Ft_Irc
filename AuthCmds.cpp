@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:25:25 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/05 12:26:40 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/05 13:29:22 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,23 +111,14 @@ void Server::cmdUser(Client *client, Channel *channel, str_vector const &msg)
 // Performs checks, sends to PART for all channels that client was in, sends to removal
 void Server::cmdQuit(Client *client, Channel *channel, str_vector const &msg)
 {
+	(void)channel;
+
 	if (!client)
 		throw std::runtime_error("Fatal: client not found");
 
 	if (msg.size() > 1 && (msg[1][0] != ':' || msg[1].length() < 2))
 		return (this->sendNumeric(*client, 0, ERR_NEEDMOREPARAMS));
 
-	channels_iter it = this->_channels.begin();
-	while (it != this->_channels.end())
-	{
-		channel = it->second;
-		it++;
-		if (channel->isMember(*client))
-		{
-			std::string goodbye_msg = this->argExists(msg, 1);
-			this->cmdPart(client, channel, this->newVector(msg[0], channel->getName(), &goodbye_msg));
-		}
-	}
-
+	this->leaveAllChans(msg[0], *client, this->argExists(msg, 1));
 	this->removeClient(client);
 }

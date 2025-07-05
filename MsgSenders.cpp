@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:47:44 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/05 12:42:54 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/05 14:10:01 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,7 @@ void	Server::broadcast(Client &client, Client &target, std::string const &cmd, s
 void	Server::broadcastAll(Client &client, Channel &channel, std::string const &cmd, std::string const &msg)
 {
 	std::string output = client.getPrefix() + " " + cmd + " :" +  msg +  "\r\n";
-	if (cmd == "MODE" || cmd == "KICK" || cmd == "TOPIC")
+	if (cmd == "MODE" || cmd == "KICK" || cmd == "TOPIC" || cmd == "PART" || cmd == "QUIT")
 		output = client.getPrefix() + " " + cmd + " " + msg + "\r\n";
 
 	std::cout << output << std::endl;

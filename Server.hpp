@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 20:46:31 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/05 12:42:08 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/05 13:00:15 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -130,6 +130,7 @@ class Server
 		// Utils - Utils.cpp
 		void setCmdMaps();
 		bool authCheck(Client &client);
+		void leaveAllChans(std::string cmd, Client &client, std::string msg);
 		std::string getMsg(Client &client);
 		std::string argExists(str_vector const &msg, size_t index);
 		str_vector splitMsg(std::string &msg);

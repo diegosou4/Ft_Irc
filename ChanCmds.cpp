@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:35:58 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/05 12:42:13 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/05 14:20:33 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,8 @@ void Server::cmdJoin(Client *client, Channel *channel, str_vector const &msg)
 		code = ERR_NOTAUTHED;
 	else if (msg.size() < 2)
 		code = ERR_NEEDMOREPARAMS;
+	else if (msg[1] == "0")
+		return (this->leaveAllChans("PART", *client, ""));
 	else if (msg[1][0] != '#' || msg[1].length() < 2)
 		code = ERR_UNKNOWNCOMMAND;
 
@@ -103,7 +105,7 @@ void Server::cmdPart(Client *client, Channel *channel, str_vector const &msg)
 
 	if (msg.size() < 2)
 		code = ERR_NEEDMOREPARAMS;
-	else if (msg.size() > 2 && (msg[2][0] != ':' || msg[2].length() < 2))
+	else if (msg.size() > 2 && !msg[2].empty() && (msg[2][0] != ':' || msg[2].length() < 2))
 		code = ERR_NEEDMOREPARAMS;
 	else
 		code = cmdCheck(client, channel, "");

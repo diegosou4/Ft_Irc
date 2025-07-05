@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 22:00:13 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/05 12:46:44 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/05 14:20:32 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,5 +113,17 @@ void	Server::sendMode(Client &client, Channel &channel, size_t stop, str_vector 
 			else
 				this->broadcastAll(client, channel, msg[0], channel.getName() + " " + std::string(1, sign) + msg[i][j] + arg);
 		}
+	}
+}
+
+void Server::leaveAllChans(std::string cmd, Client &client, std::string msg)
+{
+	channels_iter it = this->_channels.begin();
+	while (it != this->_channels.end())
+	{
+		Channel *channel = it->second;
+		it++;
+		if (channel->isMember(client))
+			this->cmdPart(&client, channel, this->newVector(cmd, channel->getName(), &msg));
 	}
 }
