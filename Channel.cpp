@@ -6,7 +6,7 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:27 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/05 12:16:45 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/05 14:41:41 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -192,10 +192,9 @@ int Channel::topicHandle(Client &client,std::string arg)
 			return (RPL_NOTOPIC);
 		return (RPL_TOPIC);
 	}
-	// Assim se o topic for alterado ele pode sim mudar
+
 	if (!this->isOperator(client.getNickname()) && this->_topic_op_only)
 		return (ERR_NOTCHANOP);
-
 
 	this->setTopic(arg);
 
