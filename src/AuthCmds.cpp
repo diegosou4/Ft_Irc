@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   AuthCmds.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
+/*   By: cbouvet <cbouvet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:25:25 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/06 10:14:19 by feden-pe         ###   ########.fr       */
+/*   Updated: 2025/07/06 13:13:52 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,17 +57,21 @@ void Server::cmdNick(Client *client, Channel *channel, str_vector const &msg)
 	if (code)
 		return (this->sendNumeric(*client, 0, code));
 
+	std::string oldname = client->getNickname();
+
 	this->broadcast(*client, *client, msg[0] , msg[1]);
+	
+	client->setNickname(msg[1]);
+	client->setPrefix();
+	this->_clients.erase(oldname);
+	this->_clients[msg[1]] = client;
+
 	for (channels_iter it = this->_channels.begin(); it != this->_channels.end(); ++it)
 	{
-		it->second->updateNickname(client->getNickname(), msg[1]);
+		it->second->updateNickname(oldname, msg[1]);
 		if (it->second->isMember(*client))
 			this->broadcastOthers(*client, *it->second, msg[0] , msg[1]);
 	}
-
-	this->_clients.erase(client->getNickname());
-	this->_clients[msg[1]] = client;
-	client->setNickname(msg[1]);
 
 	this->authCheck(*client);
 }

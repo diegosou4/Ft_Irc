@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
+/*   By: cbouvet <cbouvet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:22 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/03 21:42:33 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/06 13:17:25 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,6 @@ class Channel
 		void	setTopic(std::string const &topic);
 		void	setKey(std::string const &password);
 		void	setLimit(int const &limit);
-		void	setModes(char sign, char flag);
 		bool	setOperator(std::string target);
 		int 	setInvited(std::string const &name);
 

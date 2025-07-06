@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
+/*   By: cbouvet <cbouvet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 21:29:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/06 10:15:32 by feden-pe         ###   ########.fr       */
+/*   Updated: 2025/07/06 12:25:13 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ Server::Server(int port, std::string password): _port(port), _name("ircserv"), _
 	if (this->_fd < 0)
 		throw (std::runtime_error("Server socket creation failed"));
 
-	this->setSocket(htons(port), inet_addr(LOCALHOST));
+	this->setSocket(htons(port), INADDR_ANY);
 
 	this->printServer(NULL, GREY "Server has been properly set up");
 }

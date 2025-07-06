@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
+/*   By: cbouvet <cbouvet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:54:27 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/06 10:14:30 by feden-pe         ###   ########.fr       */
+/*   Updated: 2025/07/06 13:15:27 by cbouvet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -136,22 +136,22 @@ int	Channel::addMember(Client &client, std::string const &key)
 {
 	if (this->isMember(client))
 		return (ERR_USERINCHAN);
-
+	
 	if (this->_invite_only && this->_invited.find(client.getNickname()) == this->_invited.end())
 		return (ERR_INVITEONLYCHAN);
-
+	
 	if (this->_members.size() == this->_limit)
 		return (ERR_CHANISFULL);
-
+	
 	if (!this->_key.empty() && (key.empty() || key != this->_key))
 		return (ERR_BADCHANKEY);
-
+	
 	this->_members.push_back(&client);
 	this->_invited.erase(client.getNickname());
-
+	
 	if (this->_members.size() == 1)
 		this->_operators.insert(client.getNickname());
-
+	
 	return (SUCCESS);
 }
 
@@ -254,7 +254,7 @@ void Channel::updateNickname(std::string oldnick, std::string newnick)
 		this->_invited.insert(newnick);
 
 	this->_invited.erase(oldnick);
-}
+ }
 
 void Channel::removeOperator(std::string target)
 {
