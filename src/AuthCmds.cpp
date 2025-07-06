@@ -6,12 +6,12 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:25:25 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/05 16:41:19 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/06 10:14:19 by feden-pe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 //------------------------------AuthCmds---------------------------------------
-#include "Server.hpp"
+#include "../includes/Server.hpp"
 
 // Performs checks, switches client state to PASS_OK if pass is valid
 void Server::cmdPass(Client *client, Channel *channel, str_vector const &msg)

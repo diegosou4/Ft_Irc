@@ -6,12 +6,12 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 13:00:56 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/05 18:36:30 by feden-pe         ###   ########.fr       */
+/*   Updated: 2025/07/06 10:17:11 by feden-pe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 //--------------------------------Utils----------------------------------------
-#include "Server.hpp"
+#include "../includes/Server.hpp"
 
 // Creates maps linking command to an function
 void	Server::setCmdMaps()
@@ -26,7 +26,7 @@ void	Server::setCmdMaps()
 	this->_authcmds["QUIT"] = &Server::cmdQuit;
 	this->_authcmds["NAMES"] = &Server::cmdNames;
 	this->_authcmds["PRIVMSG"] = &Server::cmdPrivmsg;
-	this->_authcmds["NOTICE"] = &Server::CmdNotice;
+	this->_authcmds["NOTICE"] = &Server::cmdNotice;
 	this->_authcmds["TOPIC"] = &Server::cmdTopic;
 	this->_authcmds["MODE"] = &Server::cmdMode;
 }

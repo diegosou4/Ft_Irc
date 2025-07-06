@@ -6,12 +6,12 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:35:58 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/05 16:30:21 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/06 10:14:24 by feden-pe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 //------------------------------ChanCmds---------------------------------------
-#include "Server.hpp"
+#include "../includes/Server.hpp"
 
 // Performs checks, adds channel didnt exist, adds user to channel, sends relevant messages
 void Server::cmdJoin(Client *client, Channel *channel, str_vector const &msg)

@@ -6,12 +6,12 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 22:00:13 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/05 16:38:16 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/06 10:15:04 by feden-pe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 //--------------------------------CmdUtils----------------------------------------
-#include "Server.hpp"
+#include "../includes/Server.hpp"
 
 // Searches channel name amongst _channels map, returns NULL if not found
 Channel	*Server::findChannel(str_vector &split_msg)

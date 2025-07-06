@@ -6,12 +6,12 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 17:06:16 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/05 16:43:14 by cbouvet          ###   ########.fr       */
+/*   Updated: 2025/07/06 10:14:58 by feden-pe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Client.hpp"
-#include "Channel.hpp"
+#include "../includes/Client.hpp"
+#include "../includes/Channel.hpp"
 
 
 //----------------- Constructor/Destructor ------------------

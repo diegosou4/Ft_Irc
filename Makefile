@@ -6,18 +6,31 @@
 #    By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/05/26 21:49:04 by cbouvet           #+#    #+#              #
-#    Updated: 2025/06/29 22:10:47 by cbouvet          ###   ########.fr        #
+#    Updated: 2025/07/06 10:29:58 by feden-pe         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = ircserv
-CXX = @c++ -g
-CXX_FLAGS = -Werror -Wall -Wextra -std=c++98
-SRC = 	main.cpp \
-		Server.cpp		Revents.cpp		AuthCmds.cpp	ChanCmds.cpp \
-		MsgSenders.cpp	CmdUtils.cpp	Utils.cpp \
-		Client.cpp		Channel.cpp
-OBJ = $(SRC:.cpp=.o)
+
+CXX = @c++
+
+CXX_FLAGS = -Werror -Wall -Wextra -std=c++98 -g
+
+SRC = 	src/main.cpp \
+		src/Server.cpp \
+		src/Revents.cpp \
+		src/AuthCmds.cpp \
+		src/ChanCmds.cpp \
+		src/MsgSenders.cpp \
+		src/CmdUtils.cpp \
+		src/Utils.cpp \
+		src/Client.cpp \
+		src/Channel.cpp
+
+OBJ_PATH = obj/
+SRC_PATH = src/
+
+OBJ = $(patsubst $(SRC_PATH)%.cpp, $(OBJ_PATH)%.o, $(SRC))
 
 all: $(NAME)
 
@@ -25,11 +38,14 @@ $(NAME): $(OBJ)
 	@$(CXX) $(CXX_FLAGS) -o $(NAME) $(OBJ)
 	@echo "$(NAME) compiled!"
 
-%.o:%.cpp
-	$(CXX) $(CXX_FLAGS) -c $< -o $@
+$(OBJ_PATH)%.o: $(SRC_PATH)%.cpp | $(OBJ_PATH)
+	@$(CXX) $(CXX_FLAGS) -c $< -o $@
+
+$(OBJ_PATH):
+	@mkdir -p $(OBJ_PATH)
 
 clean:
-	@rm -f $(OBJ)
+	@rm -rf $(OBJ_PATH)
 	@echo ".o files removed!"
 
 fclean: clean
@@ -38,4 +54,5 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all clean fclean re
+# .PHONY: all clean fclean re
+

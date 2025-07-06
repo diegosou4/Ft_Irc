@@ -6,12 +6,12 @@
 /*   By: cbouvet <cbouvet@student.42lisboa.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 21:47:44 by cbouvet           #+#    #+#             */
-/*   Updated: 2025/07/05 18:53:42 by feden-pe         ###   ########.fr       */
+/*   Updated: 2025/07/06 10:15:17 by feden-pe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 //--------------------------------MsgSenders----------------------------------------
-#include "Server.hpp"
+#include "../includes/Server.hpp"
 
 // Composes message + prints on server standard output
 void	Server::printServer(Client *client, std::string const &msg)
